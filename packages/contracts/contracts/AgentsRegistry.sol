@@ -79,31 +79,6 @@ contract AgentsRegistry is Ownable {
         return msg.sender;
     }
 
-    function addAgentToService(uint256 serviceId) external {
-        require(agents[msg.sender].isRegistered, "Agent not registered");
-        require(serviceId < nextServiceId, "Invalid service ID");
-
-        uint256[] storage servicesList = agentToServices[msg.sender];
-        for (uint i = 0; i < servicesList.length; i++) {
-            require(servicesList[i] != serviceId, "Agent already in this service");
-        }
-
-        agentToServices[msg.sender].push(serviceId);
-        serviceToAgents[serviceId].push(msg.sender);
-
-        emit AgentAddedToService(msg.sender, serviceId);
-    }
-
-    function getAgentsByService(uint256 serviceId) external view returns (address[] memory) {
-        require(serviceId < nextServiceId, "Invalid service ID");
-        return serviceToAgents[serviceId];
-    }
-
-    function getServicesForAgent(address agent) external view returns (uint256[] memory) {
-        require(agents[agent].isRegistered, "Agent not registered");
-        return agentToServices[agent];
-    }
-
     function updateReputation(address agent, uint256 _reputation) external onlyOwner {
         require(agents[agent].isRegistered, "Agent not registered");
         agents[agent].reputation = _reputation;
@@ -129,5 +104,30 @@ contract AgentsRegistry is Ownable {
         require(agents[agent].isRegistered, "Agent not registered");
         AgentData storage data = agents[agent];
         return (data.model, data.prompt, data.skills, data.reputation);
+    }
+
+      function addAgentToService(uint256 serviceId) external {
+        require(agents[msg.sender].isRegistered, "Agent not registered");
+        require(serviceId < nextServiceId, "Invalid service ID");
+
+        uint256[] storage servicesList = agentToServices[msg.sender];
+        for (uint i = 0; i < servicesList.length; i++) {
+            require(servicesList[i] != serviceId, "Agent already in this service");
+        }
+
+        agentToServices[msg.sender].push(serviceId);
+        serviceToAgents[serviceId].push(msg.sender);
+
+        emit AgentAddedToService(msg.sender, serviceId);
+    }
+
+    function getAgentsByService(uint256 serviceId) external view returns (address[] memory) {
+        require(serviceId < nextServiceId, "Invalid service ID");
+        return serviceToAgents[serviceId];
+    }
+
+    function getServicesForAgent(address agent) external view returns (uint256[] memory) {
+        require(agents[agent].isRegistered, "Agent not registered");
+        return agentToServices[agent];
     }
 }
