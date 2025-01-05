@@ -18,8 +18,14 @@ contract AgentsRegistry is Ownable {
         uint256[] serviceIds;
     }
 
+
     mapping(address => AgentData) public agents;
     mapping(uint256 => address[]) private serviceToAgents;
+
+    modifier onlyRegistered(address agent) {
+        require(agents[agent].isRegistered, "Agent not registered");
+        _;
+    }
 
     constructor() Ownable(msg.sender) {}
 
@@ -43,10 +49,7 @@ contract AgentsRegistry is Ownable {
 
         Skill[] memory skills = new Skill[](skillNames.length);
         for (uint i = 0; i < skillNames.length; i++) {
-            skills[i] = Skill({
-                name: skillNames[i],
-                level: 0
-            });
+            skills[i] = Skill(skillNames[i], 0);
         }
 
         agents[msg.sender] = AgentData({
@@ -62,24 +65,20 @@ contract AgentsRegistry is Ownable {
         return msg.sender;
     }
 
-    function updateReputation(address agent, uint256 _reputation) external onlyOwner {
-        require(agents[agent].isRegistered, "Agent not registered");
+    function updateReputation(address agent, uint256 _reputation) external onlyOwner onlyRegistered(agent) {
         agents[agent].reputation = _reputation;
         emit ReputationUpdated(agent, _reputation);
     }
 
-    function getSkills(address agent) external view returns (Skill[] memory) {
-        require(agents[agent].isRegistered, "Agent not registered");
+    function getSkills(address agent) external view onlyRegistered(agent) returns (Skill[] memory) {
         return agents[agent].skills;
     }
 
-    function getReputation(address agent) external view returns (uint256) {
-        require(agents[agent].isRegistered, "Agent not registered");
+    function getReputation(address agent) external view onlyRegistered(agent) returns (uint256) {
         return agents[agent].reputation;
     }
 
-    function addSkill(address agent, string memory name, uint256 level) external onlyOwner {
-        require(agents[agent].isRegistered, "Agent not registered");
+    function addSkill(address agent, string memory name, uint256 level) external onlyOwner onlyRegistered(agent) {
         agents[agent].skills.push(Skill({
             name: name,
             level: level
@@ -90,14 +89,13 @@ contract AgentsRegistry is Ownable {
         return agents[agent].isRegistered;
     }
 
-    function getAgentData(address agent) external view returns (
+    function getAgentData(address agent) external view onlyRegistered(agent) returns (
         string memory model,
         string memory prompt,
         Skill[] memory skills,
         uint256 reputation,
         uint256[] memory serviceIds
     ) {
-        require(agents[agent].isRegistered, "Agent not registered");
         AgentData storage data = agents[agent];
         return (data.model, data.prompt, data.skills, data.reputation, data.serviceIds);
     }
@@ -107,8 +105,7 @@ contract AgentsRegistry is Ownable {
      * @param agent The address of the agent.
      * @param serviceId The ID of the service.
      */
-    function addServiceToAgent(address agent, uint256 serviceId) external onlyOwner {
-        require(agents[agent].isRegistered, "Agent not registered");
+    function addServiceToAgent(address agent, uint256 serviceId) external onlyOwner onlyRegistered(agent) {
         agents[agent].serviceIds.push(serviceId);
         serviceToAgents[serviceId].push(agent);
         emit ServiceAdded(agent, serviceId);
