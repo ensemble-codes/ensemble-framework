@@ -111,6 +111,31 @@ contract AgentsRegistry is Ownable {
         emit ServiceAdded(agent, serviceId);
     }
 
+    function removeServiceFromAgent(address agent, uint256 serviceId) external onlyOwner onlyRegistered(agent) {
+        uint256[] storage services = agents[agent].serviceIds;
+        bool found = false;
+
+        for (uint i = 0; i < services.length; i++) {
+            if (services[i] == serviceId) {
+                services[i] = services[services.length - 1];
+                services.pop();
+                found = true;
+                break;
+            }
+        }
+
+        require(found, "Service not found for agent");
+
+        address[] storage agentList = serviceToAgents[serviceId];
+        for (uint i = 0; i < agentList.length; i++) {
+            if (agentList[i] == agent) {
+                agentList[i] = agentList[agentList.length - 1];
+                agentList.pop();
+                break;
+            }
+        }
+    }
+
     /**
      * @dev Fetches all agents associated with a specific service ID.
      * @param serviceId The ID of the service.
