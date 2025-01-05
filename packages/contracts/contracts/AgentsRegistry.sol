@@ -17,77 +17,107 @@ contract AgentsRegistry is Ownable {
         bool isRegistered;
     }
 
+    struct Service {
+        string name;
+        string description;
+    }
+
     mapping(address => AgentData) public agents;
+    mapping(address => uint256[]) private agentToServices; // Maps agent to multiple service IDs
+    mapping(uint256 => address[]) private serviceToAgents; // Maps service ID to multiple agents
+    mapping(uint256 => Service) public services; // Stores metadata about services
+    uint256 public nextServiceId; // Auto-incremented service ID
 
     constructor() Ownable(msg.sender) {}
-    
-    event AgentRegistered(address indexed agent, string model);
+
+    event AgentRegistered(address indexed agent, string model, uint256[] serviceIds);
     event ReputationUpdated(address indexed agent, uint256 newReputation);
-    /**
-     * @dev Registers a new agent with the given model, prompt, and skills.
-     * @param model The model of the agent.
-     * @param prompt The prompt for the agent.
-     * @param skillNames The names of the skills the agent possesses.
-     * @return The address of the registered agent.
-     */
+    event ServiceCreated(uint256 indexed serviceId, string name);
+    event AgentAddedToService(address indexed agent, uint256 serviceId);
+
+    function createService(string memory name, string memory description) external onlyOwner returns (uint256) {
+        uint256 serviceId = nextServiceId++;
+        services[serviceId] = Service({ name: name, description: description });
+        emit ServiceCreated(serviceId, name);
+        return serviceId;
+    }
+
+    function getServiceData(uint256 serviceId) external view returns (string memory, string memory) {
+        require(serviceId < nextServiceId, "Invalid service ID");
+        Service storage service = services[serviceId];
+        return (service.name, service.description);
+    }
+
     function registerAgent(
         string memory model,
         string memory prompt,
-        string[] memory skillNames
+        string[] memory skillNames,
+        uint256[] memory serviceIds
     ) external returns (address) {
         require(!agents[msg.sender].isRegistered, "Agent already registered");
 
         Skill[] memory skills = new Skill[](skillNames.length);
         for (uint i = 0; i < skillNames.length; i++) {
-            skills[i] = Skill({
-                name: skillNames[i],
-                level: 0
-            });
+            skills[i] = Skill({ name: skillNames[i], level: 0 });
         }
 
-        agents[msg.sender].model = model;
-        agents[msg.sender].prompt = prompt;
-        agents[msg.sender].reputation = 100;
-        agents[msg.sender].isRegistered = true;
-        
-        // Add skills one by one
-        for (uint i = 0; i < skills.length; i++) {
-            agents[msg.sender].skills.push(skills[i]);
-        }
-        
-        emit AgentRegistered({
-            agent: msg.sender,
-            model: model
+        agents[msg.sender] = AgentData({
+            model: model,
+            prompt: prompt,
+            skills: skills,
+            reputation: 100,
+            isRegistered: true
         });
+
+        for (uint i = 0; i < serviceIds.length; i++) {
+            require(serviceIds[i] < nextServiceId, "Invalid service ID");
+            agentToServices[msg.sender].push(serviceIds[i]);
+            serviceToAgents[serviceIds[i]].push(msg.sender);
+        }
+
+        emit AgentRegistered(msg.sender, model, serviceIds);
         return msg.sender;
     }
 
-    function updateReputation(uint256 _reputation) external onlyOwner {
+    function addAgentToService(uint256 serviceId) external {
         require(agents[msg.sender].isRegistered, "Agent not registered");
-        agents[msg.sender].reputation = _reputation;
-        emit ReputationUpdated(msg.sender, _reputation);
+        require(serviceId < nextServiceId, "Invalid service ID");
+
+        uint256[] storage servicesList = agentToServices[msg.sender];
+        for (uint i = 0; i < servicesList.length; i++) {
+            require(servicesList[i] != serviceId, "Agent already in this service");
+        }
+
+        agentToServices[msg.sender].push(serviceId);
+        serviceToAgents[serviceId].push(msg.sender);
+
+        emit AgentAddedToService(msg.sender, serviceId);
     }
 
-    function getSkills() external view returns (Skill[] memory) {
-        require(agents[msg.sender].isRegistered, "Agent not registered");
-        return agents[msg.sender].skills;
+    function getAgentsByService(uint256 serviceId) external view returns (address[] memory) {
+        require(serviceId < nextServiceId, "Invalid service ID");
+        return serviceToAgents[serviceId];
     }
 
-    function getReputation() external view returns (uint256) {
-        require(agents[msg.sender].isRegistered, "Agent not registered");
-        return agents[msg.sender].reputation;
+    function getServicesForAgent(address agent) external view returns (uint256[] memory) {
+        require(agents[agent].isRegistered, "Agent not registered");
+        return agentToServices[agent];
     }
 
-    function addSkill(string memory name, uint256 level) external onlyOwner {
-        require(agents[msg.sender].isRegistered, "Agent not registered");
-        agents[msg.sender].skills.push(Skill({
-            name: name,
-            level: level
-        }));
+    function updateReputation(address agent, uint256 _reputation) external onlyOwner {
+        require(agents[agent].isRegistered, "Agent not registered");
+        agents[agent].reputation = _reputation;
+        emit ReputationUpdated(agent, _reputation);
     }
 
-    function isRegistered(address agent) external view returns (bool) {
-        return agents[agent].isRegistered;
+    function getSkills(address agent) external view returns (Skill[] memory) {
+        require(agents[agent].isRegistered, "Agent not registered");
+        return agents[agent].skills;
+    }
+
+    function getReputation(address agent) external view returns (uint256) {
+        require(agents[agent].isRegistered, "Agent not registered");
+        return agents[agent].reputation;
     }
 
     function getAgentData(address agent) external view returns (
