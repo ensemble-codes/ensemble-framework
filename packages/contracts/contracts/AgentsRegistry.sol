@@ -9,6 +9,11 @@ contract AgentsRegistry is Ownable {
         uint256 level;
     }
 
+    struct Service {
+        string name;
+        string description;
+    }
+
     struct AgentData {
         string model;
         string prompt;
@@ -17,10 +22,6 @@ contract AgentsRegistry is Ownable {
         bool isRegistered;
     }
 
-    struct Service {
-        string name;
-        string description;
-    }
 
     mapping(address => AgentData) public agents;
     mapping(address => uint256[]) private agentToServices; // Maps agent to multiple service IDs
@@ -79,6 +80,11 @@ contract AgentsRegistry is Ownable {
         return msg.sender;
     }
 
+    function getReputation(address agent) external view returns (uint256) {
+        require(agents[agent].isRegistered, "Agent not registered");
+        return agents[agent].reputation;
+    }
+
     function updateReputation(address agent, uint256 _reputation) external onlyOwner {
         require(agents[agent].isRegistered, "Agent not registered");
         agents[agent].reputation = _reputation;
@@ -90,9 +96,12 @@ contract AgentsRegistry is Ownable {
         return agents[agent].skills;
     }
 
-    function getReputation(address agent) external view returns (uint256) {
-        require(agents[agent].isRegistered, "Agent not registered");
-        return agents[agent].reputation;
+    function addSkill(string memory name, uint256 level) external onlyOwner {
+        require(agents[msg.sender].isRegistered, "Agent not registered");
+        agents[msg.sender].skills.push(Skill({
+            name: name,
+            level: level
+        }));
     }
 
     function getAgentData(address agent) external view returns (
@@ -106,7 +115,7 @@ contract AgentsRegistry is Ownable {
         return (data.model, data.prompt, data.skills, data.reputation);
     }
 
-      function addAgentToService(uint256 serviceId) external {
+    function addAgentToService(uint256 serviceId) external {
         require(agents[msg.sender].isRegistered, "Agent not registered");
         require(serviceId < nextServiceId, "Invalid service ID");
 
@@ -121,7 +130,7 @@ contract AgentsRegistry is Ownable {
         emit AgentAddedToService(msg.sender, serviceId);
     }
 
-    function getAgentsByService(uint256 serviceId) external view returns (address[] memory) {
+    function getAgentsByServiceId(uint256 serviceId) external view returns (address[] memory) {
         require(serviceId < nextServiceId, "Invalid service ID");
         return serviceToAgents[serviceId];
     }
