@@ -106,8 +106,8 @@ export class AgentService {
    * @param {string} serviceName - The name of the service.
    * @returns {Promise<AgentData>} A promise that resolves to a list of agent data.
    */
-    async getAgentsByService(serviceId: string): Promise<AgentData[]> {
-      const agentAddresses: string[] = await this.agentRegistry.getAgentsByService(serviceId);
+    async getAgentsByServiceId(serviceId: string): Promise<AgentData[]> {
+      const agentAddresses: string[] = await this.agentRegistry.getAgentsByServiceId(serviceId);
   
       const agents: AgentData[] = [];
       for (const address of agentAddresses) {
