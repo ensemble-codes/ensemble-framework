@@ -49,17 +49,22 @@ contract AgentsRegistry is Ownable {
 
         Skill[] memory skills = new Skill[](skillNames.length);
         for (uint i = 0; i < skillNames.length; i++) {
-            skills[i] = Skill(skillNames[i], 0);
+            skills[i] = Skill({
+                name: skillNames[i],
+                level: 0
+            });
         }
 
-        agents[msg.sender] = AgentData({
-            model: model,
-            prompt: prompt,
-            skills: skills,
-            reputation: 100,
-            isRegistered: true,
-            serviceIds: new uint256[](0)
-        });
+        agents[msg.sender].model = model;
+        agents[msg.sender].prompt = prompt;
+        agents[msg.sender].reputation = 100;
+        agents[msg.sender].isRegistered = true;
+        agents[msg.sender].serviceIds = new uint256[](0);
+        
+        // Add skills one by one
+        for (uint i = 0; i < skills.length; i++) {
+            agents[msg.sender].skills.push(skills[i]);
+        }
 
         emit AgentRegistered(msg.sender, model);
         return msg.sender;
