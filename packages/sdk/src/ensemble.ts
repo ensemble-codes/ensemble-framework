@@ -123,6 +123,15 @@ export class Ensemble {
     return this.agentService.getAgentData(agentId);
   }
 
+   /**
+   * Gets all the agents for a specific service.
+   * @param {string} serviceName - The name of the service.
+   * @returns {Promise<AgentData>} A promise that resolves to a list of agent data.
+   */
+   async getAgentsByService(serviceName: string): Promise<AgentData[]> {
+    return this.agentService.getAgentsByService(serviceName);
+  }
+
   /**
    * Checks if an agent is registered.
    * @param {string} agentAddress - The address of the agent.
