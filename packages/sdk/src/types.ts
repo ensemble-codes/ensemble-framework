@@ -51,6 +51,12 @@ export interface Skill {
   level: number;
 }
 
+export interface Service {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface AgentData {
   address: string;
   model: string;

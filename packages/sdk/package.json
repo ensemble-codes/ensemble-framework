@@ -10,7 +10,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "@google-cloud/pubsub": "^4.9.0",
     "@jest/globals": "^29.7.0",
     "chai": "^4.3.6",
     "dotenv": "^16.4.7",

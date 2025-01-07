@@ -100,4 +100,27 @@ export class AgentService {
     const tx = await this.agentRegistry.updateReputation(reputation);
     await tx.wait();
   }
+
+    /**
+   * Gets all the agents for a specific service.
+   * @param {string} serviceName - The name of the service.
+   * @returns {Promise<AgentData>} A promise that resolves to a list of agent data.
+   */
+    async getAgentsByServiceId(serviceId: string): Promise<AgentData[]> {
+      const agentAddresses: string[] = await this.agentRegistry.getAgentsByServiceId(serviceId);
+  
+      const agents: AgentData[] = [];
+      for (const address of agentAddresses) {
+        const agent = await this.agentRegistry.getAgentData(address);
+        agents.push({
+          address,
+          model: agent[0],
+          prompt: agent[1],
+          skills: agent[2],
+          reputation: agent[3],
+          isRegistered: true,
+        });
+      }
+      return agents;
+    }
 } 
