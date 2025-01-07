@@ -1,72 +1,85 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "./ServiceRegistry.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+
 contract AgentsRegistry is Ownable {
-    struct Skill {
-        string name;
-        uint256 level;
-    }
 
     struct AgentData {
-        string model;
-        string prompt;
-        Skill[] skills;
+        string name;
+        string uri;
+        address owner;
+        address agent;
         uint256 reputation;
         bool isRegistered;
-        uint256[] serviceIds;
+        Proposal[] proposals;
     }
 
+    struct Proposal {
+        string serviceName;
+        uint256 price;
+        uint256 proposalId;
+    }
 
+    ServiceRegistry public serviceRegistry;
     mapping(address => AgentData) public agents;
     mapping(uint256 => address[]) private serviceToAgents;
+    uint256 public nextProposalId;
 
     modifier onlyRegistered(address agent) {
         require(agents[agent].isRegistered, "Agent not registered");
         _;
     }
 
-    constructor() Ownable(msg.sender) {}
+    constructor(ServiceRegistry _serviceRegistry) Ownable(msg.sender) {
+        serviceRegistry = _serviceRegistry;
+    }
 
-    event AgentRegistered(address indexed agent, string model);
+    event AgentRegistered(address indexed agent, address indexed owner, string name, string uri);
     event ReputationUpdated(address indexed agent, uint256 newReputation);
     event ServiceAdded(address indexed agent, uint256 serviceId);
 
     /**
-     * @dev Registers a new agent with the given model, prompt, and skills.
-     * @param model The model of the agent.
-     * @param prompt The prompt for the agent.
-     * @param skillNames The names of the skills the agent possesses.
-     * @return The address of the registered agent.
+     * @dev Registers a new agent with the given details.
+     * @param name The name of the agent.
+     * @param uri The URI pointing to the agent's metadata.
+     * @param agent The address of the agent.
+     * @param proposals An array of proposals associated with the agent.
+     * @return The address of the agent's owner.
+     *
+     * Requirements:
+     *
+     * - The agent must not already be registered.
+     * - The caller will be set as the owner of the agent.
+     *
+     * Emits an {AgentRegistered} event.
      */
     function registerAgent(
-        string memory model,
-        string memory prompt,
-        string[] memory skillNames
+        string memory name,
+        string memory uri,
+        address agent,
+        string memory serviceName,
+        uint256 servicePrice
     ) external returns (address) {
         require(!agents[msg.sender].isRegistered, "Agent already registered");
 
-        Skill[] memory skills = new Skill[](skillNames.length);
-        for (uint i = 0; i < skillNames.length; i++) {
-            skills[i] = Skill({
-                name: skillNames[i],
-                level: 0
-            });
-        }
+        AgentData storage agentData = agents[agent];
+        agentData.name = name;
+        agentData.uri = uri;
+        agentData.owner = msg.sender;
+        agentData.agent = address(this);
+        agentData.reputation = 0;
+        agentData.isRegistered = true;
 
-        agents[msg.sender].model = model;
-        agents[msg.sender].prompt = prompt;
-        agents[msg.sender].reputation = 100;
-        agents[msg.sender].isRegistered = true;
-        agents[msg.sender].serviceIds = new uint256[](0);
-        
-        // Add skills one by one
-        for (uint i = 0; i < skills.length; i++) {
-            agents[msg.sender].skills.push(skills[i]);
-        }
+        Proposal memory proposal = Proposal(serviceName, servicePrice, nextProposalId);
+        agentData.proposals = new Proposal[](1);
+        agentData.proposals[1] = proposal;
+        nextProposalId++;
 
-        emit AgentRegistered(msg.sender, model);
+        emit AgentRegistered(agent, msg.sender, name, uri);
+
         return msg.sender;
     }
 
@@ -75,70 +88,32 @@ contract AgentsRegistry is Ownable {
         emit ReputationUpdated(agent, _reputation);
     }
 
-    function getSkills(address agent) external view onlyRegistered(agent) returns (Skill[] memory) {
-        return agents[agent].skills;
-    }
-
     function getReputation(address agent) external view onlyRegistered(agent) returns (uint256) {
         return agents[agent].reputation;
-    }
-
-    function addSkill(address agent, string memory name, uint256 level) external onlyOwner onlyRegistered(agent) {
-        agents[agent].skills.push(Skill({
-            name: name,
-            level: level
-        }));
     }
 
     function isRegistered(address agent) external view returns (bool) {
         return agents[agent].isRegistered;
     }
 
-    function getAgentData(address agent) external view onlyRegistered(agent) returns (
-        string memory model,
-        string memory prompt,
-        Skill[] memory skills,
-        uint256 reputation,
-        uint256[] memory serviceIds
-    ) {
-        AgentData storage data = agents[agent];
-        return (data.model, data.prompt, data.skills, data.reputation, data.serviceIds);
-    }
-
     /**
-     * @dev Adds a service ID to an existing agent. Only owner can assign services.
-     * @param agent The address of the agent.
-     * @param serviceId The ID of the service.
+     * @dev get agent data
+     * @param _agent The address of the agent
+     * @return name The name of the agent
+     * @return uri The URI pointing to the agent's metadata
+     * @return owner The owner address of the agent
+     * @return agent The agent contract address
+     * @return reputation The reputation score of the agent
      */
-    function addServiceToAgent(address agent, uint256 serviceId) external onlyOwner onlyRegistered(agent) {
-        agents[agent].serviceIds.push(serviceId);
-        serviceToAgents[serviceId].push(agent);
-        emit ServiceAdded(agent, serviceId);
-    }
-
-    function removeServiceFromAgent(address agent, uint256 serviceId) external onlyOwner onlyRegistered(agent) {
-        uint256[] storage services = agents[agent].serviceIds;
-        bool found = false;
-
-        for (uint i = 0; i < services.length; i++) {
-            if (services[i] == serviceId) {
-                services[i] = services[services.length - 1];
-                services.pop();
-                found = true;
-                break;
-            }
-        }
-
-        require(found, "Service not found for agent");
-
-        address[] storage agentList = serviceToAgents[serviceId];
-        for (uint i = 0; i < agentList.length; i++) {
-            if (agentList[i] == agent) {
-                agentList[i] = agentList[agentList.length - 1];
-                agentList.pop();
-                break;
-            }
-        }
+    function getAgentData(address _agent) external view onlyRegistered(agent) returns (
+        string memory name,
+        string memory uri,
+        address owner,
+        address agent,
+        uint256 reputation
+    ) {
+        AgentData storage data = agents[_agent];
+        return (data.name, data.uri, data.owner, data.agent, data.reputation);
     }
 
     /**
