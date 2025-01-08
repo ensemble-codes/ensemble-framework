@@ -1,9 +1,10 @@
 import { BigNumberish, ethers } from "ethers";
-import { AgentData, ContractConfig, Proposal, TaskData, TaskCreationParams } from "./types";
+import { AgentData, ContractConfig, Proposal, TaskData, TaskCreationParams, Service } from "./types";
 import { ContractService } from "./services/ContractService";
 import { TaskService } from "./services/TaskService";
 import { AgentService } from "./services/AgentService";
 import { ProposalService } from "./services/ProposalService";
+import { ServiceRegistryService } from "./services/ServiceRegistryService";
 import TaskRegistryABI from './abi/TaskRegistry.abi.json';
 import AgentRegistryABI from './abi/AgentsRegistry.abi.json';
 
@@ -12,6 +13,7 @@ export class Ensemble {
   private taskService: TaskService;
   private agentService: AgentService;
   private proposalService: ProposalService;
+  private serviceRegisterService: ServiceRegistryService;
 
   constructor(config: ContractConfig, signer: ethers.Signer) {
     console.log('Config Params:', {
@@ -40,6 +42,11 @@ export class Ensemble {
       AgentRegistryABI
     );
 
+    const serviceRegistry = this.contractService.createContract(
+      config.serviceRegistryAddress,
+      AgentRegistryABI
+    );
+
     this.taskService = new TaskService(taskRegistry);
     this.agentService = new AgentService(agentRegistry, signer);
     this.proposalService = new ProposalService({
@@ -47,6 +54,7 @@ export class Ensemble {
       topicName: 'ensemble-tasks',
       taskRegistry: taskRegistry
     });
+    this.serviceRegisterService = new ServiceRegistryService(serviceRegistry);
   }
   
   async start() {
@@ -181,5 +189,9 @@ export class Ensemble {
 
   async setOnNewProposalListener(listener: (proposal: Proposal) => void) {
     return this.proposalService.setOnNewProposalListener(listener);
+  }
+
+  async registerService(service: Service): Promise<void> {
+    return this.serviceRegisterService.registerService(service);
   }
 } 

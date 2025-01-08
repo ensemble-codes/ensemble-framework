@@ -8,6 +8,11 @@ export class ServiceRegistryService {
 		this.serviceRegistry = serviceRegistry;
 	}
 
+
+	/**
+	 * @param service The service to register
+	 * @returns A promise that resolves when the service is registered
+	 */
 	async registerService(service: Service): Promise<void> {
 		try {
 			console.log(`Registering service: ${service.name}`);

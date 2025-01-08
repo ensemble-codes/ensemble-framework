@@ -80,5 +80,6 @@ export interface NetworkConfig {
 export interface ContractConfig {
   taskRegistryAddress: string;
   agentRegistryAddress: string;
+  serviceRegistryAddress: string;
   network: NetworkConfig;
 }
