@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
 import { Ensemble } from "../src/ensemble"
-import { Service, TaskType } from "../src/types";
 import dotenv from "dotenv";
 import { servicesList } from "./data/servicesList";
 
