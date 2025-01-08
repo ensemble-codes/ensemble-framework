@@ -68,7 +68,8 @@ export interface AgentData {
 
 export interface TaskCreationParams {
   prompt: string;
-  taskType: TaskType;
+  serviceName: string;
+  agentAddress: string;
 }
 
 export interface NetworkConfig {
