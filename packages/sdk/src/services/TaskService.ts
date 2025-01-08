@@ -15,7 +15,7 @@ export class TaskService {
    * @returns {Promise<TaskData>} A promise that resolves to the task ID.
    */
   async createTask(params: TaskCreationParams): Promise<TaskData> {
-    const tx = await this.taskRegistry.createTask(params.prompt, params.taskType);
+    const tx = await this.taskRegistry.createTask(params.prompt, params.serviceName, params.agentAddress);
     console.log("sending txhash:", tx.hash);
     const receipt = await tx.wait();
     
