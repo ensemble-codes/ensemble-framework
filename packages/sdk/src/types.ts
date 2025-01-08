@@ -58,12 +58,13 @@ export interface Service {
 }
 
 export interface AgentData {
+  name: string;
+  uri: string;
+  owner: string;
   address: string;
-  model: string;
-  prompt: string;
-  skills: Skill[];
   reputation: BigNumberish;
   isRegistered: boolean;
+  proposals: Proposal[];
 }
 
 export interface TaskCreationParams {
