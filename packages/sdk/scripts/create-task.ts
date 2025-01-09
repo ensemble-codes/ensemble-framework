@@ -54,8 +54,9 @@ async function main() {
   })
   
   const task = await ensemble.createTask({
-    prompt: "Write an exciting tweet about GOAT",
-    taskType: TaskType.SIMPLE,
+    prompt: "Write a tweet about GOAT. On the style: exciting",
+    serviceName: "Bull Post",
+    agentAddress: "000001"
   });
   console.log(task)
 
