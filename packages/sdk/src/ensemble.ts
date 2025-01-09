@@ -1,9 +1,10 @@
 import { BigNumberish, ethers } from "ethers";
-import { AgentData, ContractConfig, Proposal, TaskData, TaskCreationParams } from "./types";
+import { AgentData, ContractConfig, Proposal, TaskData, TaskCreationParams, Service } from "./types";
 import { ContractService } from "./services/ContractService";
 import { TaskService } from "./services/TaskService";
 import { AgentService } from "./services/AgentService";
 import { ProposalService } from "./services/ProposalService";
+import { ServiceRegistryService } from "./services/ServiceRegistryService";
 import TaskRegistryABI from './abi/TaskRegistry.abi.json';
 import AgentRegistryABI from './abi/AgentsRegistry.abi.json';
 
@@ -12,6 +13,7 @@ export class Ensemble {
   private taskService: TaskService;
   private agentService: AgentService;
   private proposalService: ProposalService;
+  private serviceRegisterService: ServiceRegistryService;
 
   constructor(config: ContractConfig, signer: ethers.Signer) {
     console.log('Config Params:', {
@@ -40,6 +42,11 @@ export class Ensemble {
       AgentRegistryABI
     );
 
+    const serviceRegistry = this.contractService.createContract(
+      config.serviceRegistryAddress,
+      AgentRegistryABI
+    );
+
     this.taskService = new TaskService(taskRegistry);
     this.agentService = new AgentService(agentRegistry, signer);
     this.proposalService = new ProposalService({
@@ -47,6 +54,7 @@ export class Ensemble {
       topicName: 'ensemble-tasks',
       taskRegistry: taskRegistry
     });
+    this.serviceRegisterService = new ServiceRegistryService(serviceRegistry);
   }
   
   async start() {
@@ -97,13 +105,15 @@ export class Ensemble {
   
   /**
    * Registers a new agent.
-   * @param {string} model - The model of the agent.
-   * @param {string} prompt - The prompt for the agent.
-   * @param {string[]} skills - The skills of the agent.
+   * @param {string} name - The name of the agent.
+   * @param {string} uri - The uri for the agent.
+   * @param {string} owner - The owner of the agent.
+   * @param {string} address - The address of the agent.
+   * @param {Proposal[]} proposals - The proposals for the agent.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(model: string, prompt: string, skills: string[]): Promise<string> {
-    return this.agentService.registerAgent(model, prompt, skills);
+  async registerAgent(name: string, uri: string, owner: string, address: string, proposals: Proposal[]): Promise<string> {
+    return this.agentService.registerAgent(name, uri, owner, address, proposals);
   }
 
   /**
@@ -181,5 +191,9 @@ export class Ensemble {
 
   async setOnNewProposalListener(listener: (proposal: Proposal) => void) {
     return this.proposalService.setOnNewProposalListener(listener);
+  }
+
+  async registerService(service: Service): Promise<void> {
+    return this.serviceRegisterService.registerService(service);
   }
 } 

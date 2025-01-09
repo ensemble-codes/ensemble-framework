@@ -52,18 +52,19 @@ export interface Skill {
 }
 
 export interface Service {
-  id: string;
   name: string;
+  category: string;
   description: string;
 }
 
 export interface AgentData {
+  name: string;
+  uri: string;
+  owner: string;
   address: string;
-  model: string;
-  prompt: string;
-  skills: Skill[];
   reputation: BigNumberish;
   isRegistered: boolean;
+  proposals: Proposal[];
 }
 
 export interface TaskCreationParams {
@@ -80,5 +81,6 @@ export interface NetworkConfig {
 export interface ContractConfig {
   taskRegistryAddress: string;
   agentRegistryAddress: string;
+  serviceRegistryAddress: string;
   network: NetworkConfig;
 }

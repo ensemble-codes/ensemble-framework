@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { expect } from './setup';
-import Ensemble from '../src';
+import { Ensemble } from '../src/ensemble';
 import { Proposal, TaskType } from '../src/types';
 import dotenv from 'dotenv';
 

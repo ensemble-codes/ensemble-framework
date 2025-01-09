@@ -1,5 +1,5 @@
 import { BigNumberish, ethers } from "ethers";
-import { AgentData } from "../types";
+import { AgentData, Proposal } from "../types";
 
 export class AgentService {
   private agentRegistry: ethers.Contract;
@@ -25,8 +25,8 @@ export class AgentService {
    * @param {string[]} skills - The skills of the agent.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(model: string, prompt: string, skills: string[]): Promise<string> {
-    const tx = await this.agentRegistry.registerAgent(model, prompt, skills);
+  async registerAgent(name: string, uri: string, owner: string, address: string, proposals: Proposal[]): Promise<string> {
+    const tx = await this.agentRegistry.registerAgent(name, uri, owner, address, proposals);
     const receipt = await tx.wait();
     
     const event = this.findEventInReceipt(receipt, "AgentRegistered");
