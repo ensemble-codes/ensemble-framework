@@ -85,7 +85,7 @@ contract AgentsRegistry is Ownable {
         // agentData.proposals = new Proposal[](1);
         // agentData.proposals[0] = Proposal(serviceName, servicePrice, nextProposalId);
         nextProposalId++;
-        emit AgentRegistered(agent, msg.sender, serviceName, agentUri);
+        emit AgentRegistered(agent, msg.sender, name, agentUri);
         emit ProposalAdded(agent, serviceName, servicePrice);
 
         return true;

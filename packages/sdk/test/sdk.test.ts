@@ -87,7 +87,7 @@ describe('Ensemble SDK', () => {
     });
   });
 
-  describe.only('Agent Management', () => {
+  describe('Agent Management', () => {
     let agentAddress: string;
     const agentData = {
       model: "gpt-4",
@@ -106,14 +106,14 @@ describe('Ensemble SDK', () => {
     });
   });
 
-  describe.only('Proposal Management', () => {
+  describe('Proposal Management', () => {
     let agentSdk: Ensemble;
     beforeEach(async () => {
       agentSdk = setupSdk('agent');
       // await sdk.start();
     });
 
-    it.only('should send a proposal', async () => {
+    it('should send a proposal', async () => {
 
       const handleNewProposal = (proposal: Proposal) => {
         console.log(`New proposal created: ${proposal}`);
@@ -133,7 +133,7 @@ describe('Ensemble SDK', () => {
       console.log(`Proposal for task ${taskId} with price ${price} sent successfully.`);
     });
 
-    it.only('should approve proposal and emit event', async () => {
+    it('should approve proposal and emit event', async () => {
 
       const agentData = {
         model: "gpt-4",

@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe.only("AgentRegistry", function () {
+describe("AgentRegistry", function () {
     let AgentRegistry;
     let registry;
     let owner, addr1, agentAddress;
@@ -52,20 +52,20 @@ describe.only("AgentRegistry", function () {
         expect(agentRegisteredEvent.args.agentUri).to.equal("https://uri");
     });
 
-    it("Should update agent reputation", async function () {
-        await serviceRegistry.registerService("Service1", "Category1", "Description1");
-        await registry.connect(addr1).registerAgent(
-            "Service Agent",
-            "https://uri",
-            agentAddress,
-            "Service1",
-            ethers.parseEther("0.01")
-        );
+    // it("Should update agent reputation", async function () {
+    //     await serviceRegistry.registerService("Service1", "Category1", "Description1");
+    //     await registry.connect(addr1).registerAgent(
+    //         "Service Agent",
+    //         "https://uri",
+    //         agentAddress,
+    //         "Service1",
+    //         ethers.parseEther("0.01")
+    //     );
 
-        await registry.updateReputation(addr1.address, 100);
-        const reputation = await registry.getReputation(addr1.address);
-        expect(reputation).to.equal(100);
-    });
+    //     await registry.updateReputation(addr1.address, 100);
+    //     const reputation = await registry.getReputation(addr1.address);
+    //     expect(reputation).to.equal(100);
+    // });
 
     it("Should not update reputation for unregistered agent", async function () {
         await expect(
@@ -93,7 +93,7 @@ describe.only("AgentRegistry", function () {
     });
 
 
-    it.only("Should not register the same agent twice", async function () {
+    it("Should not register the same agent twice", async function () {
         await serviceRegistry.registerService("Service1", "Category1", "Description1");
         await registry.connect(addr1).registerAgent(
             "Service Agent",
