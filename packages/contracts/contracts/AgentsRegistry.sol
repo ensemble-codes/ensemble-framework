@@ -9,7 +9,7 @@ contract AgentsRegistry is Ownable {
 
     struct AgentData {
         string name;
-        string uri;
+        string agentUri;
         address owner;
         address agent;
         uint256 reputation;
@@ -25,7 +25,8 @@ contract AgentsRegistry is Ownable {
 
     ServiceRegistry public serviceRegistry;
     mapping(address => AgentData) public agents;
-    mapping(uint256 => address[]) private serviceToAgents;
+    mapping(string => Proposal[]) public proposals;
+    // mapping(uint256 => address[]) private serviceToAgents;
     uint256 public nextProposalId;
 
     modifier onlyRegistered(address agent) {
@@ -37,17 +38,18 @@ contract AgentsRegistry is Ownable {
         serviceRegistry = _serviceRegistry;
     }
 
-    event AgentRegistered(address indexed agent, address indexed owner, string name, string uri);
+    event AgentRegistered(address indexed agent, address indexed owner, string name, string agentUri);
     event ReputationUpdated(address indexed agent, uint256 newReputation);
-    event ServiceAdded(address indexed agent, uint256 serviceId);
-
+    event ServiceAdded(address indexed agent, uint256 name);
+    event ProposalAdded(address indexed agent, string name, uint256 price);
     /**
      * @dev Registers a new agent with the given details.
      * @param name The name of the agent.
-     * @param uri The URI pointing to the agent's metadata.
+     * @param agentUri The URI pointing to the agent's metadata.
      * @param agent The address of the agent.
-     * @param proposals An array of proposals associated with the agent.
-     * @return The address of the agent's owner.
+     * @param serviceName The name of the service.
+     * @param servicePrice The price of the service.
+     * @return true if the agent was registered successfully, false otherwise.
      *
      * Requirements:
      *
@@ -58,29 +60,35 @@ contract AgentsRegistry is Ownable {
      */
     function registerAgent(
         string memory name,
-        string memory uri,
+        string memory agentUri,
         address agent,
         string memory serviceName,
         uint256 servicePrice
-    ) external returns (address) {
-        require(!agents[msg.sender].isRegistered, "Agent already registered");
+    ) external returns (bool) {
+        require(!agents[agent].isRegistered, "Agent already registered");
+        require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
 
         AgentData storage agentData = agents[agent];
         agentData.name = name;
-        agentData.uri = uri;
+        agentData.agentUri = agentUri;
         agentData.owner = msg.sender;
-        agentData.agent = address(this);
+        agentData.agent = agent;
         agentData.reputation = 0;
         agentData.isRegistered = true;
 
         Proposal memory proposal = Proposal(serviceName, servicePrice, nextProposalId);
-        agentData.proposals = new Proposal[](1);
-        agentData.proposals[1] = proposal;
+        agentData.proposals.push(proposal);
+        agents[agent] = agentData;
+        // agentData.proposals = new Proposal[](1);
+        // agentData.proposals[1] = proposal;
+        
+        // agentData.proposals = new Proposal[](1);
+        // agentData.proposals[0] = Proposal(serviceName, servicePrice, nextProposalId);
         nextProposalId++;
+        emit AgentRegistered(agent, msg.sender, serviceName, agentUri);
+        emit ProposalAdded(agent, serviceName, servicePrice);
 
-        emit AgentRegistered(agent, msg.sender, name, uri);
-
-        return msg.sender;
+        return true;
     }
 
     function updateReputation(address agent, uint256 _reputation) external onlyOwner onlyRegistered(agent) {
@@ -100,28 +108,19 @@ contract AgentsRegistry is Ownable {
      * @dev get agent data
      * @param _agent The address of the agent
      * @return name The name of the agent
-     * @return uri The URI pointing to the agent's metadata
+     * @return agentUri The URI pointing to the agent's metadata
      * @return owner The owner address of the agent
      * @return agent The agent contract address
      * @return reputation The reputation score of the agent
      */
-    function getAgentData(address _agent) external view onlyRegistered(agent) returns (
+    function getAgentData(address _agent) external view returns (
         string memory name,
-        string memory uri,
+        string memory agentUri,
         address owner,
         address agent,
         uint256 reputation
     ) {
         AgentData storage data = agents[_agent];
-        return (data.name, data.uri, data.owner, data.agent, data.reputation);
-    }
-
-    /**
-     * @dev Fetches all agents associated with a specific service ID.
-     * @param serviceId The ID of the service.
-     * @return List of agent addresses registered to the service.
-     */
-    function getAgentsByServiceId(uint256 serviceId) external view returns (address[] memory) {
-        return serviceToAgents[serviceId];
+        return (data.name, data.agentUri, data.owner, data.agent, data.reputation);
     }
 }

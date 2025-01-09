@@ -46,4 +46,8 @@ contract ServiceRegistry is Ownable {
     function getService(string memory name) external view returns (Service memory) {
         return services[name];
     }
+
+    function isServiceRegistered(string memory name) external view returns (bool) {
+        return bytes(services[name].name).length > 0;
+    }
 }
