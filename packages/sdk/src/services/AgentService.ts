@@ -113,14 +113,16 @@ export class AgentService {
       for (const address of agentAddresses) {
         const agent = await this.agentRegistry.getAgentData(address);
         agents.push({
-          address,
-          model: agent[0],
-          prompt: agent[1],
-          skills: agent[2],
-          reputation: agent[3],
+          name: agent[0],
+          uri: agent[1],
+          owner: agent[2],
+          address: agent[3],
+          reputation: agent[4],
           isRegistered: true,
+          proposals: agent[5]
         });
       }
       return agents;
     }
+
 } 

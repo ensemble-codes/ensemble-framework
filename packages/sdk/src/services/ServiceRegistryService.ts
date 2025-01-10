@@ -30,4 +30,13 @@ export class ServiceRegistryService {
 		}
 	}
 
+	async getAllServices(): Promise<Service[]> {
+		const services = await this.serviceRegistry.getAllServices();
+		return services.map((service: any) => ({
+			name: service.name,
+			category: service.category,
+			description: service.description
+		}));
+	}
+
 }
