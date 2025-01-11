@@ -13,21 +13,21 @@ contract TaskRegistry is Ownable, IProposalStruct {
     struct TaskData {
         uint256 id;
         string prompt;
-        address owner;
+        address issuer;
         TaskStatus status;
         address assignee;
         uint256 proposalId;
     }
     
     mapping(uint256 => TaskData) public tasks;
-    mapping(address => uint256[]) public ownerTasks;
+    mapping(address => uint256[]) public issuerTasks;
     uint256 private nextTaskId;
     AgentsRegistry public agentRegistry;
     constructor(AgentsRegistry _agentRegistry) Ownable(msg.sender) {
         agentRegistry = _agentRegistry;
     }
     
-    event TaskCreated(address indexed owner, address indexed assignee, uint256 taskId, uint256 proposalId, string prompt);
+    event TaskCreated(address indexed issuer, address indexed assignee, uint256 taskId, uint256 proposalId, string prompt);
     event TaskStatusChanged(uint256 indexed taskId, TaskStatus status);
     event TaskAssigned(uint256 indexed taskId, address indexed agent);
     event ProposalApproved(uint256 indexed taskId, Proposal proposal);
@@ -49,11 +49,11 @@ contract TaskRegistry is Ownable, IProposalStruct {
         TaskData storage task = tasks[nextTaskId];
         task.id = nextTaskId;
         task.prompt = prompt;
-        task.owner = msg.sender;
-        task.status = TaskStatus.CREATED;
+        task.issuer = msg.sender;
         task.proposalId = proposalId;
-        ownerTasks[msg.sender].push(nextTaskId);
-        
+        task.assignee = proposal.issuer;
+        issuerTasks[msg.sender].push(nextTaskId);
+        task.status = TaskStatus.ASSIGNED;
         emit TaskCreated(msg.sender, proposal.issuer, nextTaskId, proposal.proposalId, prompt);
         return task;
     }
@@ -78,8 +78,8 @@ contract TaskRegistry is Ownable, IProposalStruct {
     }
 
 
-    function getTasksByOwner(address owner) external view returns (uint256[] memory) {
-        return ownerTasks[owner];
+    function getTasksByIssuer(address issuer) external view returns (uint256[] memory) {
+        return issuerTasks[issuer];
     }
 
     function getTask(uint256 taskId) external view returns (TaskData memory) {
