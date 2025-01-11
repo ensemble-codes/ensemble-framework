@@ -81,7 +81,7 @@ describe("TaskRegistry", function () {
             expect(updatedTask.status).to.equal(2); // TaskStatus.COMPLETED
         });
 
-        it.only("should fail if not authorized", async function () {
+        it("should fail if not authorized", async function () {
             await expect(taskRegistry.createTask(prompt, proposalId, { value: taskPrice }))
             .to.emit(taskRegistry, "TaskCreated")
             .withArgs(taskIssuer, agentAddress, 1, proposalId, prompt);
@@ -90,12 +90,14 @@ describe("TaskRegistry", function () {
                 .to.be.revertedWith("Not authorized");
         });
 
-        it("should fail if task status is not ASSIGNED", async function () {
+        it("Cannot complete task multiple times", async function () {
             await expect(taskRegistry.createTask(prompt, proposalId, { value: taskPrice }))
                 .to.emit(taskRegistry, "TaskCreated")
                 .withArgs(taskIssuer, agentAddress, 1, proposalId, prompt);
 
-            await expect(taskRegistry.createTask(prompt, proposalId, { value: taskPrice }))
+            await expect(taskRegistry.connect(agentAddress).completeTask(1, "Test result"))
+
+            await expect(taskRegistry.connect(agentAddress).completeTask(1, "Test result"))
                 .to.be.revertedWith("Invalid task status");
         });
     });

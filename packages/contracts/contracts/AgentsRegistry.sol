@@ -9,7 +9,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
 
     struct AgentData {
         string name;
-        string uri;
+        string agentUri;
         address owner;
         address agent;
         uint256 reputation;
@@ -32,14 +32,14 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         serviceRegistry = _serviceRegistry;
     }
 
-    event AgentRegistered(address indexed agent, address indexed owner, string name, string uri);
+    event AgentRegistered(address indexed agent, address indexed owner, string name, string agentUri);
     event ReputationUpdated(address indexed agent, uint256 newReputation);
     event ServiceAdded(address indexed agent, uint256 serviceId);
 
     /**
      * @dev Registers a new agent with the given details.
      * @param name The name of the agent.
-     * @param uri The URI pointing to the agent's metadata.
+     * @param agentUri The URI pointing to the agent's metadata.
      * @param agent The address of the agent.
      * @param serviceName proposal.serviceName
      * @param servicePrice proposal.price
@@ -54,7 +54,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      */
     function registerAgent(
         string memory name,
-        string memory uri,
+        string memory agentUri,
         address agent,
         string memory serviceName,
         uint256 servicePrice
@@ -63,7 +63,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
 
         AgentData storage agentData = agents[agent];
         agentData.name = name;
-        agentData.uri = uri;
+        agentData.agentUri = agentUri;
         agentData.owner = msg.sender;
         agentData.agent = address(this);
         agentData.reputation = 0;
@@ -74,7 +74,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         proposals.push(proposal);
         nextProposalId++;
 
-        emit AgentRegistered(agent, msg.sender, name, uri);
+        emit AgentRegistered(agent, msg.sender, name, agentUri);
 
         return msg.sender;
     }
@@ -96,20 +96,20 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      * @dev get agent data
      * @param _agent The address of the agent
      * @return name The name of the agent
-     * @return uri The URI pointing to the agent's metadata
+     * @return agentUri The URI pointing to the agent's metadata
      * @return owner The owner address of the agent
      * @return agent The agent contract address
      * @return reputation The reputation score of the agent
      */
     function getAgentData(address _agent) external view onlyRegistered(agent) returns (
         string memory name,
-        string memory uri,
+        string memory agentUri,
         address owner,
         address agent,
         uint256 reputation
     ) {
         AgentData storage data = agents[_agent];
-        return (data.name, data.uri, data.owner, data.agent, data.reputation);
+        return (data.name, data.agentUri, data.owner, data.agent, data.reputation);
     }
 
     /**
