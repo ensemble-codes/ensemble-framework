@@ -5,6 +5,7 @@ import "./ServiceRegistry.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IProposalStruct.sol";
 
+
 contract AgentsRegistry is Ownable, IProposalStruct {
 
     struct AgentData {
@@ -19,7 +20,6 @@ contract AgentsRegistry is Ownable, IProposalStruct {
 
     ServiceRegistry public serviceRegistry;
     mapping(address => AgentData) public agents;
-    mapping(uint256 => address[]) private serviceToAgents;
     Proposal[] public proposals;
     uint256 public nextProposalId;
 
@@ -34,16 +34,17 @@ contract AgentsRegistry is Ownable, IProposalStruct {
 
     event AgentRegistered(address indexed agent, address indexed owner, string name, string agentUri);
     event ReputationUpdated(address indexed agent, uint256 newReputation);
-    event ServiceAdded(address indexed agent, uint256 serviceId);
-
+    event ServiceAdded(address indexed agent, uint256 name);
+    event ProposalAdded(address indexed agent, string name, uint256 price);
+    
     /**
      * @dev Registers a new agent with the given details.
      * @param name The name of the agent.
      * @param agentUri The URI pointing to the agent's metadata.
      * @param agent The address of the agent.
-     * @param serviceName proposal.serviceName
-     * @param servicePrice proposal.price
-     * @return The address of the agent's owner.
+     * @param serviceName The name of the service.
+     * @param servicePrice The price of the service.
+     * @return true if the agent was registered successfully, false otherwise.
      *
      * Requirements:
      *
@@ -58,25 +59,30 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         address agent,
         string memory serviceName,
         uint256 servicePrice
-    ) external returns (address) {
-        require(!agents[msg.sender].isRegistered, "Agent already registered");
+    ) external returns (bool) {
+        require(!agents[agent].isRegistered, "Agent already registered");
+        require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
 
         AgentData storage agentData = agents[agent];
         agentData.name = name;
         agentData.agentUri = agentUri;
         agentData.owner = msg.sender;
-        agentData.agent = address(this);
+        agentData.agent = agent;
         agentData.reputation = 0;
         agentData.isRegistered = true;
-
         Proposal memory proposal = Proposal(agent, serviceName, servicePrice, nextProposalId);
         agentData.proposals.push(proposal);
         proposals.push(proposal);
+        // agentData.proposals = new Proposal[](1);
+        // agentData.proposals[1] = proposal;
+        
+        // agentData.proposals = new Proposal[](1);
+        // agentData.proposals[0] = Proposal(serviceName, servicePrice, nextProposalId);
         nextProposalId++;
-
         emit AgentRegistered(agent, msg.sender, name, agentUri);
+        emit ProposalAdded(agent, serviceName, servicePrice);
 
-        return msg.sender;
+        return true;
     }
 
     function updateReputation(address agent, uint256 _reputation) external onlyOwner onlyRegistered(agent) {
@@ -101,7 +107,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      * @return agent The agent contract address
      * @return reputation The reputation score of the agent
      */
-    function getAgentData(address _agent) external view onlyRegistered(agent) returns (
+    function getAgentData(address _agent) external view returns (
         string memory name,
         string memory agentUri,
         address owner,
@@ -112,14 +118,6 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         return (data.name, data.agentUri, data.owner, data.agent, data.reputation);
     }
 
-    /**
-     * @dev Fetches all agents associated with a specific service ID.
-     * @param serviceId The ID of the service.
-     * @return List of agent addresses registered to the service.
-     */
-    function getAgentsByServiceId(uint256 serviceId) external view returns (address[] memory) {
-        return serviceToAgents[serviceId];
-    }
 
     function getProposal(uint256 proposalId) external view returns (Proposal memory) {
         return proposals[proposalId];
