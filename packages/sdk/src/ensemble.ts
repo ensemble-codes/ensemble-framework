@@ -3,7 +3,6 @@ import { AgentData, ContractConfig, Proposal, TaskData, TaskCreationParams, Serv
 import { ContractService } from "./services/ContractService";
 import { TaskService } from "./services/TaskService";
 import { AgentService } from "./services/AgentService";
-import { ProposalService } from "./services/ProposalService";
 import { ServiceRegistryService } from "./services/ServiceRegistryService";
 import TaskRegistryABI from './abi/TaskRegistry.abi.json';
 import AgentRegistryABI from './abi/AgentsRegistry.abi.json';
@@ -12,7 +11,6 @@ export class Ensemble {
   protected contractService: ContractService;
   private taskService: TaskService;
   private agentService: AgentService;
-  private proposalService: ProposalService;
   private serviceRegisterService: ServiceRegistryService;
 
   constructor(config: ContractConfig, signer: ethers.Signer) {
@@ -49,17 +47,11 @@ export class Ensemble {
 
     this.taskService = new TaskService(taskRegistry);
     this.agentService = new AgentService(agentRegistry, signer);
-    this.proposalService = new ProposalService({
-      projectId: 'ensemble-ai-443111',
-      topicName: 'ensemble-tasks',
-      taskRegistry: taskRegistry
-    });
     this.serviceRegisterService = new ServiceRegistryService(serviceRegistry);
   }
   
   async start() {
     this.taskService.subscribe()
-    await this.proposalService.setupSubscription(await this.agentService.getAddress());
   }
 
   async stop() {
@@ -106,14 +98,14 @@ export class Ensemble {
   /**
    * Registers a new agent.
    * @param {string} name - The name of the agent.
-   * @param {string} uri - The uri for the agent.
-   * @param {string} owner - The owner of the agent.
+   * @param {string} uri - The uri of the agent.
    * @param {string} address - The address of the agent.
-   * @param {Proposal[]} proposals - The proposals for the agent.
+   * @param {string} serviceName - The name of the service.
+   * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(name: string, uri: string, owner: string, address: string, proposals: Proposal[]): Promise<string> {
-    return this.agentService.registerAgent(name, uri, owner, address, proposals);
+  async registerAgent(name: string, uri: string, address: string, serviceName: string, servicePrice: number): Promise<string> {
+    return this.agentService.registerAgent(name, uri, address, serviceName, servicePrice);
   }
 
   /**
@@ -151,49 +143,11 @@ export class Ensemble {
     return this.agentService.isAgentRegistered(agentId);
   }
 
-
-  /**
-   * Sends a proposal for a task.
-   * @param {string} taskId - The ID of the task.
-   * @param {BigNumberish} price - The price of the proposal.
-   * @returns {Promise<void>} A promise that resolves when the proposal is sent.
-   */
-  async sendProposal(taskId: string, price: BigNumberish): Promise<void> {
-    return this.proposalService.sendProposal(taskId, await this.agentService.getAddress(), price);
-  }
-
-  /**
-   * Gets proposals for a task.
-   * @param {string} taskId - The ID of the task.
-   * @returns {Promise<string[]>} A promise that resolves to an array of proposal IDs.
-   */
-  async getProposals(taskId: string): Promise<string[]> {
-    return this.proposalService.getProposals(taskId);
-  }
-
-  /**
-   * Approves a proposal for a task.
-   * @param {BigNumberish} taskId - The ID of the task.
-   * @param {Object} proposal - The proposal object.
-   * @param {BigNumberish} proposal.id - The ID of the proposal.
-   * @param {BigNumberish} proposal.price - The price of the proposal.
-   * @param {BigNumberish} proposal.taskId - The ID of the task.
-   * @param {string} proposal.agent - The agent address.
-   * @returns {Promise<void>} A promise that resolves when the proposal is approved.
-   */
-  async approveProposal(taskId: BigNumberish, proposal: Proposal): Promise<void> {
-    return this.proposalService.approveProposal(taskId, proposal);
-  }
-
   async setOnNewTaskListener(listener: (task: TaskData) => void) {
     return this.taskService.setOnNewTaskListener(listener);
   }
 
-  async setOnNewProposalListener(listener: (proposal: Proposal) => void) {
-    return this.proposalService.setOnNewProposalListener(listener);
-  }
-
-  async registerService(service: Service): Promise<void> {
+  async registerService(service: Service): Promise<boolean> {
     return this.serviceRegisterService.registerService(service);
   }
 } 

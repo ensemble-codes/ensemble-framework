@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-
 /**
  * @title ServiceRegistry
  * @author leonprou
@@ -53,6 +52,8 @@ contract ServiceRegistry is Ownable {
     }
 
     function isServiceRegistered(string memory name) external view returns (bool) {
+        require(bytes(name).length > 0, "Invalid service name");
+
         return bytes(services[name].name).length > 0;
     }
 }

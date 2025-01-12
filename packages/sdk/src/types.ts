@@ -60,17 +60,16 @@ export interface Service {
 export interface AgentData {
   name: string;
   uri: string;
-  owner: string;
+  owner?: string;
   address: string;
   reputation: BigNumberish;
-  isRegistered: boolean;
+  isRegistered?: boolean;
   proposals: Proposal[];
 }
 
 export interface TaskCreationParams {
   prompt: string;
-  serviceName: string;
-  agentAddress: string;
+  proposalId: string;
 }
 
 export interface NetworkConfig {

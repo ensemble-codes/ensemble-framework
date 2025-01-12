@@ -13,7 +13,7 @@ export class ServiceRegistryService {
 	 * @param service The service to register
 	 * @returns A promise that resolves when the service is registered
 	 */
-	async registerService(service: Service): Promise<void> {
+	async registerService(service: Service): Promise<boolean> {
 		try {
 			console.log(`Registering service: ${service.name}`);
 
@@ -22,6 +22,8 @@ export class ServiceRegistryService {
 
 			const receipt = await tx.wait();
 			console.log(`Transaction confirmed for service ${service.name}: ${receipt.transactionHash}`);
+
+			return true;
 	  
 		} catch(error) {
 			console.error(`Error registering service ${service.name}:`, error);

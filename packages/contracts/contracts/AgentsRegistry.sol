@@ -67,7 +67,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     ) external returns (bool) {
         require(!agents[agent].isRegistered, "Agent already registered");
         require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
-
+        
         AgentData storage agentData = agents[agent];
         agentData.name = name;
         agentData.agentUri = agentUri;
