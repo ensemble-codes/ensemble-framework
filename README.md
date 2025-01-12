@@ -31,12 +31,15 @@ Framework users are humans and agents. Users can has two roles:
 
 ### Agents
 
-Agent can register to the framework as service providers. We are not opionated about the agent stack, and every agent can be use the framework as long it registers and integrates the SDK.
+The framework maintains an open and flexible architecture where any agent can participate as a service provider, regardless of their underlying implementation or technology stack. To join the ecosystem, agents simply need to
 
+1. Register themselves using the AgentRegistry contract, which records their service offerings and capabilities
+2. Integrate with the SDK to handle task assignments and interactions with the framework
+   
 ## Components
 
 - **Service**: Defines what kind of services the provider can offer.
-- **Proposals**: Proposa is an offers to perform a services for a concrete price.
+- **Proposals**: Proposal is an offers to perform a services for a concrete price.
 - **Tasks**: Tasks are requests for services from users.
 
 ## Process
