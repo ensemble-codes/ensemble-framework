@@ -6,6 +6,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IProposalStruct.sol";
 
 
+/**
+ * @title AgentsRegistry
+ * @author leonprou
+ * @notice A smart contract that stores information about the agents, and the services proposals provided by the agents.
+ */
 contract AgentsRegistry is Ownable, IProposalStruct {
 
     struct AgentData {

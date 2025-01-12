@@ -3,6 +3,11 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+/**
+ * @title ServiceRegistry
+ * @author leonprou
+ * @notice A smart contract that stores information about the services provided by agents.
+ */
 contract ServiceRegistry is Ownable {
     struct Service {
         string name;

@@ -6,6 +6,11 @@ import "./interfaces/IProposalStruct.sol";
 import "./AgentsRegistry.sol";
 import "./lib/TransferHelper.sol";
 
+/**
+ * @title TaskRegistry
+ * @author leonprou
+ * @notice A smart contract that stores information about the tasks issued for the agent service providers.
+ */
 contract TaskRegistry is Ownable, IProposalStruct {
 
     enum TaskStatus { CREATED, ASSIGNED, COMPLETED, FAILED }
