@@ -3,9 +3,15 @@ pragma solidity ^0.8.20;
 
 import "./ServiceRegistry.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./interfaces/IProposalStruct.sol";
 
 
-contract AgentsRegistry is Ownable {
+/**
+ * @title AgentsRegistry
+ * @author leonprou
+ * @notice A smart contract that stores information about the agents, and the services proposals provided by the agents.
+ */
+contract AgentsRegistry is Ownable, IProposalStruct {
 
     struct AgentData {
         string name;
@@ -17,16 +23,9 @@ contract AgentsRegistry is Ownable {
         Proposal[] proposals;
     }
 
-    struct Proposal {
-        string serviceName;
-        uint256 price;
-        uint256 proposalId;
-    }
-
     ServiceRegistry public serviceRegistry;
     mapping(address => AgentData) public agents;
-    mapping(string => Proposal[]) public proposals;
-    // mapping(uint256 => address[]) private serviceToAgents;
+    Proposal[] public proposals;
     uint256 public nextProposalId;
 
     modifier onlyRegistered(address agent) {
@@ -42,6 +41,7 @@ contract AgentsRegistry is Ownable {
     event ReputationUpdated(address indexed agent, uint256 newReputation);
     event ServiceAdded(address indexed agent, uint256 name);
     event ProposalAdded(address indexed agent, string name, uint256 price);
+    
     /**
      * @dev Registers a new agent with the given details.
      * @param name The name of the agent.
@@ -75,10 +75,9 @@ contract AgentsRegistry is Ownable {
         agentData.agent = agent;
         agentData.reputation = 0;
         agentData.isRegistered = true;
-
-        Proposal memory proposal = Proposal(serviceName, servicePrice, nextProposalId);
+        Proposal memory proposal = Proposal(agent, serviceName, servicePrice, nextProposalId);
         agentData.proposals.push(proposal);
-        agents[agent] = agentData;
+        proposals.push(proposal);
         // agentData.proposals = new Proposal[](1);
         // agentData.proposals[1] = proposal;
         
@@ -122,5 +121,10 @@ contract AgentsRegistry is Ownable {
     ) {
         AgentData storage data = agents[_agent];
         return (data.name, data.agentUri, data.owner, data.agent, data.reputation);
+    }
+
+
+    function getProposal(uint256 proposalId) external view returns (Proposal memory) {
+        return proposals[proposalId];
     }
 }

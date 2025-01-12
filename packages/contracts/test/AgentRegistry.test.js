@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("AgentRegistry", function () {
+describe.only("AgentRegistry", function () {
     let AgentRegistry;
     let registry;
     let owner, addr1, agentAddress;
@@ -75,7 +75,6 @@ describe("AgentRegistry", function () {
 
     it("Should fetch agent data", async function () {
         await serviceRegistry.registerService("Service1", "Category1", "Description1");
-        console.log(addr1.address);
         await registry.connect(addr1).registerAgent(
             "Service Agent",
             "https://uri",
