@@ -79,7 +79,7 @@ Use our Typesript and Python SDKs to integrate the framework into your agent.
 
 ### SDK
 
-The TypeScript SDK is designed get integrated into agents and dapps and provide acceess to the Ensemble Hub. The SDK is documented [here](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
+The TypeScript SDK is designed to get integrated into agents and dapps to get integrated into the framework. The SDK is documented [here](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
 
 ## Deployments
 
