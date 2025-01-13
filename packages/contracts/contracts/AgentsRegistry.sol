@@ -40,7 +40,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     event AgentRegistered(address indexed agent, address indexed owner, string name, string agentUri);
     event ReputationUpdated(address indexed agent, uint256 newReputation);
     event ServiceAdded(address indexed agent, uint256 name);
-    event ProposalAdded(address indexed agent, string name, uint256 price);
+    event ProposalAdded(address indexed agent, uint256 proposalId, string name, uint256 price);
     
     /**
      * @dev Registers a new agent with the given details.
@@ -85,7 +85,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         // agentData.proposals[0] = Proposal(serviceName, servicePrice, nextProposalId);
         nextProposalId++;
         emit AgentRegistered(agent, msg.sender, name, agentUri);
-        emit ProposalAdded(agent, serviceName, servicePrice);
+        emit ProposalAdded(agent, proposal.proposalId, serviceName, servicePrice);
 
         return true;
     }
