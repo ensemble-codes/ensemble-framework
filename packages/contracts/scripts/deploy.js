@@ -1,30 +1,25 @@
-import hardhat from "hardhat";
-const { ethers } = hardhat;
-
-async function deployContract(contractName) {
-    const Factory = await ethers.getContractFactory(contractName);
-    const contract = await Factory.deploy();
-    await contract.deployed();
-    console.log(`${contractName} deployed to: ${contract.address}`);
-    console.log(`Transaction Hash: ${contract.deployTransaction.hash}`);
-    return contract;
-}
+import { ethers } from "hardhat";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deploying contracts with account:", deployer.address);
-    console.log("Account balance:", (await deployer.getBalance()).toString());
 
-    await deployContract("AgentsRegistry");
-    await deployContract("TaskRegistry");
-    await deployContract("ServiceRegistry");
+    // Deploy AgentRegistry
+    const AgentRegistry = await ethers.getContractFactory("AgentsRegistry");
+    const agentRegistry = await AgentRegistry.deploy();
+    await agentRegistry.deployed();
+    console.log("AgentsRegistry deployed to:", agentRegistry.address);
+
+    // Deploy TaskRegistry
+    const TaskRegistry = await ethers.getContractFactory("TaskRegistry");
+    const taskRegistry = await TaskRegistry.deploy();
+    await taskRegistry.deployed();
+    console.log("TaskRegistry deployed to:", taskRegistry.address);
 }
 
 main()
-    .then(() => {
-        process.exitCode = 0;
-    })
+    .then(() => process.exit(0))
     .catch((error) => {
-        console.error("Error in deployment:", error);
-        process.exitCode = 1;
+        console.error(error);
+        process.exit(1);
     });
