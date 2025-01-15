@@ -31,14 +31,19 @@ export class ServiceRegistryService {
 			throw error;
 		}
 	}
-
-	async getAllServices(): Promise<Service[]> {
-		const services = await this.serviceRegistry.getAllServices();
-		return services.map((service: any) => ({
-			name: service.name,
-			category: service.category,
-			description: service.description
-		}));
+	
+	async getService(name: string): Promise<Service> {
+		const service = await this.serviceRegistry.getService(name);
+		return service;
 	}
+
+	// async getAllServices(): Promise<Service[]> {
+	// 	const services = await this.serviceRegistry.getAllServices();
+	// 	return services.map((service: any) => ({
+	// 		name: service.name,
+	// 		category: service.category,
+	// 		description: service.description
+	// 	}));
+	// }
 
 }

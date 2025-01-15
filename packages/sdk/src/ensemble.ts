@@ -154,6 +154,14 @@ export class Ensemble {
   async registerService(service: Service): Promise<boolean> {
     return this.serviceRegisterService.registerService(service);
   }
+
+  async getService(name: string): Promise<Service> {
+    return this.serviceRegisterService.getService(name);
+  }
+
+  // async getAllServices(): Promise<Service[]> {
+  //   return this.serviceRegisterService.getAllServices();
+  // }
 } 
 
 export default Ensemble;

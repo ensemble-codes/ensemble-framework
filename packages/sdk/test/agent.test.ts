@@ -3,38 +3,9 @@ import dotenv from "dotenv";
 import { AgentService } from "../src/services/AgentService";
 import { ServiceRegistryService } from "../src/services/ServiceRegistryService";
 import { Ensemble } from "../src/ensemble";
+import { setupSdk } from "./utils";
 
-// dotenv.config({ path: ".env.local" });
-dotenv.config({ path: '.env', override: true });
 
-export const setupEnv = () => {
-  const provider = new ethers.JsonRpcProvider(process.env.NETWORK_RPC_URL!);
-  const pk = process.env.PRIVATE_KEY!;
-  const wallet = new ethers.Wallet(pk, provider);
-
-  return {
-	provider,
-	signer: wallet
-  };
-}
-
-const config = {
-	network: {
-	  rpcUrl: process.env.NETWORK_RPC_URL!,
-	  chainId: parseInt(process.env.NETWORK_CHAIN_ID!, 10),
-	  name: process.env.NETWORK_NAME!
-	},
-	taskRegistryAddress: process.env.TASK_REGISTRY_ADDRESS!,
-	agentRegistryAddress: process.env.AGENT_REGISTRY_ADDRESS!,
-	serviceRegistryAddress: process.env.SERVICE_REGISTRY_ADDRESS!,
-};
-
-export const setupSdk = (type: string = 'user') => {
-  const { signer } = setupEnv();
-  const sdk = new Ensemble(config, signer);
-  sdk.start();
-  return sdk;
-}
 
 describe("AgentService Integration Tests", () => {
     let provider: ethers.JsonRpcProvider;
@@ -46,8 +17,7 @@ describe("AgentService Integration Tests", () => {
 	let sdk: Ensemble;
 
 	beforeEach(async () => {
-	  const { signer } = await setupEnv();
-	  sdk = new Ensemble(config, signer);
+	  sdk = setupSdk();
 	  await sdk.start();
   });
 
