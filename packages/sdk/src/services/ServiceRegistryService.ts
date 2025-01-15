@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { Service } from "../types";
+import { ServiceAlreadyRegisteredError } from "../errors";
 
 export class ServiceRegistryService {
 	 private serviceRegistry: ethers.Contract;
@@ -25,9 +26,11 @@ export class ServiceRegistryService {
 
 			return true;
 	  
-		} catch(error) {
+		} catch(error: any) {
 			console.error(`Error registering service ${service.name}:`, error);
-
+			if (error.reason === "Service already registered") {
+				throw new ServiceAlreadyRegisteredError(service.name);
+			}
 			throw error;
 		}
 	}

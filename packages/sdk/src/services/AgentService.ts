@@ -1,5 +1,6 @@
 import { BigNumberish, ethers } from "ethers";
 import { AgentData,  } from "../types";
+import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../errors";
 
 export class AgentService {
   private agentRegistry: ethers.Contract;
@@ -27,9 +28,9 @@ export class AgentService {
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(name: string, uri: string, address: string, serviceName: string, servicePrice: number): Promise<string> {
+  async registerAgent(name: string, uri: string, address: string, serviceName: string, servicePrice: number): Promise<boolean> {
     try {
-
+      console.log({ name, uri, address, serviceName, servicePrice });
       const tx = await this.agentRegistry.registerAgent(name, uri, address, serviceName, servicePrice);
       const receipt = await tx.wait();
       
@@ -41,12 +42,17 @@ export class AgentService {
       if (!event?.args) {
         throw new Error("Agent registration failed: Event not emitted");
       }
+      return true;
       
-      const agentAddress = event.args[0];
-      return agentAddress;
-    } catch (error) {
-      console.error("Error registering agent:", error);
-      throw error;
+    } catch (error: any) {
+      console.error({ error });
+      if (error.reason === "Service not registered") {
+        throw new ServiceNotRegisteredError(error.reason);
+      } else if (error.reason === "Agent already registered") {
+        throw new AgentAlreadyRegisteredError(error.reason);
+      } else {
+        throw error;
+      }
     }
 }
 
@@ -70,7 +76,7 @@ export class AgentService {
    * @param {string} agentAddress - The address of the agent.
    * @returns {Promise<AgentData>} A promise that resolves to the agent data.
    */
-  async getAgentData(agentAddress: string): Promise<AgentData> {
+  async getAgent(agentAddress: string): Promise<AgentData> {
     const [name, uri, address, reputation, proposals] = await this.agentRegistry.getAgentData(agentAddress);
     const isRegistered = await this.agentRegistry.isRegistered(agentAddress);
 

@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import dotenv from "dotenv";
 import { Ensemble } from "../src/ensemble";
 
-dotenv.config({ path: '.env.test', override: true });
+dotenv.config({ path: '.test.env', override: true });
 
 export const setupEnv = () => {
   const provider = new ethers.JsonRpcProvider(process.env.NETWORK_RPC_URL!);

@@ -108,7 +108,7 @@ export class Ensemble {
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(name: string, uri: string, address: string, serviceName: string, servicePrice: number): Promise<string> {
+  async registerAgent(name: string, uri: string, address: string, serviceName: string, servicePrice: number): Promise<boolean> {
     return this.agentService.registerAgent(name, uri, address, serviceName, servicePrice);
   }
 
@@ -125,8 +125,8 @@ export class Ensemble {
    * @param {string} agentAddress - The address of the agent.
    * @returns {Promise<AgentData>} A promise that resolves to the agent data.
    */
-  async getAgentData(agentId: string): Promise<AgentData> {
-    return this.agentService.getAgentData(agentId);
+  async getAgent(agentId: string): Promise<AgentData> {
+    return this.agentService.getAgent(agentId);
   }
 
    /**

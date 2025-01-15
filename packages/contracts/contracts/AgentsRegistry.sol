@@ -59,9 +59,9 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      * Emits an {AgentRegistered} event.
      */
     function registerAgent(
+        address agent,
         string memory name,
         string memory agentUri,
-        address agent,
         string memory serviceName,
         uint256 servicePrice
     ) external returns (bool) {
@@ -78,11 +78,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         Proposal memory proposal = Proposal(agent, serviceName, servicePrice, nextProposalId);
         agentData.proposals.push(proposal);
         proposals.push(proposal);
-        // agentData.proposals = new Proposal[](1);
-        // agentData.proposals[1] = proposal;
-        
-        // agentData.proposals = new Proposal[](1);
-        // agentData.proposals[0] = Proposal(serviceName, servicePrice, nextProposalId);
+
         nextProposalId++;
         emit AgentRegistered(agent, msg.sender, name, agentUri);
         emit ProposalAdded(agent, proposal.proposalId, serviceName, servicePrice);
