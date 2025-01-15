@@ -1,14 +1,16 @@
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+import AgentsRegistry from "./AgentsRegistry";
+import { servicesList } from '../../../sdk/scripts/data/servicesList';
+import { ServiceRegistry } from '../../typechain-types/contracts/ServiceRegistry';
 
-const TaskRegistryModule = buildModule("TaskRegistryModule", (m) => {
+const TaskRegistryModule = buildModule("TaskRegistryModule", (m: any) => {
 
-  const serviceRegistry = m.contract("ServiceRegistry");
 
-  const agentsRegistry = m.contract("AgentsRegistry", [serviceRegistry]);
+  const { serviceRegistry, agentsRegistry } = m.useModule(AgentsRegistry);
 
   const taskRegistry = m.contract("TaskRegistry", [agentsRegistry]);
 
-  return { taskRegistry };
+  return { taskRegistry, serviceRegistry, agentsRegistry };
 });
 
 export default TaskRegistryModule; 

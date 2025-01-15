@@ -6,6 +6,7 @@ import { AgentService } from "./services/AgentService";
 import { ServiceRegistryService } from "./services/ServiceRegistryService";
 import TaskRegistryABI from './abi/TaskRegistry.abi.json';
 import AgentRegistryABI from './abi/AgentsRegistry.abi.json';
+import ServiceRegistryABI from './abi/ServiceRegistry.abi.json';
 
 export class Ensemble {
   protected contractService: ContractService;
@@ -30,20 +31,23 @@ export class Ensemble {
     );
 
     // Initialize services
-    const taskRegistry = this.contractService.createContract(
-      config.taskRegistryAddress,
-      TaskRegistryABI
+    const serviceRegistry = this.contractService.createContract(
+      config.serviceRegistryAddress,
+      ServiceRegistryABI
     );
-    
+
     const agentRegistry = this.contractService.createContract(
       config.agentRegistryAddress,
       AgentRegistryABI
     );
 
-    const serviceRegistry = this.contractService.createContract(
-      config.serviceRegistryAddress,
-      AgentRegistryABI
+    const taskRegistry = this.contractService.createContract(
+      config.taskRegistryAddress,
+      TaskRegistryABI
     );
+    
+
+
 
     this.taskService = new TaskService(taskRegistry);
     this.agentService = new AgentService(agentRegistry, signer);
@@ -151,3 +155,5 @@ export class Ensemble {
     return this.serviceRegisterService.registerService(service);
   }
 } 
+
+export default Ensemble;
