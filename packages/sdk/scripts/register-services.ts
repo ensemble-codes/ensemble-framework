@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { Ensemble } from "../src/ensemble"
 import dotenv from "dotenv";
-import { agentsList } from "./data/agentsList";
+import { servicesList } from "./data/servicesList";
 
 dotenv.config({ override: true });
 
@@ -29,25 +29,27 @@ export const setupSdk = () => {
   const { signer } = setupEnv();
 
   const config = {
-	network: {
-	  rpcUrl: rpcUrl,
-	  chainId: chainId,
-	  name: networkName
-	},
-	taskRegistryAddress: taskRegistryAddress,
-	agentRegistryAddress: agentRegistryAddress,
-	serviceRegistryAddress: serviceRegistryAddress
+    network: {
+      rpcUrl: rpcUrl,
+      chainId: chainId,
+      name: networkName
+    },
+    taskRegistryAddress: taskRegistryAddress,
+    agentRegistryAddress: agentRegistryAddress,
+    serviceRegistryAddress: serviceRegistryAddress
   }
+
+  console.log(config)
   const sdk = new Ensemble(config, signer);
-  sdk.start();
+  // sdk.start();
   return sdk;
 }
 
 async function main() {
   const ensemble = setupSdk();
   
-  for (const agent of agentsList) {
-	await ensemble.registerAgent(agent.name, agent.uri, agent.owner, agent.address, agent.proposals);
+  for (const service of servicesList) {
+	await ensemble.registerService(service);
   }
 
   process.stdin.resume();

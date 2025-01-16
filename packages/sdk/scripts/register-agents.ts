@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { Ensemble } from "../src/ensemble"
 import dotenv from "dotenv";
-import { servicesList } from "./data/servicesList";
+import { agentsList } from "./data/agentsList";
 
 dotenv.config({ override: true });
 
@@ -46,8 +46,9 @@ export const setupSdk = () => {
 async function main() {
   const ensemble = setupSdk();
   
-  for (const service of servicesList) {
-	await ensemble.registerService(service);
+  for (const agent of agentsList) {
+    console.log(`Registering agent ${agent.name} with address ${agent.address}`);
+	  await ensemble.registerAgent(agent.address, agent.name, agent.uri, agent.serviceName, agent.servicePrice);
   }
 
   process.stdin.resume();

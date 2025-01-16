@@ -1,32 +1,12 @@
-import { AgentData } from "../../src/types";
 
-export const agentsList: AgentData[] = [
+
+export const agentsList = [
 	{
-		name: "Agent 1",
-		uri: "https://agent1.com",
-		owner: "0xowner1",
-		address: "0xaddressagent1",
-		reputation: 100,
-		isRegistered: false,
-		proposals: []
-	},
-	{
-		name: "Agent 2",
-		uri: "https://agent2.com",
-		owner: "0xowner2",
-		address: "0xaddressagent2",
-		reputation: 100,
-		isRegistered: false,
-		proposals: []
-	},
-	{
-		name: "Agent 3",
-		uri: "https://agent3.com",
-		owner: "0xowner3",
-		address: "0xaddressagent3",
-		reputation: 100,
-		isRegistered: false,
-		proposals: []
+		name: "Agent KOL",
+		uri: "https://ipfs.com/hash",
+		owner: "0x515e4af972D84920a9e774881003b2bD797c4d4b",
+		address: "0x114375c8B0A6231449c6961b0746cB0117D66f4F",
+		serviceName: "Bull-Post",
+		servicePrice: 10000000000000000
 	}
-	
 ]
