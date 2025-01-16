@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
 import { Ensemble } from "../src/ensemble"
-import { Proposal, TaskType } from "../src/types";
 import dotenv from "dotenv";
 
 dotenv.config({ override: true });
@@ -40,20 +39,18 @@ export const setupSdk = () => {
     serviceRegistryAddress: serviceRegistryAddress
   }
   const sdk = new Ensemble(config, signer);
-  sdk.start();
   return sdk;
 }
 
 async function main() {
   const ensemble = setupSdk()
-  
+  let topic = "GOAT"
+  let style = "exciting"
   const task = await ensemble.createTask({
-    prompt: "Write a tweet about GOAT. On the style: exciting",
-    proposalId: "000001"
+    prompt: `Write a tweet about ${topic}. style: ${style}`,
+    proposalId: "0"
   });
   console.log(task)
-
-  process.stdin.resume();
 }
 
 main().catch((error) => {
