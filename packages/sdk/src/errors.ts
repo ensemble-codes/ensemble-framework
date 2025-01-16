@@ -25,3 +25,10 @@ export class ServiceAlreadyRegisteredError extends Error {
     this.name = "ServiceAlreadyRegisteredError";
   }
 }
+
+export class ProposalNotFoundError extends Error {
+  constructor(proposalId: number) {
+    super(`Proposal "${proposalId}" not found.`);
+    this.name = "ProposalNotFoundError";
+  }
+}

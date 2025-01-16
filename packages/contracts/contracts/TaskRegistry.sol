@@ -48,6 +48,7 @@ contract TaskRegistry is Ownable, IProposalStruct {
         uint256 proposalId
     ) external payable returns (TaskData memory) {
         Proposal memory proposal = agentRegistry.getProposal(proposalId);
+        require(proposal.issuer != address(0), "Proposal not found");
         require(proposal.price == msg.value, "Invalid price");
 
         nextTaskId++;

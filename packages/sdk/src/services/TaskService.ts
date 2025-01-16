@@ -1,5 +1,6 @@
 import { BigNumberish, ethers } from "ethers";
 import { TaskCreationParams, TaskData, TaskStatus } from "../types";
+import { ProposalNotFoundError } from "../errors";
 
 export class TaskService {
   private taskRegistry: ethers.Contract;
@@ -15,26 +16,34 @@ export class TaskService {
    * @returns {Promise<TaskData>} A promise that resolves to the task ID.
    */
   async createTask(params: TaskCreationParams): Promise<TaskData> {
-    const tx = await this.taskRegistry.createTask(params.prompt, params.proposalId);
-    console.log("sending txhash:", tx.hash);
-    const receipt = await tx.wait();
-    
-    const event = this.findEventInReceipt(receipt, "TaskCreated");
-    // if (!event?.args?.[1]) {
-    //   throw new Error("Task creation failed: No task address in event");
-    // }
-    // const taskId = event.args[1];
-    const owner = event.args[0];
-    const taskId = event.args[1];
-    const prompt = event.args[2];
-    const taskType = event.args[3];
-    return {
-      id: taskId,
-      prompt,
-      taskType,
-      status: TaskStatus.CREATED,
-      owner
-    };
+    try {
+      const tx = await this.taskRegistry.createTask(params.prompt, params.proposalId);
+      console.log("sending txhash:", tx.hash);
+      const receipt = await tx.wait();
+      
+      const event = this.findEventInReceipt(receipt, "TaskCreated");
+      // if (!event?.args?.[1]) {
+      //   throw new Error("Task creation failed: No task address in event");
+      // }
+      // const taskId = event.args[1];
+      const owner = event.args[0];
+      const taskId = event.args[1];
+      const prompt = event.args[2];
+      const taskType = event.args[3];
+      return {
+        id: taskId,
+        prompt,
+        taskType,
+        status: TaskStatus.CREATED,
+        owner
+      };
+    } catch (error: any) {
+      console.error("Task creation failed:", error);
+      if (error.reason === "Proposal not found") {
+        throw new ProposalNotFoundError(error.reason);
+      }
+      throw error;
+    }
   }
 
   /**
