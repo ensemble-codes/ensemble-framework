@@ -45,13 +45,9 @@ export class Ensemble {
       config.taskRegistryAddress,
       TaskRegistryABI
     );
-    
-
-
-
-    this.taskService = new TaskService(taskRegistry);
-    this.agentService = new AgentService(agentRegistry, signer);
     this.serviceRegisterService = new ServiceRegistryService(serviceRegistry);
+    this.agentService = new AgentService(agentRegistry, signer);
+    this.taskService = new TaskService(taskRegistry, this.agentService);
   }
   
   async start() {
@@ -81,12 +77,12 @@ export class Ensemble {
   }
 
   /**
-   * Gets tasks by owner.
-   * @param {string} owner - The owner of the tasks.
+   * Gets tasks by issuer.
+   * @param {string} issuer - The owner of the tasks.
    * @returns {Promise<string[]>} A promise that resolves to the task IDs.
    */
-  async getTasksByOwner(owner: string): Promise<TaskData[]> {
-    return this.taskService.getTasksByOwner(owner);
+  async getTasksByIssuer(issuer: string): Promise<TaskData[]> {
+    return this.taskService.getTasksByIssuer(issuer);
   }
 
   /**

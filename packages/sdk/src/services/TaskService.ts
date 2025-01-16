@@ -1,13 +1,16 @@
 import { BigNumberish, ethers } from "ethers";
 import { TaskCreationParams, TaskData, TaskStatus } from "../types";
 import { ProposalNotFoundError } from "../errors";
+import { AgentService } from "./AgentService";
 
 export class TaskService {
   private taskRegistry: ethers.Contract;
   protected onNewTask: (task: TaskData) => void = () => {};
+  agentService: AgentService;
   
-  constructor(taskRegistry: ethers.Contract) {
+  constructor(taskRegistry: ethers.Contract, agentService: any) {
     this.taskRegistry = taskRegistry;
+    this.agentService = agentService;
   }
 
   /**
@@ -17,25 +20,29 @@ export class TaskService {
    */
   async createTask(params: TaskCreationParams): Promise<TaskData> {
     try {
-      const tx = await this.taskRegistry.createTask(params.prompt, params.proposalId);
+      const proposal = await this.agentService.getProposal(params.proposalId);
+      console.log("proposal:", proposal);
+      const tx = await this.taskRegistry.createTask(
+        params.prompt, params.proposalId,
+        { value: proposal.price });
       console.log("sending txhash:", tx.hash);
       const receipt = await tx.wait();
       
       const event = this.findEventInReceipt(receipt, "TaskCreated");
+      console.log("event:", event);
       // if (!event?.args?.[1]) {
       //   throw new Error("Task creation failed: No task address in event");
       // }
       // const taskId = event.args[1];
-      const owner = event.args[0];
-      const taskId = event.args[1];
-      const prompt = event.args[2];
-      const taskType = event.args[3];
+      const taskId = event.args[2];
+      const prompt = event.args[4];
       return {
         id: taskId,
-        prompt,
-        taskType,
+        assignee: event.args[1],
+        prompt: prompt,
         status: TaskStatus.CREATED,
-        owner
+        issuer: event.args[0],
+        proposalId: params.proposalId
       };
     } catch (error: any) {
       console.error("Task creation failed:", error);
@@ -52,25 +59,25 @@ export class TaskService {
    * @returns {Promise<TaskData>} A promise that resolves to the task data.
    */
   async getTaskData(taskId: string): Promise<TaskData> {
-    const [id, prompt, taskType, owner, status, assignee] = await this.taskRegistry.tasks(taskId);
+    const [id, prompt, issuer, status, assignee, proposalId] = await this.taskRegistry.tasks(taskId);
 
     return {
       id,
       prompt,
-      taskType,
       assignee: assignee || undefined,
       status,
-      owner
+      issuer,
+      proposalId: proposalId
     };
   }
 
   /**
-   * Gets tasks by owner.
-   * @param {string} owner - The owner of the tasks.
+   * Gets tasks by issuer.
+   * @param {string} issuer - The issuer of the tasks.
    * @returns {Promise<string[]>} A promise that resolves to the task IDs.
    */
-  async getTasksByOwner(owner: string): Promise<TaskData[]> {
-    return this.taskRegistry.getTasksByOwner(owner);
+  async getTasksByIssuer(issuer: string): Promise<TaskData[]> {
+    return this.taskRegistry.getTasksByIssuer(issuer);
   }
 
   /**
@@ -98,12 +105,14 @@ export class TaskService {
     console.log("filter:", filter);
     // console.log("filter:", filter);
     console.log("taskRegistry.target:", this.taskRegistry.target);
-    this.taskRegistry.on(filter, ({ args: [ owner, taskId, prompt, taskType ] }) => {
-      console.log(`Owner: ${owner}
-        Task ID: ${taskId}
-        Prompt: ${prompt}
-        Task Type: ${taskType}`);
-      this.onNewTask({ owner, id: taskId, prompt, taskType, status: TaskStatus.CREATED });
+    this.taskRegistry.on(filter, ({ args: [ issuer, assignee, taskId, proposalId, prompt ] }) => {
+      console.log("New Task Created Event:");
+      console.log("Issuer:", issuer);
+      console.log("Assignee:", assignee);
+      console.log("Task ID:", taskId);
+      console.log("Proposal ID:", proposalId);
+      console.log("Prompt:", prompt);
+      this.onNewTask({ issuer, id: taskId, prompt, status: TaskStatus.CREATED, proposalId: issuer });
     });
 
     // let startBlock = await this.signer.provider?.getBlockNumber();

@@ -29,6 +29,6 @@ const config = {
 export const setupSdk = (type: string = 'user') => {
   const { signer } = setupEnv();
   const sdk = new Ensemble(config, signer);
-  sdk.start();
+  // sdk.start();
   return sdk;
 }

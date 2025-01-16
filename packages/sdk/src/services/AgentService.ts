@@ -1,5 +1,5 @@
 import { BigNumberish, ethers } from "ethers";
-import { AgentData,  } from "../types";
+import { AgentData, Proposal,  } from "../types";
 import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../errors";
 
 export class AgentService {
@@ -145,4 +145,7 @@ export class AgentService {
       return agents;
     }
 
-} 
+    async getProposal(proposalId: string): Promise<Proposal> {
+      return await this.agentRegistry.getProposal(proposalId);
+    }
+}

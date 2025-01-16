@@ -1,5 +1,4 @@
 import { Ensemble } from "../src";
-import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../src/errors";
 import { setupSdk } from "./utils";
 
 describe("TaskService", () => {
@@ -9,12 +8,7 @@ describe("TaskService", () => {
         sdk = setupSdk();
     });
 
-    function setupAgent(prompt: string, proposalId: string) {
-        return {
-            prompt,
-            proposalId
-        }
-    }
+
 
     it("should not create a task without a proposal", async () => {
       const nonExistentProposalId = "1234";
@@ -24,7 +18,7 @@ describe("TaskService", () => {
         })).rejects.toThrow(Error);
     });
 
-    it.only("should not create a task", async () => {
+    it("should create a task", async () => {
 
       const agentName = "Agent1";
       const agentUri = "https://example.com";
@@ -43,12 +37,15 @@ describe("TaskService", () => {
 
 
       const proposalId = "0";
-      const response = sdk.createTask({
+      const task = await sdk.createTask({
           prompt: "This is a test task.",
           proposalId: proposalId
       })
-
-      console.log({ response });
+      expect(task.id).toEqual(0n);
+      expect(task.prompt).toEqual("This is a test task.");
+      expect(task.status).toEqual(0);
+      expect(task.issuer).toEqual(process.env.ACCOUNT_ADDRESS!);
+      expect(task.proposalId).toEqual(proposalId);
     })
 
 });
