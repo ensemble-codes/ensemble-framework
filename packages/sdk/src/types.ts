@@ -17,12 +17,6 @@ export interface TaskConnectorContract extends BaseContract {
   }>;
 }
 
-export enum TaskType {
-  SIMPLE,
-  COMPLEX,
-  COMPOSITE
-}
-
 export enum TaskStatus {
   CREATED,
   ASSIGNED,
@@ -33,10 +27,10 @@ export enum TaskStatus {
 export interface TaskData {
   id: string;
   prompt: string;
-  taskType: TaskType;
   assignee?: string;
   status: TaskStatus;
-  owner: string;
+  issuer: string;
+  proposalId: string;
 }
 
 export interface Proposal {
@@ -60,17 +54,16 @@ export interface Service {
 export interface AgentData {
   name: string;
   uri: string;
-  owner: string;
+  owner?: string;
   address: string;
   reputation: BigNumberish;
-  isRegistered: boolean;
+  isRegistered?: boolean;
   proposals: Proposal[];
 }
 
 export interface TaskCreationParams {
   prompt: string;
-  serviceName: string;
-  agentAddress: string;
+  proposalId: string;
 }
 
 export interface NetworkConfig {

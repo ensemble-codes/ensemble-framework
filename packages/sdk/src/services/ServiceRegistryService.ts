@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { Service } from "../types";
+import { ServiceAlreadyRegisteredError } from "../errors";
 
 export class ServiceRegistryService {
 	 private serviceRegistry: ethers.Contract;
@@ -13,7 +14,7 @@ export class ServiceRegistryService {
 	 * @param service The service to register
 	 * @returns A promise that resolves when the service is registered
 	 */
-	async registerService(service: Service): Promise<void> {
+	async registerService(service: Service): Promise<boolean> {
 		try {
 			console.log(`Registering service: ${service.name}`);
 
@@ -22,12 +23,30 @@ export class ServiceRegistryService {
 
 			const receipt = await tx.wait();
 			console.log(`Transaction confirmed for service ${service.name}: ${receipt.transactionHash}`);
-	  
-		} catch(error) {
-			console.error(`Error registering service ${service.name}:`, error);
 
+			return true;
+	  
+		} catch(error: any) {
+			console.error(`Error registering service ${service.name}:`, error);
+			if (error.reason === "Service already registered") {
+				throw new ServiceAlreadyRegisteredError(service.name);
+			}
 			throw error;
 		}
 	}
+	
+	async getService(name: string): Promise<Service> {
+		const service = await this.serviceRegistry.getService(name);
+		return service;
+	}
+
+	// async getAllServices(): Promise<Service[]> {
+	// 	const services = await this.serviceRegistry.getAllServices();
+	// 	return services.map((service: any) => ({
+	// 		name: service.name,
+	// 		category: service.category,
+	// 		description: service.description
+	// 	}));
+	// }
 
 }

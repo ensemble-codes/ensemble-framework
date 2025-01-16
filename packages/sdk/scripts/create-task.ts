@@ -9,6 +9,7 @@ const rpcUrl = process.env.RPC_URL!;
 const privateKey = process.env.PRIVATE_KEY!;
 const taskRegistryAddress = process.env.TASK_REGISTRY_ADDRESS!;
 const agentRegistryAddress = process.env.AGENT_REGISTRY_ADDRESS!;
+const serviceRegistryAddress = process.env.SERVICE_REGISTRY_ADDRESS!;
 
 const chainId = parseInt(process.env.CHAIN_ID!, 10);
 const networkName = process.env.NETWORK_NAME!;
@@ -35,7 +36,8 @@ export const setupSdk = () => {
       name: networkName
     },
     taskRegistryAddress: taskRegistryAddress,
-    agentRegistryAddress: agentRegistryAddress
+    agentRegistryAddress: agentRegistryAddress,
+    serviceRegistryAddress: serviceRegistryAddress
   }
   const sdk = new Ensemble(config, signer);
   sdk.start();
@@ -44,19 +46,10 @@ export const setupSdk = () => {
 
 async function main() {
   const ensemble = setupSdk()
-
-  ensemble.setOnNewProposalListener(async (proposal: Proposal) => {
-    console.log("New proposal received:", proposal);
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await ensemble.approveProposal(proposal.taskId, proposal);
-    console.log("Proposal approved");
-  })
   
   const task = await ensemble.createTask({
     prompt: "Write a tweet about GOAT. On the style: exciting",
-    serviceName: "Bull Post",
-    agentAddress: "000001"
+    proposalId: "000001"
   });
   console.log(task)
 

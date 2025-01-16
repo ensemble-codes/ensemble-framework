@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "CommonJS",
-    "target": "ES6",
+    "target": "ES2020",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
@@ -13,4 +13,4 @@
   },
   "include": ["src", "jest.config.js", "index.ts", "scripts/data"],
   "exclude": ["node_modules", "dist", "test"]
-}
+  }

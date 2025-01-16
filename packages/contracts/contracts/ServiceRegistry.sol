@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-
 /**
  * @title ServiceRegistry
  * @author leonprou
@@ -18,8 +17,8 @@ contract ServiceRegistry is Ownable {
     mapping(string => Service) public services;
     uint256 public serviceCount;
 
-    event ServiceRegistered(uint256 indexed serviceId, string name, string description);
-    event ServiceUpdated(uint256 indexed serviceId, string name, string description);
+    event ServiceRegistered(string name, string category, string description);
+    event ServiceUpdated(string name, string category, string description);
 
     constructor() Ownable(msg.sender) {}
 
@@ -29,6 +28,8 @@ contract ServiceRegistry is Ownable {
      * @return The ID of the registered service.
      */
     function registerService(string memory name, string memory category, string memory description) external onlyOwner returns (Service memory) {
+        require(!this.isServiceRegistered(name), "Service already registered");
+
         Service memory service = Service({
             name: name,
             category: category,
@@ -37,7 +38,7 @@ contract ServiceRegistry is Ownable {
 
         services[name] = service;
 
-        emit ServiceRegistered(serviceCount, name, description);
+        emit ServiceRegistered(name, category, description);
 
         serviceCount++;
         return service;
@@ -53,6 +54,20 @@ contract ServiceRegistry is Ownable {
     }
 
     function isServiceRegistered(string memory name) external view returns (bool) {
+        require(bytes(name).length > 0, "Invalid service name");
+
         return bytes(services[name].name).length > 0;
+    }
+
+    function updateService(string memory name, string memory category, string memory description) external onlyOwner {
+        require(this.isServiceRegistered(name), "Service not registered");
+
+        services[name] = Service({
+            name: name,
+            category: category,
+            description: description
+        });
+
+        emit ServiceUpdated(name, category, description);
     }
 }

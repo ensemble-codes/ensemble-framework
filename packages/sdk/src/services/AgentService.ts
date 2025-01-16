@@ -1,5 +1,6 @@
 import { BigNumberish, ethers } from "ethers";
-import { AgentData, Proposal } from "../types";
+import { AgentData, Proposal,  } from "../types";
+import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../errors";
 
 export class AgentService {
   private agentRegistry: ethers.Contract;
@@ -20,22 +21,41 @@ export class AgentService {
 
   /**
    * Registers a new agent.
-   * @param {string} model - The model of the agent.
-   * @param {string} prompt - The prompt for the agent.
-   * @param {string[]} skills - The skills of the agent.
+   * @param {string} name - The name of the agent.
+   * @param {string} uri - The uri of the agent.
+   * @param {string} address - The address of the agent.
+   * @param {string} serviceName - The name of the service.
+   * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(name: string, uri: string, owner: string, address: string, proposals: Proposal[]): Promise<string> {
-    const tx = await this.agentRegistry.registerAgent(name, uri, owner, address, proposals);
-    const receipt = await tx.wait();
-    
-    const event = this.findEventInReceipt(receipt, "AgentRegistered");
-    if (!event?.args) {
-      throw new Error("Agent registration failed");
+  async registerAgent(name: string, uri: string, address: string, serviceName: string, servicePrice: number): Promise<boolean> {
+    try {
+      console.log({ name, uri, address, serviceName, servicePrice });
+      const tx = await this.agentRegistry.registerAgent(name, uri, address, serviceName, servicePrice);
+      const receipt = await tx.wait();
+      
+      if (receipt.status === 0) {
+        throw new Error("Transaction reverted: Agent registration failed");
+      }
+      
+      const event = this.findEventInReceipt(receipt, "AgentRegistered");
+      if (!event?.args) {
+        throw new Error("Agent registration failed: Event not emitted");
+      }
+      return true;
+      
+    } catch (error: any) {
+      console.error({ error });
+      if (error.reason === "Service not registered") {
+        throw new ServiceNotRegisteredError(error.reason);
+      } else if (error.reason === "Agent already registered") {
+        throw new AgentAlreadyRegisteredError(error.reason);
+      } else {
+        throw error;
+      }
     }
-    const agentAddress = event.args[0];
-    return agentAddress;
-  }
+}
+
 
   findEventInReceipt(receipt: any, eventName: string): ethers.EventLog {
     const events = receipt.logs.map((log: any) => {
@@ -56,16 +76,16 @@ export class AgentService {
    * @param {string} agentAddress - The address of the agent.
    * @returns {Promise<AgentData>} A promise that resolves to the agent data.
    */
-  async getAgentData(agentAddress: string): Promise<AgentData> {
-    const [model, prompt, skills, reputation] = await this.agentRegistry.getAgentData(agentAddress);
+  async getAgent(agentAddress: string): Promise<AgentData> {
+    const [name, uri, address, reputation, proposals] = await this.agentRegistry.getAgentData(agentAddress);
     const isRegistered = await this.agentRegistry.isRegistered(agentAddress);
 
     return {
-      address: agentAddress,
-      model,
-      prompt,
-      skills,
+      name,
+      uri,
+      address,
       reputation,
+      proposals,
       isRegistered
     };
   }
@@ -113,14 +133,19 @@ export class AgentService {
       for (const address of agentAddresses) {
         const agent = await this.agentRegistry.getAgentData(address);
         agents.push({
-          address,
-          model: agent[0],
-          prompt: agent[1],
-          skills: agent[2],
-          reputation: agent[3],
+          name: agent[0],
+          uri: agent[1],
+          owner: agent[2],
+          address: agent[3],
+          reputation: agent[4],
           isRegistered: true,
+          proposals: agent[5]
         });
       }
       return agents;
     }
-} 
+
+    async getProposal(proposalId: string): Promise<Proposal> {
+      return await this.agentRegistry.getProposal(proposalId);
+    }
+}

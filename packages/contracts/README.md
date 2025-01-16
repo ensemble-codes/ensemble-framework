@@ -1,6 +1,18 @@
-# Deployments
+# Ensemble Framework Smart Contracts
 
-The stack is EVM based, we support Solana with NeonEVM.
+Contracts for the Ensemble onchain economy framework. The contracts are written in Solidity language.
+
+## Instructions
+
+the following command will deploy all the contracts to the specified network.
+
+```bash
+npx hardhat ignition deploy ignition/modules/TaskRegistry.ts --network $YOUR_NETWORK
+```
+
+## Deployments
+
+Contracts are deployed to the following networks, we support Solana via NeonEVM.
 
 ## Base Sepolia
 

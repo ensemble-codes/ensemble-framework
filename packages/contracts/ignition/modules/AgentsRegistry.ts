@@ -1,12 +1,13 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import ServiceRegistry from "./ServiceRegistry";
 
 const AgentsRegistryModule = buildModule("AgentsRegistryModule", (m) => {
 
-    const serviceRegistry = m.contract("ServiceRegistry");
+    const { serviceRegistry} = m.useModule(ServiceRegistry);
 
     const agentsRegistry = m.contract("AgentsRegistry", [serviceRegistry]);
 
-    return { agentsRegistry };
+    return { agentsRegistry, serviceRegistry };
 });
 
 export default AgentsRegistryModule; 
