@@ -1,0 +1,4 @@
+
+npx hardhat verify $SERVICE_REGISTRY_ADDRESS --network $NETWORK_NAME
+
+npx hardhat verify $AGENT_REGISTRY_ADDRESS $SERVICE_REGISTRY_ADDRESS --network $NETWORK_NAME
