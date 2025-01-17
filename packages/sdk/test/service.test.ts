@@ -29,7 +29,7 @@ describe("ServiceRegistryService", () => {
 
   it("should fail to register the same service twice", async () => {
     const service: Service = {
-      name: "Test Service",
+      name: "Test Service Failed",
       category: "Utility",
       description: "This is a test service.",
     };

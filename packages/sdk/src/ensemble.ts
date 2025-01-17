@@ -88,15 +88,15 @@ export class Ensemble {
   
   /**
    * Registers a new agent.
+   * @param {string} address - The address of the agent.
    * @param {string} name - The name of the agent.
    * @param {string} uri - The uri of the agent.
-   * @param {string} address - The address of the agent.
    * @param {string} serviceName - The name of the service.
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(name: string, uri: string, address: string, serviceName: string, servicePrice: number): Promise<boolean> {
-    return this.agentService.registerAgent(name, uri, address, serviceName, servicePrice);
+  async registerAgent(address: string, name: string, uri: string, serviceName: string, servicePrice: number): Promise<boolean> {
+    return this.agentService.registerAgent(address, name, uri, serviceName, servicePrice);
   }
 
   /**

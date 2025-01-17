@@ -21,17 +21,18 @@ export class AgentService {
 
   /**
    * Registers a new agent.
+   * @param {string} address - The address of the agent..
    * @param {string} name - The name of the agent.
    * @param {string} uri - The uri of the agent.
-   * @param {string} address - The address of the agent.
    * @param {string} serviceName - The name of the service.
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(name: string, uri: string, address: string, serviceName: string, servicePrice: number): Promise<boolean> {
+  async registerAgent(address: string, name: string, uri: string, serviceName: string, servicePrice: number): Promise<boolean> {
     try {
       console.log({ name, uri, address, serviceName, servicePrice });
-      const tx = await this.agentRegistry.registerAgent(name, uri, address, serviceName, servicePrice);
+      const tx = await this.agentRegistry.registerAgent(address, name, uri, serviceName, servicePrice.toString());
+      console.log(`transaction to register agent was sent. tx: ${tx}`);
       const receipt = await tx.wait();
       
       if (receipt.status === 0) {
