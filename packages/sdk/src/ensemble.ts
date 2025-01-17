@@ -15,7 +15,6 @@ export class Ensemble {
   private serviceRegisterService: ServiceRegistryService;
 
   constructor(config: ContractConfig, signer: ethers.Signer) {
-    console.log('Config Params:', config);
 
     this.contractService = new ContractService(
       new ethers.JsonRpcProvider(config.network.rpcUrl),
@@ -47,7 +46,7 @@ export class Ensemble {
   }
 
   async stop() {
-    
+    this.taskService.unsubscribe()
   }
 
   /**
@@ -79,11 +78,11 @@ export class Ensemble {
 
   /**
    * Completes a task.
-   * @param {BigNumberish} taskId - The ID of the task.
+   * @param {string} taskId - The ID of the task.
    * @param {string} result - The result of the task.
    * @returns {Promise<void>} A promise that resolves when the task is completed.
    */
-  async completeTask(taskId: BigNumberish, result: string): Promise<void> {
+  async completeTask(taskId: string, result: string): Promise<void> {
     return this.taskService.completeTask(taskId, result);
   }
   

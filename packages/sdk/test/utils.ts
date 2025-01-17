@@ -4,9 +4,9 @@ import { Ensemble } from "../src/ensemble";
 
 dotenv.config({ path: '.test.env', override: true });
 
-export const setupEnv = () => {
+export const setupEnv = (type: string = 'user') => {
   const provider = new ethers.JsonRpcProvider(process.env.NETWORK_RPC_URL!);
-  const pk = process.env.PRIVATE_KEY!;
+  const pk = type === 'user' ? process.env.PRIVATE_KEY! : process.env.AGENT_PRIVATE_KEY!;
   const wallet = new ethers.Wallet(pk, provider);
 
   return {
@@ -27,7 +27,7 @@ const config = {
 };
 
 export const setupSdk = (type: string = 'user') => {
-  const { signer } = setupEnv();
+  const { signer } = setupEnv(type);
   const sdk = new Ensemble(config, signer);
   // sdk.start();
   return sdk;
