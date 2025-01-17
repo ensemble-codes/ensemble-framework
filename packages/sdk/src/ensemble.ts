@@ -15,15 +15,6 @@ export class Ensemble {
   private serviceRegisterService: ServiceRegistryService;
 
   constructor(config: ContractConfig, signer: ethers.Signer) {
-    console.log('Config Params:', {
-      network: {
-        rpcUrl: config.network.rpcUrl,
-        chainId: config.network.chainId,
-        name: config.network.name
-      },
-      taskRegistryAddress: config.taskRegistryAddress,
-      agentRegistryAddress: config.agentRegistryAddress
-    });
 
     this.contractService = new ContractService(
       new ethers.JsonRpcProvider(config.network.rpcUrl),
@@ -55,7 +46,7 @@ export class Ensemble {
   }
 
   async stop() {
-    
+    this.taskService.unsubscribe()
   }
 
   /**

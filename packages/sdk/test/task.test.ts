@@ -4,11 +4,9 @@ import { setupSdk } from "./utils";
 describe("TaskService", () => {
     let sdk: Ensemble;
 
-    beforeEach(async () => {
+    beforeAll(() => {
         sdk = setupSdk();
     });
-
-
 
     it("should not create a task without a proposal", async () => {
       const nonExistentProposalId = "1234";
@@ -48,4 +46,25 @@ describe("TaskService", () => {
       expect(task.proposalId).toEqual(proposalId);
     })
 
+    it("should create a task and verify event logs", async () => {
+        sdk.start();
+
+        const eventPromise = new Promise((resolve) => {
+          sdk.setOnNewTaskListener((task) => {
+            console.log("Received event in the test:", task);
+            resolve(task);
+          });
+        });
+
+        const proposalId = "1";
+        const task = await sdk.createTask({
+            prompt: "This is a test task.",
+            proposalId: proposalId
+        })
+
+        const newTask = await eventPromise as { prompt: string };
+        expect(newTask.prompt).toBe(task.prompt);
+        
+        sdk.stop();
+      });
 });

@@ -21,15 +21,12 @@ export class TaskService {
   async createTask(params: TaskCreationParams): Promise<TaskData> {
     try {
       const proposal = await this.agentService.getProposal(params.proposalId);
-      console.log("proposal:", proposal);
       const tx = await this.taskRegistry.createTask(
         params.prompt, params.proposalId,
         { value: proposal.price });
-      console.log("sending txhash:", tx.hash);
       const receipt = await tx.wait();
       
       const event = this.findEventInReceipt(receipt, "TaskCreated");
-      console.log("event:", event);
       // if (!event?.args?.[1]) {
       //   throw new Error("Task creation failed: No task address in event");
       // }
@@ -45,7 +42,7 @@ export class TaskService {
         proposalId: params.proposalId
       };
     } catch (error: any) {
-      console.error("Task creation failed:", error);
+      // console.error("Task creation failed:", error);
       if (error.reason === "Proposal not found") {
         throw new ProposalNotFoundError(error.reason);
       }
@@ -99,19 +96,12 @@ export class TaskService {
   /**
    * Subscribes to new task creation events.
    */
-  public async subscribe() {
-    console.log("taskRegistry.filters:", this.taskRegistry.filters);
+  public subscribe() {
+    console.log("Subscribing to TaskCreated events");
     const filter = this.taskRegistry.filters.TaskCreated();
-    console.log("filter:", filter);
-    // console.log("filter:", filter);
-    console.log("taskRegistry.target:", this.taskRegistry.target);
     this.taskRegistry.on(filter, ({ args: [ issuer, assignee, taskId, proposalId, prompt ] }) => {
-      console.log("New Task Created Event:");
-      console.log("Issuer:", issuer);
-      console.log("Assignee:", assignee);
-      console.log("Task ID:", taskId);
-      console.log("Proposal ID:", proposalId);
-      console.log("Prompt:", prompt);
+      console.log(`New Task Created Event => Issuer: ${issuer} - Assignee: ${assignee} - TaskId: ${taskId} - ProposalId: ${proposalId} - Prompt: ${prompt}`);
+  
       this.onNewTask({ issuer, id: taskId, prompt, status: TaskStatus.CREATED, proposalId: issuer });
     });
 
@@ -126,8 +116,11 @@ export class TaskService {
     //   // startBlock = currentBlock;
 
     // }, 3000); // 10 seconds timeout
+  }
 
-
+  public unsubscribe() {
+    const filter = this.taskRegistry.filters.TaskCreated();
+    this.taskRegistry.removeListener(filter, this.onNewTask);
   }
 
   setOnNewTaskListener(listener: (task: TaskData) => void) {
