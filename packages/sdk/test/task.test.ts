@@ -24,7 +24,7 @@ describe("TaskService", () => {
     it("should create a task and verify event logs", async () => {
         sdk.start();
         // wait for 1 seconds to allow the SDK to start
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         const agentName = "Agent1";
         const agentUri = "https://example.com";
@@ -65,18 +65,17 @@ describe("TaskService", () => {
     })
 
     it('should complete a task', async () => {
-        await sdk.completeTask(0, 'Done');
+        const agentSdk = setupSdk('agent');
+        const result = await agentSdk.completeTask('0', 'Done');
+        console.log(result);
 
-        const eventPromise = new Promise((resolve) => {
-            sdk.setOnNewTaskListener((task) => {
-                console.log("Received event in the test:", task);
-                resolve(task);
-            });
-        });
-        const task = {
-            prompt: 'This is a test task.'
-        }
-        const newTask = await eventPromise as { prompt: string };
-        expect(newTask.prompt).toBe(task.prompt);
+        const task = await agentSdk.getTaskData('0');
+        console.log(task);
+        expect(task.status).toBe(2n);
+        // const task = {
+        //     prompt: 'This is a test task.'
+        // }
+        // const newTask = await eventPromise as { prompt: string };
+        // expect(newTask.prompt).toBe(task.prompt);
     });
 });

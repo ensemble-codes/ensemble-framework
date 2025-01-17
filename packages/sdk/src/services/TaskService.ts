@@ -83,7 +83,7 @@ export class TaskService {
    * @param {string} result - The result of the task.
    * @returns {Promise<void>} A promise that resolves when the task is completed.
    */
-  async completeTask(taskId: BigNumberish, result: string): Promise<void> {
+  async completeTask(taskId: string, result: string): Promise<void> {
     try {
       const tx = await this.taskRegistry.completeTask(taskId, result);
       await tx.wait();
