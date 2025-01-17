@@ -146,6 +146,6 @@ export class AgentService {
     }
 
     async getProposal(proposalId: string): Promise<Proposal> {
-      return await this.agentRegistry.getProposal(proposalId);
+      return this.agentRegistry.getProposal(proposalId);
     }
 }
