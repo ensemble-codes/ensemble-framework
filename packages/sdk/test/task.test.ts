@@ -8,6 +8,11 @@ describe("TaskService", () => {
         sdk = setupSdk();
     });
 
+    afterAll(async() => {
+        sdk.stop();
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    })
+
     it("should not create a task without a proposal", async () => {
         const nonExistentProposalId = "1234";
         await expect(sdk.createTask({
@@ -57,10 +62,21 @@ describe("TaskService", () => {
         });
         const newTask = await eventPromise as { prompt: string };
         expect(newTask.prompt).toBe(task.prompt);
-
-
-        // wait for 1 seconds to allow the SDK to stop
-        sdk.stop();
-        await new Promise((resolve) => setTimeout(resolve, 1000));
     })
+
+    it('should complete a task', async () => {
+        await sdk.completeTask(0, 'Done');
+
+        const eventPromise = new Promise((resolve) => {
+            sdk.setOnNewTaskListener((task) => {
+                console.log("Received event in the test:", task);
+                resolve(task);
+            });
+        });
+        const task = {
+            prompt: 'This is a test task.'
+        }
+        const newTask = await eventPromise as { prompt: string };
+        expect(newTask.prompt).toBe(task.prompt);
+    });
 });
