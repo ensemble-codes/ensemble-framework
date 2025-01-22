@@ -1,4 +1,4 @@
-import { Ensemble } from "../src";
+import { Ensemble } from "../";
 import { setupSdk } from "./utils";
 
 describe("TaskService", () => {

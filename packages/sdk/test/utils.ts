@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import dotenv from "dotenv";
-import { Ensemble } from "../src/ensemble";
+import { Ensemble } from "../";
 
 dotenv.config({ path: '.test.env', override: true });
 
