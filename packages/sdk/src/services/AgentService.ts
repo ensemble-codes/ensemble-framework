@@ -100,28 +100,6 @@ export class AgentService {
     return await this.agentRegistry.isRegistered(agentAddress);
   }
 
-  /**
-   * Adds a skill to an agent.
-   * @param {string} name - The name of the skill.
-   * @param {number} level - The level of the skill.
-   * @returns {Promise<void>} A promise that resolves when the skill is added.
-   */
-  async addAgentSkill(name: string, level: number): Promise<void> {
-    const tx = await this.agentRegistry.addSkill(name, level);
-    await tx.wait();
-  }
-
-
-    /**
-   * Updates the reputation of an agent.
-   * @param {BigNumberish} reputation - The new reputation value.
-   * @returns {Promise<void>} A promise that resolves when the reputation is updated.
-   */
-  async updateAgentReputation(reputation: BigNumberish): Promise<void> {
-    const tx = await this.agentRegistry.updateReputation(reputation);
-    await tx.wait();
-  }
-
     /**
    * Gets all the agents for a specific service.
    * @param {string} serviceName - The name of the service.
@@ -146,6 +124,11 @@ export class AgentService {
       return agents;
     }
 
+    /**
+     * Gets a proposal by ID.
+     * @param {string} proposalId - The ID of the proposal.
+     * @returns {Promise<Proposal>} A promise that resolves to the proposal.
+     */
     async getProposal(proposalId: string): Promise<Proposal> {
       return this.agentRegistry.getProposal(proposalId);
     }

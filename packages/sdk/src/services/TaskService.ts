@@ -104,25 +104,20 @@ export class TaskService {
   
       this.onNewTask({ issuer, id: taskId, prompt, status: TaskStatus.CREATED, proposalId: issuer });
     });
-
-    // let startBlock = await this.signer.provider?.getBlockNumber();
-    // console.log("currentBlock:", startBlock);
-    // setInterval(async () => {
-    //   const currentBlock = await this.signer.provider?.getBlockNumber();
-    //   console.log("startBlock", startBlock);
-    //   console.log("currentBlock", currentBlock);
-    //   const events = await this.taskRegistry.queryFilter('TaskCreated', startBlock);
-    //   console.log("events:", events);
-    //   // startBlock = currentBlock;
-
-    // }, 3000); // 10 seconds timeout
   }
 
+  /**
+   * Unsubscribes from new task creation events.
+   */
   public unsubscribe() {
     const filter = this.taskRegistry.filters.TaskCreated();
     this.taskRegistry.removeListener(filter, this.onNewTask);
   }
 
+  /**
+   * Sets a listener for new task creation events.
+   * @param {function} listener - The listener function.
+   */
   setOnNewTaskListener(listener: (task: TaskData) => void) {
     this.onNewTask = listener;
   } 

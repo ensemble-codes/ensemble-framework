@@ -14,6 +14,12 @@ export class Ensemble {
   private agentService: AgentService;
   private serviceRegisterService: ServiceRegistryService;
 
+
+  /**
+   * Constructor for the Ensemble class.
+   * @param {ContractConfig} config - The configuration for the Ensemble.
+   * @param {ethers.Signer} signer - The signer for the Ensemble.
+   */
   constructor(config: ContractConfig, signer: ethers.Signer) {
 
     this.contractService = new ContractService(
@@ -40,7 +46,10 @@ export class Ensemble {
     this.agentService = new AgentService(agentRegistry, signer);
     this.taskService = new TaskService(taskRegistry, this.agentService);
   }
-  
+
+  /**
+   * Starts the Ensemble subscription to the task service.
+   */
   async start() {
     this.taskService.subscribe()
   }
@@ -134,21 +143,32 @@ export class Ensemble {
     return this.agentService.isAgentRegistered(agentId);
   }
 
+  /**
+   * Sets a listener for new tasks.
+   * @param {function} listener - The listener function.
+   * @returns {Promise<void>} A promise that resolves when the listener is set.
+   */
   async setOnNewTaskListener(listener: (task: TaskData) => void) {
     return this.taskService.setOnNewTaskListener(listener);
   }
 
+  /**
+   * Registers a new service.
+   * @param {Service} service - The service to register.
+   * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if the service is registered.
+   */
   async registerService(service: Service): Promise<boolean> {
     return this.serviceRegisterService.registerService(service);
   }
 
+  /**
+   * Gets a service by name.
+   * @param {string} name - The name of the service.
+   * @returns {Promise<Service>} A promise that resolves to the service.
+   */
   async getService(name: string): Promise<Service> {
     return this.serviceRegisterService.getService(name);
   }
-
-  // async getAllServices(): Promise<Service[]> {
-  //   return this.serviceRegisterService.getAllServices();
-  // }
 } 
 
 export default Ensemble;

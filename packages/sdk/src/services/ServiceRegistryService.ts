@@ -34,7 +34,11 @@ export class ServiceRegistryService {
 			throw error;
 		}
 	}
-	
+	/**
+	 * Gets a service by name.
+	 * @param {string} name - The name of the service.
+	 * @returns {Promise<Service>} A promise that resolves to the service.
+	 */
 	async getService(name: string): Promise<Service> {
 		const service = await this.serviceRegistry.getService(name);
 		return service;
