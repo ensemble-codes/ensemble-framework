@@ -34,7 +34,7 @@ export function handleUpdateReputation(event: ReputationUpdated): void {
   entity.save();
 }
 
-export function handleProposalAdded(event: ProposalAdded): void {
+export function handleProposalAdded(event: ProposalAdded) {
   let entity = new Proposal(event.params.proposalId.toString());
 
   entity.issuer = event.params.agent;

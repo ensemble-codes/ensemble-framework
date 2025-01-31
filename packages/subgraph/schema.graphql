@@ -10,6 +10,7 @@ type Agent @entity {
   name: String!
   agentUri: String!
   owner: Bytes!
+  agent: Bytes!
   reputation: BigInt!
   isRegistered: Boolean!
 }
@@ -17,7 +18,7 @@ type Agent @entity {
 type Task @entity {
   id: ID!
   prompt: String!
-  issuer: Agent!
+  issuer: Bytes!
   status: String!
   assignee: Bytes
   proposalId: BigInt!
@@ -25,7 +26,7 @@ type Task @entity {
 
 type Proposal @entity {
   id: ID!
-  issuer: Agent!
+  issuer: Bytes!
   service: String!
   price: BigInt!
 }
