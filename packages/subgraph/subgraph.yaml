@@ -5,6 +5,28 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
+    name: ServiceRegistry
+    network: base-sepolia
+    source:
+      address: "0x12bE0AC7a76813368989b06051CCBA03375039d2"
+      abi: ServiceRegistry
+      startBlock: 18386859
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Service
+      abis:
+        - name: ServiceRegistry
+          file: ./abis/ServiceRegistry.json
+      eventHandlers:
+        - event: ServiceRegistered(string,string,string)
+          handler: handleServiceRegistered
+        - event: ServiceUpdated(string,string,string)
+          handler: handleServiceUpdated
+      file: ./src/service-registry.ts
+  - kind: ethereum
     name: AgentsRegistry
     network: base-sepolia
     source:
@@ -16,19 +38,18 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - AgentRegistered
-        - OwnershipTransferred
-        - ReputationUpdated
+        - Agent
+        - Proposal
       abis:
         - name: AgentsRegistry
           file: ./abis/AgentsRegistry.json
       eventHandlers:
-        - event: AgentRegistered(indexed address,string)
+        - event: AgentRegistered(indexed address,indexed address,string,string)
           handler: handleAgentRegistered
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
         - event: ReputationUpdated(indexed address,uint256)
-          handler: handleReputationUpdated
+          handler: handleUpdateReputation
+        - event: ProposalAdded(indexed address,uint256,string,uint256)
+          handler: handleProposalAdded
       file: ./src/agents-registry.ts
   - kind: ethereum
     name: TaskRegistry
@@ -42,22 +63,12 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - TaskRegistryOwnershipTransferred
-        - PermissionUpdated
-        - TaskAssigned
-        - TaskCreated
-        - TaskStatusChanged
+        - Task
       abis:
         - name: TaskRegistry
           file: ./abis/TaskRegistry.json
       eventHandlers:
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
-        - event: PermissionUpdated(indexed uint256,indexed address,bool)
-          handler: handlePermissionUpdated
-        - event: TaskAssigned(indexed uint256,indexed address)
-          handler: handleTaskAssigned
-        - event: TaskCreated(indexed address,uint256,string,uint8)
+        - event: TaskCreated(indexed address,indexed address,uint256,uint256,string)
           handler: handleTaskCreated
         - event: TaskStatusChanged(indexed uint256,uint8)
           handler: handleTaskStatusChanged

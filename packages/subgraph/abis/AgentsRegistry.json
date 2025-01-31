@@ -1,15 +1,33 @@
 [
-  { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
   {
     "inputs": [
-      { "internalType": "address", "name": "owner", "type": "address" }
+      {
+        "internalType": "contract ServiceRegistry",
+        "name": "_serviceRegistry",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
     ],
     "name": "OwnableInvalidOwner",
     "type": "error"
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
     ],
     "name": "OwnableUnauthorizedAccount",
     "type": "error"
@@ -24,9 +42,21 @@
         "type": "address"
       },
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
         "indexed": false,
         "internalType": "string",
-        "name": "model",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "agentUri",
         "type": "string"
       }
     ],
@@ -64,6 +94,37 @@
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "proposalId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      }
+    ],
+    "name": "ProposalAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "agent",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "newReputation",
         "type": "uint256"
       }
@@ -72,68 +133,63 @@
     "type": "event"
   },
   {
+    "anonymous": false,
     "inputs": [
-      { "internalType": "string", "name": "name", "type": "string" },
-      { "internalType": "uint256", "name": "level", "type": "uint256" }
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "agent",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "name",
+        "type": "uint256"
+      }
     ],
-    "name": "addSkill",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "name": "ServiceAdded",
+    "type": "event"
   },
   {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "name": "agents",
     "outputs": [
-      { "internalType": "string", "name": "model", "type": "string" },
-      { "internalType": "string", "name": "prompt", "type": "string" },
-      { "internalType": "uint256", "name": "reputation", "type": "uint256" },
-      { "internalType": "bool", "name": "isRegistered", "type": "bool" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "agent", "type": "address" }
-    ],
-    "name": "getAgentData",
-    "outputs": [
-      { "internalType": "string", "name": "model", "type": "string" },
-      { "internalType": "string", "name": "prompt", "type": "string" },
       {
-        "components": [
-          { "internalType": "string", "name": "name", "type": "string" },
-          { "internalType": "uint256", "name": "level", "type": "uint256" }
-        ],
-        "internalType": "struct IAgent.Skill[]",
-        "name": "skills",
-        "type": "tuple[]"
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
       },
-      { "internalType": "uint256", "name": "reputation", "type": "uint256" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getReputation",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getSkills",
-    "outputs": [
       {
-        "components": [
-          { "internalType": "string", "name": "name", "type": "string" },
-          { "internalType": "uint256", "name": "level", "type": "uint256" }
-        ],
-        "internalType": "struct IAgent.Skill[]",
-        "name": "",
-        "type": "tuple[]"
+        "internalType": "string",
+        "name": "agentUri",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "agent",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reputation",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isRegistered",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -141,33 +197,218 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "agent", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "_agent",
+        "type": "address"
+      }
+    ],
+    "name": "getAgentData",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "agentUri",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "agent",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reputation",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "proposalId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getProposal",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "issuer",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "serviceName",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "price",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "proposalId",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IProposalStruct.Proposal",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "agent",
+        "type": "address"
+      }
+    ],
+    "name": "getReputation",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "agent",
+        "type": "address"
+      }
     ],
     "name": "isRegistered",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "nextProposalId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "owner",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "string", "name": "model", "type": "string" },
-      { "internalType": "string", "name": "prompt", "type": "string" },
-      { "internalType": "string[]", "name": "skillNames", "type": "string[]" },
       {
-        "internalType": "uint256[]",
-        "name": "skillLevels",
-        "type": "uint256[]"
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "proposals",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "issuer",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "serviceName",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "proposalId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "agent",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "agentUri",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "serviceName",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "servicePrice",
+        "type": "uint256"
       }
     ],
     "name": "registerAgent",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -179,8 +420,25 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "serviceRegistry",
+    "outputs": [
+      {
+        "internalType": "contract ServiceRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
-      { "internalType": "address", "name": "newOwner", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
     ],
     "name": "transferOwnership",
     "outputs": [],
@@ -189,7 +447,16 @@
   },
   {
     "inputs": [
-      { "internalType": "uint256", "name": "_reputation", "type": "uint256" }
+      {
+        "internalType": "address",
+        "name": "agent",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_reputation",
+        "type": "uint256"
+      }
     ],
     "name": "updateReputation",
     "outputs": [],
