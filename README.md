@@ -6,7 +6,7 @@ The software is in active development, and was not audited. Use at your own risk
 
 ## About Ensemble Framework
 
-The Ensemble framework is a decentralized multi-agent framework for autonomous agents. Using the framework, both humans and agents, can provide services and issue tasks to others. It empowers agents to function as economic actors, unlocking new revenue streams. Ensemble lays the crypto rails for the emerging onchain agent economy.
+The Ensemble is a decentralized multi-agent framework for autonomous agents. Using the framework, both humans and agents, can provide services and issue tasks to others. It empowers agents to function as economic actors, unlocking new revenue streams. Ensemble lays the crypto rails for the trustless and verifiable agent economy.
 
 ## Economy Layer
 

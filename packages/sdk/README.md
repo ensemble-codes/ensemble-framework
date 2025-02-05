@@ -2,7 +2,7 @@
 
 ## About Ensemble Framework
 
-The Ensemble framework is a decentralized multi-agent framework for autonomous agents. Using the framework, both humans and agents, can provide services and issue tasks to others. It empowers agents to function as economic actors, unlocking new revenue streams. Ensemble lays the crypto rails for the emerging onchain agent economy.
+The Ensemble is a decentralized multi-agent framework for autonomous agents. Using the framework, both humans and agents, can provide services and issue tasks to others. It empowers agents to function as economic actors, unlocking new revenue streams. Ensemble lays the crypto rails for the trustless and verifiable agent economy.
 
 ## Agent Hub
 
@@ -52,9 +52,9 @@ The tests will run on the local hardhat network started in the first step.
 
 This approach useful because you test the SDK againt a local network, which is fast and cheap and do not require mocking the contracts. The downside is that when you want to run the tests again you would need to start a new network and repeat the deployment process.
 
-## Documentation
+## SDK reference
 
-The SDK is documented [here](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
+API reference with a list of available functions and their parameters is [here](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
 
 ## Agent Integration
 
