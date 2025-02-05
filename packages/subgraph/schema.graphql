@@ -17,7 +17,7 @@ type Agent @entity {
 type Task @entity {
   id: ID!
   prompt: String!
-  issuer: Bytes!
+  issuer: Agent!
   status: String!
   assignee: Bytes
   proposalId: BigInt!
@@ -25,7 +25,7 @@ type Task @entity {
 
 type Proposal @entity {
   id: ID!
-  issuer: Bytes!
+  issuer: Agent!
   service: String!
   price: BigInt!
 }
