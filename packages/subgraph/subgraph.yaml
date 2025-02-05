@@ -8,9 +8,9 @@ dataSources:
     name: ServiceRegistry
     network: base-sepolia
     source:
-      address: "0x12bE0AC7a76813368989b06051CCBA03375039d2"
+      address: "0x96967c5B5f738185eBcDf64c95CD23d73e613072"
       abi: ServiceRegistry
-      startBlock: 18386859
+      startBlock: 20412631
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -30,9 +30,9 @@ dataSources:
     name: AgentsRegistry
     network: base-sepolia
     source:
-      address: "0x12bE0AC7a76813368989b06051CCBA03375039d2"
+      address: "0x892566fCd15F31a754Ee775d5b4dEDabFF9Ac586"
       abi: AgentsRegistry
-      startBlock: 18386859
+      startBlock: 20412638
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -55,9 +55,9 @@ dataSources:
     name: TaskRegistry
     network: base-sepolia
     source:
-      address: "0xbaC10edd283B7F2d6424a5115C062D1B20f67696"
+      address: "0x36c70D6a53C0A7cb222a82482b72723bc54D5F40"
       abi: TaskRegistry
-      startBlock: 18385335
+      startBlock: 20412645
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
