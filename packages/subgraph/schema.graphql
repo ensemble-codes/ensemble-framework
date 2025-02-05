@@ -10,7 +10,6 @@ type Agent @entity {
   name: String!
   agentUri: String!
   owner: Bytes!
-  agent: Bytes!
   reputation: BigInt!
   isRegistered: Boolean!
 }
