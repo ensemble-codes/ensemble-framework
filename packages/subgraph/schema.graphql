@@ -22,6 +22,7 @@ type Task @entity {
   status: String!
   assignee: Agent!
   proposalId: BigInt!
+  result: String
 }
 
 type Proposal @entity {

@@ -1,8 +1,7 @@
 import {
-  OwnershipTransferred,
-  TaskAssigned,
   TaskCreated,
-  TaskStatusChanged
+  TaskStatusChanged,
+  TaskCompleted
 } from "../generated/TaskRegistry/TaskRegistry"
 import {
   Agent,
@@ -28,6 +27,17 @@ export function handleTaskStatusChanged(event: TaskStatusChanged): void {
   }
 
   entity.status = event.params.status.toString();
+
+  entity.save();
+}
+
+export function handleTaskStatusCompleted(event: TaskCompleted): void { 
+  let entity = Task.load(event.params.taskId.toString());
+  if (entity == null) {
+    return
+  }
+
+  entity.result = event.params.result;
 
   entity.save();
 }
