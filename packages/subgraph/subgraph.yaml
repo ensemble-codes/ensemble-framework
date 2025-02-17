@@ -64,6 +64,7 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - Task
+        - Agent
       abis:
         - name: TaskRegistry
           file: ./abis/TaskRegistry.json

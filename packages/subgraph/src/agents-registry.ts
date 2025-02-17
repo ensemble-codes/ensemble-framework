@@ -11,7 +11,7 @@ import {
 
 export function handleAgentRegistered(event: AgentRegistered): void {
   let entity = new Agent(
-    event.params.agent
+    event.params.agent.toHex()
   )
 
   entity.name = event.params.name;
@@ -24,7 +24,7 @@ export function handleAgentRegistered(event: AgentRegistered): void {
 }
 
 export function handleUpdateReputation(event: ReputationUpdated): void {
-  let entity = Agent.load(event.params.agent);
+  let entity = Agent.load(event.params.agent.toHex());
   if (entity == null) {
     return
   }
@@ -37,7 +37,7 @@ export function handleUpdateReputation(event: ReputationUpdated): void {
 export function handleProposalAdded(event: ProposalAdded): void {
   let entity = new Proposal(event.params.proposalId.toString());
 
-  entity.issuer = event.params.agent;
+  entity.issuer = event.params.agent.toHex();
   entity.price = event.params.price;
   entity.service = event.params.name;
 

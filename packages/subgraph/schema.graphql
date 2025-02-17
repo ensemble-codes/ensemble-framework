@@ -6,20 +6,21 @@ type Service @entity {
 }
 
 type Agent @entity {
-  id: Bytes!
+  id: ID!
   name: String!
   agentUri: String!
   owner: Bytes!
   reputation: BigInt!
   isRegistered: Boolean!
+  tasks: [Task!]! @derivedFrom(field: "assignee")
 }
 
 type Task @entity {
   id: ID!
   prompt: String!
-  issuer: Agent!
+  issuer: Bytes!
   status: String!
-  assignee: Bytes
+  assignee: Agent!
   proposalId: BigInt!
 }
 
