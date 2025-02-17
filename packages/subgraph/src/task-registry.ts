@@ -5,6 +5,7 @@ import {
   TaskStatusChanged
 } from "../generated/TaskRegistry/TaskRegistry"
 import {
+  Agent,
   Task,
 } from "../generated/schema"
 
@@ -14,7 +15,7 @@ export function handleTaskCreated(event: TaskCreated): void {
   entity.prompt = event.params.prompt;
   entity.issuer = event.params.issuer;
   entity.proposalId = event.params.proposalId;
-  entity.assignee = event.params.assignee;
+  entity.assignee = event.params.assignee.toHexString();
   entity.status = '1';
 
   entity.save();
