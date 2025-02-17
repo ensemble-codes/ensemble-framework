@@ -1,15 +1,15 @@
 import { BigNumberish, ethers } from "ethers";
 import { AgentData, Proposal,  } from "../types";
 import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../errors";
+import { PinataSDK } from "pinata-web3";
 
 export class AgentService {
-  private agentRegistry: ethers.Contract;
-  private signer: ethers.Signer;
   
-  constructor(agentRegistry: ethers.Contract, signer: ethers.Signer) {
-    this.agentRegistry = agentRegistry;
-    this.signer = signer;
-  }
+  constructor(
+    private agentRegistry: ethers.Contract, 
+    private signer: ethers.Signer, 
+    private ipfsSDK: PinataSDK
+  ) {}
 
   /**
    * Gets the address of the agent.
@@ -28,10 +28,27 @@ export class AgentService {
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(address: string, name: string, uri: string, serviceName: string, servicePrice: number): Promise<boolean> {
+  async registerAgent(
+    address: string, 
+    name: string, 
+    imageUrl: string, 
+    serviceName: string, 
+    servicePrice: number
+  ): Promise<boolean> {
     try {
-      console.log({ name, uri, address, serviceName, servicePrice });
-      const tx = await this.agentRegistry.registerAgent(address, name, uri, serviceName, servicePrice.toString());
+      console.log({ name, imageUrl, address, serviceName, servicePrice });
+
+      const uploadResponse = await this.ipfsSDK.upload.json({ 
+        name, 
+        imageUrl, 
+        address, 
+        serviceName, 
+        servicePrice 
+      });
+
+      const agentURI = `ipfs://${uploadResponse.IpfsHash}`
+
+      const tx = await this.agentRegistry.registerAgent(address, name, agentURI, serviceName, servicePrice.toString());
       console.log(`transaction to register agent was sent. tx: ${tx}`);
       const receipt = await tx.wait();
       
