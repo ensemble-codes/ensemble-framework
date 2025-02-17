@@ -1,85 +1,31 @@
-type AgentRegistered @entity(immutable: true) {
-  id: Bytes!
-  agent: Bytes! # address
-  model: String! # string
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type Service @entity {
+  id: String!
+  name: String!
+  category: String!
+  description: String!
 }
 
-type OwnershipTransferred @entity(immutable: true) {
+type Agent @entity {
   id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  name: String!
+  agentUri: String!
+  owner: Bytes!
+  reputation: BigInt!
+  isRegistered: Boolean!
 }
 
-type ReputationUpdated @entity(immutable: true) {
-  id: Bytes!
-  agent: Bytes! # address
-  newReputation: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Task @entity(immutable: true) {
+type Task @entity {
   id: ID!
   prompt: String!
-  taskType: Int! # uint8
-  status: Int! # uint8
-  taskId: BigInt!
-  owner: Bytes! # address
-  blockNumber: BigInt!
-  assignee: Bytes # address
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  issuer: Agent!
+  status: String!
+  assignee: Bytes
+  proposalId: BigInt!
 }
 
-type TaskRegistryOwnershipTransferred @entity(immutable: true) {
-  id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type PermissionUpdated @entity(immutable: true) {
-  id: Bytes!
-  taskId: BigInt! # uint256
-  user: Bytes! # address
-  allowed: Boolean! # bool
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type TaskAssigned @entity(immutable: true) {
-  id: Bytes!
-  taskId: BigInt! # uint256
-  agent: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type TaskCreated @entity(immutable: true) {
-  id: Bytes!
-  owner: Bytes! # address
-  taskId: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type TaskStatusChanged @entity(immutable: true) {
-  id: Bytes!
-  taskId: BigInt! # uint256
-  status: Int! # uint8
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type Proposal @entity {
+  id: ID!
+  issuer: Agent!
+  service: String!
+  price: BigInt!
 }
