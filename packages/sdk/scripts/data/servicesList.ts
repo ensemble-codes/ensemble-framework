@@ -4,7 +4,7 @@ export const servicesList: Service[] = [
 	{
 		name: 'Bull-Post',
 		category: 'Social',
-		description: 'Select an AI KOL your project. The perfect Hype-man!'
+		description: 'Bull-Post service will explain your project to the world!'
 	},
 	{
 		name: 'Reply',

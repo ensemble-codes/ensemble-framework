@@ -22,6 +22,7 @@ contract TaskRegistry is Ownable, IProposalStruct {
         TaskStatus status;
         address assignee;
         uint256 proposalId;
+        string result;
     }
     
     mapping(uint256 => TaskData) public tasks;
@@ -72,10 +73,11 @@ contract TaskRegistry is Ownable, IProposalStruct {
     */
     function completeTask(uint256 taskId, string memory result) external {
         TaskData storage task = tasks[taskId];
-        require(msg.sender == task.assignee, "Not authorized");
+        require(msg.sender == task.assignee || msg.sender == owner(), "Not authorized");
         require(task.status == TaskStatus.ASSIGNED, "Invalid task status");
 
         task.status = TaskStatus.COMPLETED;
+        task.result = result;
         Proposal memory proposal = agentRegistry.getProposal(task.proposalId);
         
         TransferHelper.safeTransferETH(proposal.issuer, proposal.price);
