@@ -3,6 +3,14 @@ import { AgentData, Proposal,  } from "../types";
 import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../errors";
 import { PinataSDK } from "pinata-web3";
 
+type AgentMetadata = {
+  name: string;
+  imageUrl: string;
+  address: string;
+  serviceName: string;
+  servicePrice: string;
+}
+
 export class AgentService {
   
   constructor(
@@ -28,27 +36,28 @@ export class AgentService {
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(
-    address: string, 
-    name: string, 
-    imageUrl: string, 
-    serviceName: string, 
-    servicePrice: number
-  ): Promise<boolean> {
+  async registerAgent(agentMetadata: AgentMetadata): Promise<boolean> {
     try {
-      console.log({ name, imageUrl, address, serviceName, servicePrice });
 
-      const uploadResponse = await this.ipfsSDK.upload.json({ 
-        name, 
-        imageUrl, 
-        address, 
-        serviceName, 
-        servicePrice 
+      console.log({ 
+        name: agentMetadata.name, 
+        imageUrl: agentMetadata.imageUrl, 
+        address: agentMetadata.address, 
+        serviceName: agentMetadata.serviceName,
+        servicePrice: agentMetadata.servicePrice 
       });
+
+      const uploadResponse = await this.ipfsSDK.upload.json(agentMetadata);
 
       const agentURI = `ipfs://${uploadResponse.IpfsHash}`
 
-      const tx = await this.agentRegistry.registerAgent(address, name, agentURI, serviceName, servicePrice.toString());
+      const tx = await this.agentRegistry.registerAgent(
+        agentMetadata.address, 
+        agentMetadata.name, 
+        agentURI, 
+        agentMetadata.serviceName, 
+        agentMetadata.servicePrice
+      );
       console.log(`transaction to register agent was sent. tx: ${tx}`);
       const receipt = await tx.wait();
       
