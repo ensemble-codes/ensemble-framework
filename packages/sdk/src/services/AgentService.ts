@@ -1,15 +1,23 @@
 import { BigNumberish, ethers } from "ethers";
 import { AgentData, Proposal,  } from "../types";
 import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../errors";
+import { PinataSDK } from "pinata-web3";
+
+type AgentMetadata = {
+  name: string;
+  imageUrl: string;
+  address: string;
+  serviceName: string;
+  servicePrice: string;
+}
 
 export class AgentService {
-  private agentRegistry: ethers.Contract;
-  private signer: ethers.Signer;
   
-  constructor(agentRegistry: ethers.Contract, signer: ethers.Signer) {
-    this.agentRegistry = agentRegistry;
-    this.signer = signer;
-  }
+  constructor(
+    private agentRegistry: ethers.Contract, 
+    private signer: ethers.Signer, 
+    private ipfsSDK: PinataSDK
+  ) {}
 
   /**
    * Gets the address of the agent.
@@ -28,10 +36,28 @@ export class AgentService {
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(address: string, name: string, uri: string, serviceName: string, servicePrice: number): Promise<boolean> {
+  async registerAgent(agentMetadata: AgentMetadata): Promise<boolean> {
     try {
-      console.log({ name, uri, address, serviceName, servicePrice });
-      const tx = await this.agentRegistry.registerAgent(address, name, uri, serviceName, servicePrice.toString());
+
+      console.log({ 
+        name: agentMetadata.name, 
+        imageUrl: agentMetadata.imageUrl, 
+        address: agentMetadata.address, 
+        serviceName: agentMetadata.serviceName,
+        servicePrice: agentMetadata.servicePrice 
+      });
+
+      const uploadResponse = await this.ipfsSDK.upload.json(agentMetadata);
+
+      const agentURI = `ipfs://${uploadResponse.IpfsHash}`
+
+      const tx = await this.agentRegistry.registerAgent(
+        agentMetadata.address, 
+        agentMetadata.name, 
+        agentURI, 
+        agentMetadata.serviceName, 
+        agentMetadata.servicePrice
+      );
       console.log(`transaction to register agent was sent. tx: ${tx}`);
       const receipt = await tx.wait();
       
