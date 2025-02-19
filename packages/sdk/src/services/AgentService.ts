@@ -1,15 +1,15 @@
-import { BigNumberish, ethers } from "ethers";
-import { AgentData, Proposal,  } from "../types";
+import { ethers } from "ethers";
+import { AgentData, Proposal, AgentMetadata } from "../types";
 import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../errors";
+import { PinataSDK } from "pinata-web3";
 
 export class AgentService {
-  private agentRegistry: ethers.Contract;
-  private signer: ethers.Signer;
   
-  constructor(agentRegistry: ethers.Contract, signer: ethers.Signer) {
-    this.agentRegistry = agentRegistry;
-    this.signer = signer;
-  }
+  constructor(
+    private agentRegistry: ethers.Contract, 
+    private signer: ethers.Signer, 
+    private ipfsSDK: PinataSDK
+  ) {}
 
   /**
    * Gets the address of the agent.
@@ -23,15 +23,26 @@ export class AgentService {
    * Registers a new agent.
    * @param {string} address - The address of the agent..
    * @param {string} name - The name of the agent.
-   * @param {string} uri - The uri of the agent.
+   * @param {AgentMetadata} metadata - The metadata of the agent.
    * @param {string} serviceName - The name of the service.
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(address: string, name: string, uri: string, serviceName: string, servicePrice: number): Promise<boolean> {
+  async registerAgent(address: string, metadata: AgentMetadata, serviceName: string, servicePrice: number): Promise<boolean> {
     try {
-      console.log({ name, uri, address, serviceName, servicePrice });
-      const tx = await this.agentRegistry.registerAgent(address, name, uri, serviceName, servicePrice.toString());
+      debugger
+      console.log(`registering agent ${address} with metadata: ${metadata}`);
+      const uploadResponse = await this.ipfsSDK.upload.json(metadata);
+      metadata
+      const agentURI = `ipfs://${uploadResponse.IpfsHash}`
+
+      const tx = await this.agentRegistry.registerAgent(
+        address, 
+        metadata.name, 
+        agentURI, 
+        serviceName, 
+        servicePrice
+      );
       console.log(`transaction to register agent was sent. tx: ${tx}`);
       const receipt = await tx.wait();
       

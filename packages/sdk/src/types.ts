@@ -11,6 +11,28 @@ export interface AgentAssignedEvent {
   agent: string;
 }
 
+export type AgentSocials = {
+  twitter: string;
+  telegram: string;
+  dexscreener: string;
+  github?: string;
+}
+
+export type AgentAttributes = [
+  {
+    trait_type: string;
+    value: string;
+  }
+]
+
+export type AgentMetadata = {
+  name: string;
+  description: string;
+  imageURI: string;
+  socials: AgentSocials;
+  attributes: AgentAttributes;
+}
+
 export interface TaskConnectorContract extends BaseContract {
   execute(data: string, target: string, value: BigNumberish): Promise<{
     wait(): Promise<{ events: Array<{ event: string; args: { taskId: BigNumberish; success: boolean } }> }>;
