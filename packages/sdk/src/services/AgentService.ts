@@ -3,12 +3,27 @@ import { AgentData, Proposal,  } from "../types";
 import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../errors";
 import { PinataSDK } from "pinata-web3";
 
+
+type AgentSocials = {
+  twitter: string;
+  telegram: string;
+  dexscreener: string;
+  github?: string;
+}
+
+type AgentAttributes = [
+  {
+    trait_type: string;
+    value: string;
+  }
+]
+
 type AgentMetadata = {
   name: string;
-  imageUrl: string;
-  address: string;
-  serviceName: string;
-  servicePrice: string;
+  description: string;
+  imageURI: string;
+  socials: AgentSocials;
+  attributes: AgentAttributes;
 }
 
 export class AgentService {
@@ -31,32 +46,24 @@ export class AgentService {
    * Registers a new agent.
    * @param {string} address - The address of the agent..
    * @param {string} name - The name of the agent.
-   * @param {string} uri - The uri of the agent.
+   * @param {AgentMetadata} metadata - The metadata of the agent.
    * @param {string} serviceName - The name of the service.
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(agentMetadata: AgentMetadata): Promise<boolean> {
-    try {
-
-      console.log({ 
-        name: agentMetadata.name, 
-        imageUrl: agentMetadata.imageUrl, 
-        address: agentMetadata.address, 
-        serviceName: agentMetadata.serviceName,
-        servicePrice: agentMetadata.servicePrice 
-      });
-
-      const uploadResponse = await this.ipfsSDK.upload.json(agentMetadata);
-
+  async registerAgent(address: string, metadata: AgentMetadata, serviceName: string, servicePrice: number): Promise<boolean> {
+    try {metadata
+      console.log(`registering agent ${address} with metadata: ${metadata}`);
+      const uploadResponse = await this.ipfsSDK.upload.json(metadata);
+      metadata
       const agentURI = `ipfs://${uploadResponse.IpfsHash}`
 
       const tx = await this.agentRegistry.registerAgent(
-        agentMetadata.address, 
-        agentMetadata.name, 
+        address, 
+        metadata.name, 
         agentURI, 
-        agentMetadata.serviceName, 
-        agentMetadata.servicePrice
+        serviceName, 
+        servicePrice
       );
       console.log(`transaction to register agent was sent. tx: ${tx}`);
       const receipt = await tx.wait();
