@@ -1,30 +1,7 @@
-import { BigNumberish, ethers } from "ethers";
-import { AgentData, Proposal,  } from "../types";
+import { ethers } from "ethers";
+import { AgentData, Proposal, AgentMetadata } from "../types";
 import { AgentAlreadyRegisteredError, ServiceNotRegisteredError } from "../errors";
 import { PinataSDK } from "pinata-web3";
-
-
-type AgentSocials = {
-  twitter: string;
-  telegram: string;
-  dexscreener: string;
-  github?: string;
-}
-
-type AgentAttributes = [
-  {
-    trait_type: string;
-    value: string;
-  }
-]
-
-type AgentMetadata = {
-  name: string;
-  description: string;
-  imageURI: string;
-  socials: AgentSocials;
-  attributes: AgentAttributes;
-}
 
 export class AgentService {
   
@@ -52,7 +29,8 @@ export class AgentService {
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
   async registerAgent(address: string, metadata: AgentMetadata, serviceName: string, servicePrice: number): Promise<boolean> {
-    try {metadata
+    try {
+      debugger
       console.log(`registering agent ${address} with metadata: ${metadata}`);
       const uploadResponse = await this.ipfsSDK.upload.json(metadata);
       metadata

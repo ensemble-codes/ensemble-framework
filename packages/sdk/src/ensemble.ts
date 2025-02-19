@@ -1,5 +1,6 @@
-import { BigNumberish, ethers } from "ethers";
-import { AgentData, ContractConfig, Proposal, TaskData, TaskCreationParams, Service } from "./types";
+import { ethers } from "ethers";
+import { PinataSDK } from "pinata-web3";
+import { AgentData, AgentMetadata, ContractConfig, TaskData, TaskCreationParams, Service } from "./types";
 import { ContractService } from "./services/ContractService";
 import { TaskService } from "./services/TaskService";
 import { AgentService } from "./services/AgentService";
@@ -20,7 +21,7 @@ export class Ensemble {
    * @param {ContractConfig} config - The configuration for the Ensemble.
    * @param {ethers.Signer} signer - The signer for the Ensemble.
    */
-  constructor(config: ContractConfig, signer: ethers.Signer) {
+  constructor(config: ContractConfig, signer: ethers.Signer, ipfsSDK: PinataSDK) {
 
     this.contractService = new ContractService(
       new ethers.JsonRpcProvider(config.network.rpcUrl),
@@ -43,7 +44,7 @@ export class Ensemble {
       TaskRegistryABI
     );
     this.serviceRegisterService = new ServiceRegistryService(serviceRegistry);
-    this.agentService = new AgentService(agentRegistry, signer);
+    this.agentService = new AgentService(agentRegistry, signer, ipfsSDK);
     this.taskService = new TaskService(taskRegistry, this.agentService);
   }
 
@@ -97,15 +98,15 @@ export class Ensemble {
   
   /**
    * Registers a new agent.
-   * @param {string} address - The address of the agent.
+   * @param {string} address - The address of the agent..
    * @param {string} name - The name of the agent.
-   * @param {string} uri - The uri of the agent.
+   * @param {AgentMetadata} metadata - The metadata of the agent.
    * @param {string} serviceName - The name of the service.
    * @param {number} servicePrice - The price of the service.
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
-  async registerAgent(address: string, name: string, uri: string, serviceName: string, servicePrice: number): Promise<boolean> {
-    return this.agentService.registerAgent(address, name, uri, serviceName, servicePrice);
+  async registerAgent(address: string, metadata: AgentMetadata, serviceName: string, servicePrice: number): Promise<boolean> {
+    return this.agentService.registerAgent(address, metadata, serviceName, servicePrice);
   }
 
   /**
