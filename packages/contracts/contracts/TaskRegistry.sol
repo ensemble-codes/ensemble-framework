@@ -23,20 +23,27 @@ contract TaskRegistry is Ownable, IProposalStruct {
         address assignee;
         uint256 proposalId;
         string result;
+        uint8 rating;
     }
     
     mapping(uint256 => TaskData) public tasks;
     mapping(address => uint256[]) public issuerTasks;
     uint256 private nextTaskId;
     AgentsRegistry public agentRegistry;
+
+    modifier onlyTaskIssuer(uint256 taskId) {
+        require(msg.sender == tasks[taskId].issuer, "Not the issuer of the task");
+        _;
+    }
     constructor(AgentsRegistry _agentRegistry) Ownable(msg.sender) {
         agentRegistry = _agentRegistry;
+        nextTaskId = 1;
     }
     
     event TaskCreated(address indexed issuer, address indexed assignee, uint256 taskId, uint256 proposalId, string prompt);
     event TaskStatusChanged(uint256 indexed taskId, TaskStatus status);
     event TaskAssigned(uint256 indexed taskId, address indexed agent);
-    event ProposalApproved(uint256 indexed taskId, Proposal proposal);
+    event ProposalApproved(uint256 indexed taskId, ServiceProposal proposal);
     event TaskCompleted(uint256 indexed taskId, string result);
 
     /**
@@ -48,8 +55,8 @@ contract TaskRegistry is Ownable, IProposalStruct {
         string memory prompt,
         uint256 proposalId
     ) external payable returns (TaskData memory) {
-        Proposal memory proposal = agentRegistry.getProposal(proposalId);
-        require(proposal.issuer != address(0), "Proposal not found");
+        ServiceProposal memory proposal = agentRegistry.getProposal(proposalId);
+        require(proposal.issuer != address(0), "ServiceProposal not found");
         require(proposal.price == msg.value, "Invalid price");
 
         TaskData storage task = tasks[nextTaskId];
@@ -73,17 +80,42 @@ contract TaskRegistry is Ownable, IProposalStruct {
     */
     function completeTask(uint256 taskId, string memory result) external {
         TaskData storage task = tasks[taskId];
-        require(msg.sender == task.assignee || msg.sender == owner(), "Not authorized");
+        require(msg.sender == task.assignee || msg.sender == task.issuer, "Not authorized");
         require(task.status == TaskStatus.ASSIGNED, "Invalid task status");
 
         task.status = TaskStatus.COMPLETED;
         task.result = result;
-        Proposal memory proposal = agentRegistry.getProposal(task.proposalId);
+        ServiceProposal memory proposal = agentRegistry.getProposal(task.proposalId);
         
         TransferHelper.safeTransferETH(proposal.issuer, proposal.price);
 
         emit TaskStatusChanged(taskId, task.status);
         emit TaskCompleted(taskId, result);
+    }
+
+        /**
+    * @dev Completes a task with the given result.
+    * @param taskId The ID of the task.
+    * @param result The result or output of the completed task.
+    */
+    function completeTaskAndRate(uint256 taskId, string memory result, uint8 rating) onlyTaskIssuer(taskId) external {
+        TaskData storage task = tasks[taskId];
+
+        // only task issuer can provide rating
+        require(msg.sender == task.issuer, "Not authorized");
+        require(task.status == TaskStatus.ASSIGNED, "Invalid task status");
+
+        task.status = TaskStatus.COMPLETED;
+        task.result = result;
+        ServiceProposal memory proposal = agentRegistry.getProposal(task.proposalId);
+        
+        TransferHelper.safeTransferETH(proposal.issuer, proposal.price);
+
+        agentRegistry.addRating(proposal.issuer, rating);
+
+        emit TaskStatusChanged(taskId, task.status);
+        emit TaskCompleted(taskId, result);
+
     }
 
 

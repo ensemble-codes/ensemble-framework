@@ -19,28 +19,55 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         address owner;
         address agent;
         uint256 reputation;
-        bool isRegistered;
-        Proposal[] proposals;
+        uint256 totalRatings;
+        bool isActive;
     }
 
     ServiceRegistry public serviceRegistry;
+    address public taskRegistry;
+
     mapping(address => AgentData) public agents;
-    Proposal[] public proposals;
+    mapping(uint256 => ServiceProposal) public proposals;
     uint256 public nextProposalId;
 
-    modifier onlyRegistered(address agent) {
-        require(agents[agent].isRegistered, "Agent not registered");
+    modifier onlyActive(address agent) {
+        require(agents[agent].isActive, "Agent not registered");
+        _;
+    }
+    modifier onlyAgentOwner(address agent) {
+        require(agents[agent].owner == msg.sender, "Not the owner of the agent");
         _;
     }
 
     constructor(ServiceRegistry _serviceRegistry) Ownable(msg.sender) {
         serviceRegistry = _serviceRegistry;
+        nextProposalId = 1;
     }
 
     event AgentRegistered(address indexed agent, address indexed owner, string name, string agentUri);
     event ReputationUpdated(address indexed agent, uint256 newReputation);
-    event ServiceAdded(address indexed agent, uint256 name);
+
     event ProposalAdded(address indexed agent, uint256 proposalId, string name, uint256 price);
+    event ProposalRemoved(address indexed agent, uint256 proposalId);
+    event ProposalUpdated(address indexed agent, uint256 proposalId, uint256 price);
+    
+    /**
+     * @dev Sets the address of the TaskRegistry contract.
+     * @param _taskRegistry The address of the TaskRegistry contract.
+     */
+    function setTaskRegistry(address _taskRegistry) external onlyOwner {
+        require(_taskRegistry != address(0), "Invalid address");
+        taskRegistry = _taskRegistry;
+    }
+
+    /**
+     * @dev Sets the address of the ServiceRegistry contract.
+     * @param _serviceRegistry The address of the ServiceRegistry contract.
+     */
+    function setServiceRegistry(address _serviceRegistry) external onlyOwner {
+        require(_serviceRegistry != address(0), "Invalid address");
+        serviceRegistry = ServiceRegistry(_serviceRegistry);
+    }
     
     /**
      * @dev Registers a new agent with the given details.
@@ -64,8 +91,8 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         string memory agentUri,
         string memory serviceName,
         uint256 servicePrice
-    ) external returns (bool) {
-        require(!agents[agent].isRegistered, "Agent already registered");
+    ) external returns (uint256) {
+        require(agents[agent].agent == address(0), "Agent already registered");
         require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
         
         AgentData storage agentData = agents[agent];
@@ -74,29 +101,129 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         agentData.owner = msg.sender;
         agentData.agent = agent;
         agentData.reputation = 0;
-        agentData.isRegistered = true;
-        Proposal memory proposal = Proposal(agent, serviceName, servicePrice, nextProposalId);
-        agentData.proposals.push(proposal);
-        proposals.push(proposal);
+        agentData.isActive = false;
+
+        ServiceProposal memory proposal = ServiceProposal(agent, serviceName, servicePrice, nextProposalId, false);
+        proposals[nextProposalId] = proposal;
 
         nextProposalId++;
         emit AgentRegistered(agent, msg.sender, name, agentUri);
         emit ProposalAdded(agent, proposal.proposalId, serviceName, servicePrice);
 
+        return nextProposalId - 1;
+    }
+
+    /**
+     * @dev Activates an agent, allowing them to participate in the network.
+     * @param agent The address of the agent to activate.
+     * @return true if the agent was activated successfully, false otherwise.
+     *
+     * Requirements:
+     *
+     * - The agent must be registered but not yet active.
+     */
+    function activateAgent(address agent) external onlyAgentOwner(agent) returns (bool) {
+        require(!agents[agent].isActive, "Agent is already active");
+        agents[agent].isActive = true;
         return true;
     }
 
-    function updateReputation(address agent, uint256 _reputation) external onlyOwner onlyRegistered(agent) {
-        agents[agent].reputation = _reputation;
-        emit ReputationUpdated(agent, _reputation);
+    
+
+    /**
+     * @dev Adds a new proposal for an agent.
+     * @param agent The address of the agent.
+     * @param serviceName The name of the service.
+     * @param servicePrice The price of the service.
+     * @return true if the proposal was added successfully, false otherwise.
+     *
+     * Requirements:
+     *
+     * - The caller must be the owner of the agent.
+     * - The agent must be registered.
+     * - The service must be registered.
+     *
+     * Emits a {ProposalAdded} event.
+     */
+    function addProposal(address agent, string memory serviceName, uint256 servicePrice) external onlyAgentOwner(agent) returns (uint256) {
+        require(agents[agent].isActive, "Agent is not active");
+        require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
+
+        ServiceProposal memory proposal = ServiceProposal(agent, serviceName, servicePrice, nextProposalId, true);
+        proposals[nextProposalId] = proposal;
+
+        nextProposalId++;
+        emit ProposalAdded(agent, proposal.proposalId, serviceName, servicePrice);
+
+        return nextProposalId - 1;
     }
 
-    function getReputation(address agent) external view onlyRegistered(agent) returns (uint256) {
+    /**
+     * @dev Removes a proposal for an agent.
+     * @param agent The address of the agent.
+     * @param proposalId The ID of the proposal to remove.
+     * @return true if the proposal was removed successfully, false otherwise.
+     *
+     * Requirements:
+     *
+     * - The caller must be the owner of the agent.
+     * - The agent must be registered.
+     * - The proposal must exist.
+     *
+     * Emits a {ProposalRemoved} event.
+     */
+    function removeProposal(address agent, uint256 proposalId) external onlyAgentOwner(agent) returns (bool) {
+        require(agents[agent].isActive, "Agent is not active");
+        require(proposals[proposalId].issuer == agent, "ServiceProposal not found");
+
+        delete proposals[proposalId];
+        emit ProposalRemoved(agent, proposalId);
+
+        return true;
+    }
+
+    /**
+     * @dev Updates a service proposal for an agent.
+     * @param agent The address of the agent.
+     * @param proposalId The ID of the proposal to update.
+     * @param servicePrice The new price of the service.
+     * @return true if the proposal was updated successfully, false otherwise.
+     *
+     * Requirements:
+     *
+     * - The caller must be the owner of the agent.
+     * - The agent must be registered.
+     * - The proposal must exist.
+     *
+     * Emits a {ProposalUpdated} event.
+     */
+    function updateProposal(address agent, uint256 proposalId, uint256 servicePrice, bool _isActive) external onlyAgentOwner(agent) returns (bool) {
+        require(agents[agent].isActive, "Agent is not active");
+        require(proposals[proposalId].issuer == agent, "ServiceProposal not found");
+
+        proposals[proposalId].price = servicePrice;
+        proposals[proposalId].isActive = _isActive;
+        emit ProposalUpdated(agent, proposalId, servicePrice);
+
+        return true;
+    }
+
+    function addRating(address agent, uint256 _rating) public onlyActive(agent) returns (uint256) {
+        require(msg.sender == taskRegistry, "Not the TaskRegistry contract");
+        require(_rating >= 0 && _rating <= 100, "Rating must be between 0 and 100");
+        agents[agent].totalRatings += 1;
+        agents[agent].reputation = (agents[agent].reputation * (agents[agent].totalRatings - 1) + _rating) / agents[agent].totalRatings;
+        emit ReputationUpdated(agent, agents[agent].reputation);
+
         return agents[agent].reputation;
     }
 
-    function isRegistered(address agent) external view returns (bool) {
-        return agents[agent].isRegistered;
+    function getReputation(address agent) external view onlyActive(agent) returns (uint256) {
+        return agents[agent].reputation;
+    }
+
+    function isActive(address agent) external view returns (bool) {
+        return agents[agent].isActive;
     }
 
     /**
@@ -120,7 +247,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     }
 
 
-    function getProposal(uint256 proposalId) external view returns (Proposal memory) {
+    function getProposal(uint256 proposalId) external view returns (ServiceProposal memory) {
         return proposals[proposalId];
     }
 }

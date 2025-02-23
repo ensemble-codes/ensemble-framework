@@ -11,7 +11,7 @@ type Agent @entity {
   agentUri: String!
   owner: Bytes!
   reputation: BigInt!
-  isRegistered: Boolean!
+  isActive: Boolean!
   tasks: [Task!]! @derivedFrom(field: "assignee")
 }
 
