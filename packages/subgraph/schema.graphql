@@ -11,8 +11,8 @@ type Agent @entity {
   agentUri: String!
   owner: Bytes!
   reputation: BigInt!
-  isRegistered: Boolean!
   metadata: IpfsMetadata
+  isActive: Boolean!
   tasks: [Task!]! @derivedFrom(field: "assignee")
 }
 
