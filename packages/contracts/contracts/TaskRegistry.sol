@@ -101,12 +101,11 @@ contract TaskRegistry is Ownable, IProposalStruct {
     function completeTaskAndRate(uint256 taskId, string memory result, uint8 rating) onlyTaskIssuer(taskId) external {
         TaskData storage task = tasks[taskId];
 
-        // only task issuer can provide rating
-        require(msg.sender == task.issuer, "Not authorized");
         require(task.status == TaskStatus.ASSIGNED, "Invalid task status");
 
         task.status = TaskStatus.COMPLETED;
         task.result = result;
+        task.rating = rating;
         ServiceProposal memory proposal = agentRegistry.getProposal(task.proposalId);
         
         TransferHelper.safeTransferETH(proposal.issuer, proposal.price);
@@ -116,6 +115,19 @@ contract TaskRegistry is Ownable, IProposalStruct {
         emit TaskStatusChanged(taskId, task.status);
         emit TaskCompleted(taskId, result);
 
+    }
+
+
+    function addRating(uint256 taskId, uint8 rating) onlyTaskIssuer(taskId) external {
+        TaskData storage task = tasks[taskId];
+
+        require(task.rating == 0, "Task got rating already");
+        require(rating >= 0 && rating <= 100, "Rating must be between 0 and 100");
+        
+        task.rating = rating;
+        ServiceProposal memory proposal = agentRegistry.getProposal(task.proposalId);
+
+        agentRegistry.addRating(proposal.issuer, rating);
     }
 
 
