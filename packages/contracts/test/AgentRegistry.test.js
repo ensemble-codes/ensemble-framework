@@ -44,7 +44,7 @@ describe("AgentRegistry", function () {
             .withArgs(agentAddress, 1, "Service1", ethers.parseEther("0.01"));
         
         const agentData = await registry.getAgentData(agentAddress);
-        console.log({ agentData })
+
         expect(agentData.name).to.equal("Service Agent");
         expect(agentData.agentUri).to.equal(agentUri);
         expect(agentData.owner).to.equal(agentOwner.address);

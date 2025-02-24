@@ -5,7 +5,7 @@ describe("TaskRegistry", function () {
     let TaskRegistry, taskRegistry, AgentsRegistry, agentsRegistry;
     let agentOwner, agentAddress, taskIssuer, addr4;
     let taskPrice = ethers.parseEther("0.01");
-    let proposalId = 0;
+    let proposalId = 1;
     let prompt = "Test prompt";
 
     async function setup() {
@@ -51,7 +51,6 @@ describe("TaskRegistry", function () {
         });
 
         it("should fail if the price is incorrect", async function () {
-            const proposalId = 0;
 
             const wrongTaskPrice = ethers.parseEther("0.02");
 
