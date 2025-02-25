@@ -146,7 +146,6 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      * Emits a {ProposalAdded} event.
      */
     function addProposal(address agent, string memory serviceName, uint256 servicePrice) external onlyAgentOwner(agent) returns (uint256) {
-        require(agents[agent].isActive, "Agent is not active");
         require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
 
         ServiceProposal memory proposal = ServiceProposal(agent, serviceName, servicePrice, nextProposalId, true);
@@ -173,37 +172,10 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      * Emits a {ProposalRemoved} event.
      */
     function removeProposal(address agent, uint256 proposalId) external onlyAgentOwner(agent) returns (bool) {
-        require(agents[agent].isActive, "Agent is not active");
         require(proposals[proposalId].issuer == agent, "ServiceProposal not found");
 
         delete proposals[proposalId];
         emit ProposalRemoved(agent, proposalId);
-
-        return true;
-    }
-
-    /**
-     * @dev Updates a service proposal for an agent.
-     * @param agent The address of the agent.
-     * @param proposalId The ID of the proposal to update.
-     * @param servicePrice The new price of the service.
-     * @return true if the proposal was updated successfully, false otherwise.
-     *
-     * Requirements:
-     *
-     * - The caller must be the owner of the agent.
-     * - The agent must be registered.
-     * - The proposal must exist.
-     *
-     * Emits a {ProposalUpdated} event.
-     */
-    function updateProposal(address agent, uint256 proposalId, uint256 servicePrice, bool _isActive) external onlyAgentOwner(agent) returns (bool) {
-        require(agents[agent].isActive, "Agent is not active");
-        require(proposals[proposalId].issuer == agent, "ServiceProposal not found");
-
-        proposals[proposalId].price = servicePrice;
-        proposals[proposalId].isActive = _isActive;
-        emit ProposalUpdated(agent, proposalId, servicePrice);
 
         return true;
     }
@@ -218,7 +190,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         return agents[agent].reputation;
     }
 
-    function getReputation(address agent) external view onlyActive(agent) returns (uint256) {
+    function getReputation(address agent) external view returns (uint256) {
         return agents[agent].reputation;
     }
 
@@ -227,23 +199,14 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     }
 
     /**
-     * @dev get agent data
-     * @param _agent The address of the agent
-     * @return name The name of the agent
-     * @return agentUri The URI pointing to the agent's metadata
-     * @return owner The owner address of the agent
-     * @return agent The agent contract address
-     * @return reputation The reputation score of the agent
+     * @dev Returns the data of an agent.
+     * @param _agent The address of the agent.
+     * @return AgentData The data of the agent.
      */
-    function getAgentData(address _agent) external view returns (
-        string memory name,
-        string memory agentUri,
-        address owner,
-        address agent,
-        uint256 reputation
+    function getAgentData(address _agent) external view returns (AgentData memory
     ) {
         AgentData storage data = agents[_agent];
-        return (data.name, data.agentUri, data.owner, data.agent, data.reputation);
+        return data;
     }
 
 
