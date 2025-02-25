@@ -32,6 +32,9 @@ importers:
       hardhat:
         specifier: ^2.22.18
         version: 2.22.18(ts-node@10.9.2(@types/node@22.10.1)(typescript@5.7.2))(typescript@5.7.2)
+      solidity-coverage:
+        specifier: 0.8.14
+        version: 0.8.14(hardhat@2.22.18(ts-node@10.9.2(@types/node@22.10.1)(typescript@5.7.2))(typescript@5.7.2))
 
 packages:
 

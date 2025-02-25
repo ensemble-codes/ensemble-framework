@@ -24,6 +24,7 @@
     "chai": "4.5.0",
     "dotenv": "16.4.5",
     "ensemble-sdk": "file:../sdk",
-    "hardhat": "^2.22.18"
+    "hardhat": "^2.22.18",
+    "solidity-coverage": "0.8.14"
   }
 }
