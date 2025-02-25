@@ -67,7 +67,6 @@ describe("AgentRegistry", function () {
             expect(agentData.owner).to.equal(agentOwner.address);
             expect(agentData.agent).to.equal(agentAddress);
             expect(agentData.reputation).to.equal(0);
-            expect(agentData.isActive).to.equal(false);
 
             const proposalId = 1;
             const proposal = await registry.getProposal(proposalId);
@@ -95,50 +94,6 @@ describe("AgentRegistry", function () {
                     ethers.parseEther("0.01")
                 )
             ).to.be.revertedWith("Agent already registered");
-        });
-
-        it("Should activate an agent", async function () {
-            await registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "Service1",
-                ethers.parseEther("0.01")
-            );
-
-            expect(await registry.isActive(agentAddress)).to.equal(false);
-
-            await registry.connect(agentOwner).activateAgent(agentAddress);
-
-            expect(await registry.isActive(agentAddress)).to.equal(true);
-        });
-
-        it("Should not activate an agent if not the owner", async function () {
-            await registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "Service1",
-                ethers.parseEther("0.01")
-            );
-
-            await expect(registry.connect(eveAddress).activateAgent(agentAddress))
-                .to.be.revertedWith("Not the owner of the agent");
-        });
-
-        it("Should not activate an agent if already active", async function () {
-            await registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "Service1",
-                ethers.parseEther("0.01")
-            );
-
-            await registry.connect(agentOwner).activateAgent(agentAddress);
-
-            await expect(registry.connect(agentOwner).activateAgent(agentAddress))
-                .to.be.revertedWith("Agent is already active");
         });
     })
 
@@ -212,8 +167,6 @@ describe("AgentRegistry", function () {
                 "Service1",
                 ethers.parseEther("0.01")
             );
-
-            await registry.connect(agentOwner).activateAgent(agentAddress);
         })
         it("Should only allow taskRegistry to add a rating", async function () {
             // Attempt to add a rating from a different address

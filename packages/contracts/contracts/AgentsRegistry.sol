@@ -20,7 +20,6 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         address agent;
         uint256 reputation;
         uint256 totalRatings;
-        bool isActive;
     }
 
     ServiceRegistry public serviceRegistry;
@@ -30,10 +29,6 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     mapping(uint256 => ServiceProposal) public proposals;
     uint256 public nextProposalId;
 
-    modifier onlyActive(address agent) {
-        require(agents[agent].isActive, "Agent not registered");
-        _;
-    }
     modifier onlyAgentOwner(address agent) {
         require(agents[agent].owner == msg.sender, "Not the owner of the agent");
         _;
@@ -101,7 +96,6 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         agentData.owner = msg.sender;
         agentData.agent = agent;
         agentData.reputation = 0;
-        agentData.isActive = false;
 
         ServiceProposal memory proposal = ServiceProposal(agent, serviceName, servicePrice, nextProposalId, false);
         proposals[nextProposalId] = proposal;
@@ -113,22 +107,6 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         return nextProposalId - 1;
     }
 
-    /**
-     * @dev Activates an agent, allowing them to participate in the network.
-     * @param agent The address of the agent to activate.
-     * @return true if the agent was activated successfully, false otherwise.
-     *
-     * Requirements:
-     *
-     * - The agent must be registered but not yet active.
-     */
-    function activateAgent(address agent) external onlyAgentOwner(agent) returns (bool) {
-        require(!agents[agent].isActive, "Agent is already active");
-        agents[agent].isActive = true;
-        return true;
-    }
-
-    
 
     /**
      * @dev Adds a new proposal for an agent.
@@ -180,7 +158,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         return true;
     }
 
-    function addRating(address agent, uint256 _rating) public onlyActive(agent) returns (uint256) {
+    function addRating(address agent, uint256 _rating) public returns (uint256) {
         require(msg.sender == taskRegistry, "Not the TaskRegistry contract");
         require(_rating >= 0 && _rating <= 100, "Rating must be between 0 and 100");
         agents[agent].totalRatings += 1;
@@ -192,10 +170,6 @@ contract AgentsRegistry is Ownable, IProposalStruct {
 
     function getReputation(address agent) external view returns (uint256) {
         return agents[agent].reputation;
-    }
-
-    function isActive(address agent) external view returns (bool) {
-        return agents[agent].isActive;
     }
 
     /**
