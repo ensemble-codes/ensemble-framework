@@ -6,8 +6,11 @@ import {
 } from "../generated/AgentsRegistry/AgentsRegistry"
 import {
   Agent,
+  IpfsMetadata,
   Proposal
 } from "../generated/schema"
+import { getContentPath } from "./utils";
+import { IpfsContent } from "../generated/templates"
 
 export function handleAgentRegistered(event: AgentRegistered): void {
   let entity = new Agent(
@@ -19,6 +22,13 @@ export function handleAgentRegistered(event: AgentRegistered): void {
   entity.agentUri = event.params.agentUri;
   entity.reputation = BigInt.fromString('0');
   entity.isRegistered = true;
+
+  let contentPath = getContentPath(event.params.agentUri);
+
+  if (contentPath != "") {
+    entity.metadata = contentPath;
+    IpfsContent.create(contentPath);
+  }
 
   entity.save();
 }

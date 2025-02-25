@@ -1,4 +1,4 @@
-specVersion: 1.0.0
+specVersion: 1.2.0
 indexerHints:
   prune: auto
 schema:
@@ -76,3 +76,16 @@ dataSources:
         - event: TaskCompleted(indexed uint256,string)
           handler: handleTaskStatusCompleted
       file: ./src/task-registry.ts
+templates:
+  - kind: file/ipfs
+    name: IpfsContent
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - IpfsMetadata
+      abis:
+        - name: AgentsRegistry
+          file: ./abis/AgentsRegistry.json
+      handler: handleAgentMetadata
+      file: ./src/fds.ts
