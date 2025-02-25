@@ -5,15 +5,15 @@ describe("TaskRegistry", function () {
     let TaskRegistry, taskRegistry, AgentsRegistry, agentsRegistry;
     let agentOwner, agentAddress, taskIssuer, addr4;
     let taskPrice = ethers.parseEther("0.01");
-    let proposalId = 0;
+    let proposalId = 1;
     let prompt = "Test prompt";
 
     async function setup() {
         await serviceRegistry.registerService("Service1", "Category1", "Description1");
         await agentsRegistry.connect(agentOwner).registerAgent(
+            agentAddress,
             "Service Agent",
             "https://uri",
-            agentAddress,
             "Service1",
             taskPrice
         );
@@ -51,7 +51,6 @@ describe("TaskRegistry", function () {
         });
 
         it("should fail if the price is incorrect", async function () {
-            const proposalId = 0;
 
             const wrongTaskPrice = ethers.parseEther("0.02");
 

@@ -27,7 +27,7 @@ contract ServiceRegistry is Ownable {
      * @param name The name of the service.
      * @return The ID of the registered service.
      */
-    function registerService(string memory name, string memory category, string memory description) external onlyOwner returns (Service memory) {
+    function registerService(string memory name, string memory category, string memory description) external returns (Service memory) {
         require(!this.isServiceRegistered(name), "Service already registered");
 
         Service memory service = Service({
