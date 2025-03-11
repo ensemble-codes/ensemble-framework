@@ -56,7 +56,7 @@ export class TaskService {
    * @returns {Promise<TaskData>} A promise that resolves to the task data.
    */
   async getTaskData(taskId: string): Promise<TaskData> {
-    const [id, prompt, issuer, status, assignee, proposalId] = await this.taskRegistry.tasks(taskId);
+    const [id, prompt, issuer, status, assignee, proposalId, , rating] = await this.taskRegistry.tasks(taskId);
 
     return {
       id,
@@ -64,6 +64,7 @@ export class TaskService {
       assignee: assignee || undefined,
       status,
       issuer,
+      rating,
       proposalId: proposalId
     };
   }
@@ -89,6 +90,37 @@ export class TaskService {
       await tx.wait();
     } catch (error) {
       console.error("Completing task failed:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Assigns a rating to a task.
+   * @param {string} taskId - The ID of the task.
+   * @param {number} rating - The rating.
+   * @returns {Promise<void>} A promise that resolves when the task is assigned.
+   */
+  async rateTask(taskId: string, rating: number): Promise<void> {
+    try {
+      const tx = await this.taskRegistry.rateTask(taskId, rating);
+      await tx.wait();
+    } catch (error) {
+      console.error("Rating task failed:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancels a task.
+   * @param {string} taskId - The ID of the task.
+   * @returns {Promise<void>} A promise that resolves when the task is canceled.
+   */
+  async cancelTask(taskId: string): Promise<void> {
+    try {
+      const tx = await this.taskRegistry.cancelTask(taskId);
+      await tx.wait();
+    } catch (error) {
+      console.error("Canceling task failed:", error);
       throw error;
     }
   }
