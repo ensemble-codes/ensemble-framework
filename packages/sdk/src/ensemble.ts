@@ -10,42 +10,50 @@ import AgentRegistryABI from './abi/AgentsRegistry.abi.json';
 import ServiceRegistryABI from './abi/ServiceRegistry.abi.json';
 
 export class Ensemble {
-  protected contractService: ContractService;
+  private contractService: ContractService;
   private taskService: TaskService;
   private agentService: AgentService;
-  private serviceRegisterService: ServiceRegistryService;
+  private serviceRegistryService: ServiceRegistryService;
 
+  constructor(
+    contractService: ContractService,
+    taskService: TaskService,
+    agentService: AgentService,
+    serviceRegisterService: ServiceRegistryService
+  ) {
+    this.contractService = contractService;
+    this.taskService = taskService;
+    this.agentService = agentService;
+    this.serviceRegistryService = serviceRegisterService;
+  }
 
-  /**
-   * Constructor for the Ensemble class.
-   * @param {ContractConfig} config - The configuration for the Ensemble.
-   * @param {ethers.Signer} signer - The signer for the Ensemble.
-   */
-  constructor(config: ContractConfig, signer: ethers.Signer, ipfsSDK: PinataSDK) {
-
-    this.contractService = new ContractService(
+  static create(config: ContractConfig, signer: ethers.Signer, ipfsSDK: PinataSDK) { 
+    const contractService = new ContractService(
       new ethers.JsonRpcProvider(config.network.rpcUrl),
       signer
     );
 
     // Initialize services
-    const serviceRegistry = this.contractService.createContract(
+    const serviceRegistry = contractService.createContract(
       config.serviceRegistryAddress,
       ServiceRegistryABI
     );
 
-    const agentRegistry = this.contractService.createContract(
+    const agentRegistry = contractService.createContract(
       config.agentRegistryAddress,
       AgentRegistryABI
     );
 
-    const taskRegistry = this.contractService.createContract(
+    const taskRegistry = contractService.createContract(
       config.taskRegistryAddress,
       TaskRegistryABI
     );
-    this.serviceRegisterService = new ServiceRegistryService(serviceRegistry);
-    this.agentService = new AgentService(agentRegistry, signer, ipfsSDK);
-    this.taskService = new TaskService(taskRegistry, this.agentService);
+
+    const serviceRegistryService = new ServiceRegistryService(serviceRegistry);
+    const agentService = new AgentService(agentRegistry, signer, ipfsSDK);
+    const taskService = new TaskService(taskRegistry, agentService);
+
+    return new Ensemble(contractService, taskService, agentService, serviceRegistryService);
   }
 
   /**
@@ -159,7 +167,7 @@ export class Ensemble {
    * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if the service is registered.
    */
   async registerService(service: Service): Promise<boolean> {
-    return this.serviceRegisterService.registerService(service);
+    return this.serviceRegistryService.registerService(service);
   }
 
   /**
@@ -168,7 +176,7 @@ export class Ensemble {
    * @returns {Promise<Service>} A promise that resolves to the service.
    */
   async getService(name: string): Promise<Service> {
-    return this.serviceRegisterService.getService(name);
+    return this.serviceRegistryService.getService(name);
   }
 } 
 
