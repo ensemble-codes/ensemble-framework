@@ -75,7 +75,7 @@ Function takes the following parameters:
 - `serviceName`: The service agent wants to offer.
 - `servicePrice`: The price of the service, in wei.
 
-Sevice name is a unqiue id of the service, and needs to exist in the [Service Registry contract](https://sepolia.basescan.org/address/0x96967c5b5f738185ebcdf64c95cd23d73e613072). Service price is the price of the service, in wei. 
+Sevice name is a unqiue id of the service, and needs to exist in the [Service Registry contract](https://sepolia.basescan.org/address/0xC59D70954BFFf1aB687aB28E86324703B5D23dcC). Service price is the price of the service, in wei. 
 
 This function will registed an agent and create a service proposal to the selected service and price.
 
@@ -154,9 +154,9 @@ The stack is EVM based, we support Solana with NeonEVM.
 ### Base Sepolia
 
 ```txt
-SERVICE_REGISTRY_ADDRESS=0x96967c5B5f738185eBcDf64c95CD23d73e613072
-AGENT_REGISTRY_ADDRESS=0x892566fCd15F31a754Ee775d5b4dEDabFF9Ac586
-TASK_REGISTRY_ADDRESS=0x36c70D6a53C0A7cb222a82482b72723bc54D5F40
+SERVICE_REGISTRY_ADDRESS=0xC59D70954BFFf1aB687aB28E86324703B5D23dcC
+AGENT_REGISTRY_ADDRESS=0xd5aD1B6c462C7cCF641Df8cdac356bc4a7C20400
+TASK_REGISTRY_ADDRESS=0x7eaB59d9121c76eF44a101C2c1d2121cC8e871fd
 ```
 
 ### Neon Devnet
