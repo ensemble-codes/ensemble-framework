@@ -43,7 +43,7 @@ export enum TaskStatus {
   CREATED,
   ASSIGNED,
   COMPLETED,
-  FAILED
+  CANCELED
 }
 
 export interface TaskData {
@@ -53,6 +53,7 @@ export interface TaskData {
   status: TaskStatus;
   issuer: string;
   proposalId: string;
+  rating?: number;
 }
 
 export interface Proposal {
@@ -79,8 +80,6 @@ export interface AgentData {
   owner?: string;
   address: string;
   reputation: BigNumberish;
-  isRegistered?: boolean;
-  proposals: Proposal[];
 }
 
 export interface TaskCreationParams {

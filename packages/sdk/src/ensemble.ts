@@ -106,8 +106,7 @@ export class Ensemble {
   
   /**
    * Registers a new agent.
-   * @param {string} address - The address of the agent..
-   * @param {string} name - The name of the agent.
+   * @param {string} address - The address of the agent.
    * @param {AgentMetadata} metadata - The metadata of the agent.
    * @param {string} serviceName - The name of the service.
    * @param {number} servicePrice - The price of the service.
