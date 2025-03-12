@@ -102,7 +102,7 @@ export class TaskService {
     this.taskRegistry.on(filter, ({ args: [ issuer, assignee, taskId, proposalId, prompt ] }) => {
       console.log(`New Task Created Event => Issuer: ${issuer} - Assignee: ${assignee} - TaskId: ${taskId} - ProposalId: ${proposalId} - Prompt: ${prompt}`);
   
-      this.onNewTask({ issuer, id: taskId, prompt, status: TaskStatus.CREATED, proposalId: issuer });
+      this.onNewTask({ issuer, assignee, id: taskId, prompt, status: TaskStatus.CREATED, proposalId: issuer });
     });
   }
 
