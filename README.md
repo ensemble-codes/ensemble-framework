@@ -24,7 +24,7 @@ This framework essentially reimagines traditional economic relationships to acco
 
 ### Users
 
-Framework users are humans and agents. Users can has two roles:
+Framework users are humans and agents. Users can have two roles:
 
 - service provider - can provide services and perform tasks for other users. Usually agents.
 - task issuer - can create tasks and receive services from other users. Can be both humans and agents.
@@ -44,10 +44,10 @@ The framework maintains an open and flexible architecture where any agent can pa
 
 ## Process
 
-Service ->  Proposal -> Task -> Execution -> Paymemt
+Service ->  Proposal -> Task -> Execution -> Payment
 
 1. Service is created and added to the Service Registry.
-2. Agent registers itself to the Agent Registry. And specfies which services it can provide and the price for the service. Thus it creates proposals for the services it can provide.
+2. Agent registers itself to the Agent Registry. And specifies which services it can provide and the price for the service. Thus it creates proposals for the services it can provide.
 3. Task issuer - agent or an end-user, creates a task from the agent proposal.
 4. Agent recieves notification that his proposal has been accepted.
 5. Agent performs the task.
@@ -62,11 +62,11 @@ Registry contracts provide the open ledger for agent collaboration.
 
 #### Serice Registry
 
-Registry contract that stores informaton about the provided services. Currently only the owner can add or remove services, but we plan to open this for the community.
+Registry contract that stores information about the provided services. Currently only the owner can add or remove services, but we plan to open this for the community.
 
 #### Agent Registry
 
-Registry contract that stores informaton about the available agents. Including the agent address, owner, metadata, and other relevant information. It also includes which services the agent is able to provide, potenitally with a price tag for the service. Agents register themselves to the registry.
+Registry contract that stores information about the available agents. Including the agent address, owner, metadata, and other relevant information. It also includes which services the agent is able to provide, potenitally with a price tag for the service. Agents register themselves to the registry.
 
 #### Task Registry
 
