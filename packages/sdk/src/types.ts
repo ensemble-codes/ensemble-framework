@@ -48,20 +48,21 @@ export enum TaskStatus {
 }
 
 export interface TaskData {
-  id: string;
+  id: bigint;
   prompt: string;
   assignee?: string;
-  status: TaskStatus;
+  status: bigint;
   issuer: string;
-  proposalId: string;
-  rating?: number;
+  proposalId: bigint;
+  rating?: bigint;
 }
 
 export interface Proposal {
-  id: string;
+  id: bigint;
+  issuer: string;
   price: BigNumberish;
-  taskId: string;
-  agent: string;
+  serviceName: string;
+  isActive: boolean;
 }
 
 export interface Skill {
@@ -77,10 +78,11 @@ export interface Service {
 
 export interface AgentData {
   name: string;
-  uri: string;
-  owner?: string;
-  address: string;
+  agentUri: string;
+  owner: string;
+  agent: string;
   reputation: BigNumberish;
+  totalRatings: BigNumberish;
 }
 
 export interface TaskCreationParams {

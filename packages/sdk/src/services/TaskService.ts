@@ -1,17 +1,16 @@
-import { BigNumberish, ethers } from "ethers";
+import { ethers } from "ethers";
 import { TaskCreationParams, TaskData, TaskStatus } from "../types";
 import { ProposalNotFoundError } from "../errors";
 import { AgentService } from "./AgentService";
+import { TaskRegistry } from "../../typechain";
 
 export class TaskService {
-  private taskRegistry: ethers.Contract;
-  protected onNewTask: (task: TaskData) => void = () => {};
-  agentService: AgentService;
-  
-  constructor(taskRegistry: ethers.Contract, agentService: any) {
-    this.taskRegistry = taskRegistry;
-    this.agentService = agentService;
-  }
+  private onNewTask: (task: TaskData) => void = () => {};
+
+  constructor(
+    private readonly taskRegistry: TaskRegistry, 
+    private readonly agentService: AgentService
+  ) {}
 
   /**
    * Creates a new task.
@@ -21,11 +20,15 @@ export class TaskService {
   async createTask(params: TaskCreationParams): Promise<TaskData> {
     try {
       const proposal = await this.agentService.getProposal(params.proposalId);
+
       const tx = await this.taskRegistry.createTask(
-        params.prompt, params.proposalId,
-        { value: proposal.price });
+        params.prompt,
+        params.proposalId,
+        { value: proposal.price }
+      );
       const receipt = await tx.wait();
-      
+
+
       const event = this.findEventInReceipt(receipt, "TaskCreated");
       // if (!event?.args?.[1]) {
       //   throw new Error("Task creation failed: No task address in event");
@@ -33,13 +36,14 @@ export class TaskService {
       // const taskId = event.args[1];
       const taskId = event.args[2];
       const prompt = event.args[4];
+
       return {
         id: taskId,
         assignee: event.args[1],
         prompt: prompt,
-        status: TaskStatus.CREATED,
+        status: BigInt(TaskStatus.CREATED),
         issuer: event.args[0],
-        proposalId: params.proposalId
+        proposalId: BigInt(params.proposalId),
       };
     } catch (error: any) {
       // console.error("Task creation failed:", error);
@@ -56,7 +60,8 @@ export class TaskService {
    * @returns {Promise<TaskData>} A promise that resolves to the task data.
    */
   async getTaskData(taskId: string): Promise<TaskData> {
-    const [id, prompt, issuer, status, assignee, proposalId, , rating] = await this.taskRegistry.tasks(taskId);
+    const { id, prompt, issuer, status, assignee, proposalId, rating } =
+      await this.taskRegistry.tasks(taskId);
 
     return {
       id,
@@ -65,16 +70,16 @@ export class TaskService {
       status,
       issuer,
       rating,
-      proposalId: proposalId
+      proposalId,
     };
   }
 
   /**
    * Gets tasks by issuer.
    * @param {string} issuer - The issuer of the tasks.
-   * @returns {Promise<string[]>} A promise that resolves to the task IDs.
+   * @returns {Promise<bigint[]>} A promise that resolves to the task IDs.
    */
-  async getTasksByIssuer(issuer: string): Promise<TaskData[]> {
+  async getTasksByIssuer(issuer: string): Promise<bigint[]> {
     return this.taskRegistry.getTasksByIssuer(issuer);
   }
 
@@ -131,11 +136,23 @@ export class TaskService {
   public subscribe() {
     console.log("Subscribing to TaskCreated events");
     const filter = this.taskRegistry.filters.TaskCreated();
-    this.taskRegistry.on(filter, ({ args: [ issuer, assignee, taskId, proposalId, prompt ] }) => {
-      console.log(`New Task Created Event => Issuer: ${issuer} - Assignee: ${assignee} - TaskId: ${taskId} - ProposalId: ${proposalId} - Prompt: ${prompt}`);
-  
-      this.onNewTask({ issuer, assignee, id: taskId, prompt, status: TaskStatus.CREATED, proposalId: issuer });
-    });
+    
+    this.taskRegistry.on(
+      filter,
+      (issuer, assignee, taskId, proposalId, prompt) => {
+        console.log(
+          `New Task Created Event => Issuer: ${issuer} - Assignee: ${assignee} - TaskId: ${taskId} - ProposalId: ${proposalId} - Prompt: ${prompt}`
+        );
+
+        this.onNewTask({
+          issuer,
+          id: taskId,
+          prompt,
+          status: BigInt(TaskStatus.CREATED),
+          proposalId
+        });
+      }
+    );
   }
 
   /**
@@ -152,21 +169,23 @@ export class TaskService {
    */
   setOnNewTaskListener(listener: (task: TaskData) => void) {
     this.onNewTask = listener;
-  } 
+  }
 
   findEventInReceipt(receipt: any, eventName: string): ethers.EventLog {
-    const events = receipt.logs.map((log: any) => {
-      try {
-        const event = this.taskRegistry.interface.parseLog(log);
-        return event;
-      } catch (e) {
-        console.error('error:', e);
-        return null;
-      }
-    }).filter((event: any) => event !== null);
+    const events = receipt.logs
+      .map((log: any) => {
+        try {
+          const event = this.taskRegistry.interface.parseLog(log);
+          return event;
+        } catch (e) {
+          console.error("error:", e);
+          return null;
+        }
+      })
+      .filter((event: any) => event !== null);
     const event = events?.find((e: { name: string }) => e.name === eventName);
-    return event
+    return event;
   }
 
   // ... other task-related methods
-} 
+}

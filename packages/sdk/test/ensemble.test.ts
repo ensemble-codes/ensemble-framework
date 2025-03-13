@@ -34,7 +34,6 @@ describe("Ensemble Unit Tests", () => {
     } as unknown as jest.Mocked<ServiceRegistryService>;
 
     sdk = new Ensemble(
-      contractServiceMock,
       taskService,
       agentService,
       serviceRegistryService
@@ -187,12 +186,12 @@ describe("Ensemble Unit Tests", () => {
     const proposalId = "0";
 
     const task = {
-      id: "0",
+      id: BigInt("0"),
       prompt: "This is a test task.",
-      status: 0,
+      status: BigInt(0),
       issuer: process.env.ACCOUNT_ADDRESS!,
-      proposalId: proposalId,
-      rating: 0,
+      proposalId: BigInt(proposalId),
+      rating: BigInt(0),
     };
 
     taskService.createTask.mockResolvedValueOnce(task);
