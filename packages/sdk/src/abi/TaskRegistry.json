@@ -81,10 +81,15 @@
             "internalType": "uint256",
             "name": "proposalId",
             "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
           }
         ],
         "indexed": false,
-        "internalType": "struct IProposalStruct.Proposal",
+        "internalType": "struct IProposalStruct.ServiceProposal",
         "name": "proposal",
         "type": "tuple"
       }
@@ -109,6 +114,19 @@
       }
     ],
     "name": "TaskAssigned",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "taskId",
+        "type": "uint256"
+      }
+    ],
+    "name": "TaskCanceled",
     "type": "event"
   },
   {
@@ -178,6 +196,25 @@
       },
       {
         "indexed": false,
+        "internalType": "uint8",
+        "name": "rating",
+        "type": "uint8"
+      }
+    ],
+    "name": "TaskRated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "taskId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
         "internalType": "enum TaskRegistry.TaskStatus",
         "name": "status",
         "type": "uint8"
@@ -197,6 +234,19 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "taskId",
+        "type": "uint256"
+      }
+    ],
+    "name": "cancelTask",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -263,6 +313,16 @@
             "internalType": "uint256",
             "name": "proposalId",
             "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "result",
+            "type": "string"
+          },
+          {
+            "internalType": "uint8",
+            "name": "rating",
+            "type": "uint8"
           }
         ],
         "internalType": "struct TaskRegistry.TaskData",
@@ -352,6 +412,16 @@
             "internalType": "uint256",
             "name": "proposalId",
             "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "result",
+            "type": "string"
+          },
+          {
+            "internalType": "uint8",
+            "name": "rating",
+            "type": "uint8"
           }
         ],
         "internalType": "struct TaskRegistry.TaskData",
@@ -419,6 +489,24 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "taskId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "rating",
+        "type": "uint8"
+      }
+    ],
+    "name": "rateTask",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "renounceOwnership",
     "outputs": [],
@@ -464,6 +552,16 @@
         "internalType": "uint256",
         "name": "proposalId",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "result",
+        "type": "string"
+      },
+      {
+        "internalType": "uint8",
+        "name": "rating",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",

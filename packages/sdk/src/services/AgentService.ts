@@ -5,17 +5,18 @@ import {
   ServiceNotRegisteredError,
 } from "../errors";
 import { PinataSDK } from "pinata-web3";
+import { AgentsRegistry } from "../../typechain";
 
 export class AgentService {
   constructor(
-    private agentRegistry: ethers.Contract,
-    private signer: ethers.Signer,
-    private ipfsSDK: PinataSDK
+    private readonly agentRegistry: AgentsRegistry,
+    private readonly signer: ethers.Signer,
+    private readonly ipfsSDK: PinataSDK
   ) {}
 
   /**
-   * Gets the address of the agent.
-   * @returns {Promise<string>} A promise that resolves to the agent address.
+   * Gets the address of the signer.
+   * @returns {Promise<string>} A promise that resolves to the signer address.
    */
   async getAddress(): Promise<string> {
     return this.signer.getAddress();
@@ -36,10 +37,9 @@ export class AgentService {
     servicePrice: number
   ): Promise<boolean> {
     try {
-      debugger;
       console.log(`registering agent ${address} with metadata: ${metadata}`);
+      
       const uploadResponse = await this.ipfsSDK.upload.json(metadata);
-      metadata;
       const agentURI = `ipfs://${uploadResponse.IpfsHash}`;
 
       const tx = await this.agentRegistry.registerAgent(
@@ -49,17 +49,11 @@ export class AgentService {
         serviceName,
         servicePrice
       );
+
       console.log(`transaction to register agent was sent. tx: ${tx}`);
-      const receipt = await tx.wait();
+      
+      await tx.wait();
 
-      if (receipt.status === 0) {
-        throw new Error("Transaction reverted: Agent registration failed");
-      }
-
-      const event = this.findEventInReceipt(receipt, "AgentRegistered");
-      if (!event?.args) {
-        throw new Error("Agent registration failed: Event not emitted");
-      }
       return true;
     } catch (error: any) {
       console.error({ error });
@@ -126,70 +120,23 @@ export class AgentService {
     }
   }
 
-  findEventInReceipt(receipt: any, eventName: string): ethers.EventLog {
-    const events = receipt.logs
-      .map((log: any) => {
-        try {
-          const event = this.agentRegistry.interface.parseLog(log);
-          return event;
-        } catch (e) {
-          console.error("error:", e);
-          return null;
-        }
-      })
-      .filter((event: any) => event !== null);
-    const event = events?.find((e: { name: string }) => e.name === eventName);
-    return event;
-  }
-
   /**
    * Gets data for a specific agent.
    * @param {string} agentAddress - The address of the agent.
    * @returns {Promise<AgentData>} A promise that resolves to the agent data.
    */
   async getAgent(agentAddress: string): Promise<AgentData> {
-    const [name, uri, address, reputation, proposals] =
+    const { name, agentUri, owner, agent, reputation, totalRatings } =
       await this.agentRegistry.getAgentData(agentAddress);
-    const isRegistered = await this.agentRegistry.isRegistered(agentAddress);
 
     return {
       name,
-      uri,
-      address,
+      agentUri,
+      owner,
+      agent,
       reputation,
+      totalRatings,
     };
-  }
-
-  /**
-   * Checks if an agent is registered.
-   * @param {string} agentAddress - The address of the agent.
-   * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if the agent is registered.
-   */
-  async isAgentRegistered(agentAddress: string): Promise<boolean> {
-    return await this.agentRegistry.isRegistered(agentAddress);
-  }
-
-  /**
-   * Gets all the agents for a specific service.
-   * @param {string} serviceName - The name of the service.
-   * @returns {Promise<AgentData>} A promise that resolves to a list of agent data.
-   */
-  async getAgentsByServiceId(serviceId: string): Promise<AgentData[]> {
-    const agentAddresses: string[] =
-      await this.agentRegistry.getAgentsByServiceId(serviceId);
-
-    const agents: AgentData[] = [];
-    for (const address of agentAddresses) {
-      const agent = await this.agentRegistry.getAgentData(address);
-      agents.push({
-        name: agent[0],
-        uri: agent[1],
-        owner: agent[2],
-        address: agent[3],
-        reputation: agent[4],
-      });
-    }
-    return agents;
   }
 
   /**
@@ -198,15 +145,29 @@ export class AgentService {
    * @returns {Promise<Proposal>} A promise that resolves to the proposal.
    */
   async getProposal(proposalId: string): Promise<Proposal> {
-    return this.agentRegistry.getProposal(proposalId);
+    const {
+      proposalId: id,
+      issuer,
+      price,
+      serviceName,
+      isActive,
+    } = await this.agentRegistry.getProposal(proposalId);
+
+    return {
+      id,
+      issuer,
+      price,
+      serviceName,
+      isActive,
+    };
   }
 
   /**
    * The reputation of an agent.
    * @param {string} agentAddress The address of the agent
-   * @returns {Promise<number>} A promise that resolves to the reputation of the agent.
+   * @returns {Promise<bigint>} A promise that resolves to the reputation of the agent.
    */
-  async getReputation(agentAddress: string): Promise<number> {
+  async getReputation(agentAddress: string): Promise<bigint> {
     return this.agentRegistry.getReputation(agentAddress);
   }
 }
