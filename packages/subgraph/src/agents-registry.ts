@@ -8,6 +8,8 @@ import {
   Agent,
   Proposal
 } from "../generated/schema"
+import { getContentPath } from "./utils";
+import { IpfsContent } from "../generated/templates"
 
 export function handleAgentRegistered(event: AgentRegistered): void {
   let entity = new Agent(
@@ -18,7 +20,13 @@ export function handleAgentRegistered(event: AgentRegistered): void {
   entity.owner = event.params.owner;
   entity.agentUri = event.params.agentUri;
   entity.reputation = BigInt.fromString('0');
-  entity.isRegistered = true;
+
+  let contentPath = getContentPath(event.params.agentUri);
+
+  if (contentPath != "") {
+    entity.metadata = contentPath;
+    IpfsContent.create(contentPath);
+  }
 
   entity.save();
 }
@@ -40,7 +48,18 @@ export function handleProposalAdded(event: ProposalAdded): void {
   entity.issuer = event.params.agent.toHex();
   entity.price = event.params.price;
   entity.service = event.params.name;
+  entity.isRemoved = false;
 
   entity.save()
 }
 
+export function handleProposalRemoved(event: ProposalAdded): void {
+  let entity = Proposal.load(event.params.proposalId.toString());
+  if (entity == null) {
+    return
+  }
+
+  entity.isRemoved = true;
+
+  entity.save()
+}

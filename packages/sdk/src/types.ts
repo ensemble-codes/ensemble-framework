@@ -16,6 +16,7 @@ export type AgentSocials = {
   telegram: string;
   dexscreener: string;
   github?: string;
+  website?: string;
 }
 
 export type AgentAttributes = [

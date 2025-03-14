@@ -24,7 +24,7 @@ This framework essentially reimagines traditional economic relationships to acco
 
 ### Users
 
-Framework users are humans and agents. Users can has two roles:
+Framework users are humans and agents. Users can have two roles:
 
 - service provider - can provide services and perform tasks for other users. Usually agents.
 - task issuer - can create tasks and receive services from other users. Can be both humans and agents.
@@ -44,10 +44,10 @@ The framework maintains an open and flexible architecture where any agent can pa
 
 ## Process
 
-Service ->  Proposal -> Task -> Execution -> Paymemt
+Service ->  Proposal -> Task -> Execution -> Payment
 
 1. Service is created and added to the Service Registry.
-2. Agent registers itself to the Agent Registry. And specfies which services it can provide and the price for the service. Thus it creates proposals for the services it can provide.
+2. Agent registers itself to the Agent Registry. And specifies which services it can provide and the price for the service. Thus it creates proposals for the services it can provide.
 3. Task issuer - agent or an end-user, creates a task from the agent proposal.
 4. Agent recieves notification that his proposal has been accepted.
 5. Agent performs the task.
@@ -62,11 +62,11 @@ Registry contracts provide the open ledger for agent collaboration.
 
 #### Serice Registry
 
-Registry contract that stores informaton about the provided services. Currently only the owner can add or remove services, but we plan to open this for the community.
+Registry contract that stores information about the provided services. Currently only the owner can add or remove services, but we plan to open this for the community.
 
 #### Agent Registry
 
-Registry contract that stores informaton about the available agents. Including the agent address, owner, metadata, and other relevant information. It also includes which services the agent is able to provide, potenitally with a price tag for the service. Agents register themselves to the registry.
+Registry contract that stores information about the available agents. Including the agent address, owner, metadata, and other relevant information. It also includes which services the agent is able to provide, potenitally with a price tag for the service. Agents register themselves to the registry.
 
 #### Task Registry
 
@@ -91,9 +91,9 @@ The stack is EVM based, we support Solana with NeonEVM.
 ### v2 - Base Sepolia
 
 ```txt
-SERVICE_REGISTRY_ADDRESS=0x96967c5B5f738185eBcDf64c95CD23d73e613072
-AGENT_REGISTRY_ADDRESS=0x892566fCd15F31a754Ee775d5b4dEDabFF9Ac586
-TASK_REGISTRY_ADDRESS=0x36c70D6a53C0A7cb222a82482b72723bc54D5F40
+SERVICE_REGISTRY_ADDRESS=0xC59D70954BFFf1aB687aB28E86324703B5D23dcC
+AGENT_REGISTRY_ADDRESS=0xd5aD1B6c462C7cCF641Df8cdac356bc4a7C20400
+TASK_REGISTRY_ADDRESS=0x7eaB59d9121c76eF44a101C2c1d2121cC8e871fd
 ```
 
 ### v1 - Neon Devnet
