@@ -6,7 +6,6 @@ import {
 } from "../generated/AgentsRegistry/AgentsRegistry"
 import {
   Agent,
-  IpfsMetadata,
   Proposal
 } from "../generated/schema"
 import { getContentPath } from "./utils";
@@ -21,7 +20,6 @@ export function handleAgentRegistered(event: AgentRegistered): void {
   entity.owner = event.params.owner;
   entity.agentUri = event.params.agentUri;
   entity.reputation = BigInt.fromString('0');
-  entity.isRegistered = true;
 
   let contentPath = getContentPath(event.params.agentUri);
 
@@ -50,7 +48,18 @@ export function handleProposalAdded(event: ProposalAdded): void {
   entity.issuer = event.params.agent.toHex();
   entity.price = event.params.price;
   entity.service = event.params.name;
+  entity.isRemoved = false;
 
   entity.save()
 }
 
+export function handleProposalRemoved(event: ProposalAdded): void {
+  let entity = Proposal.load(event.params.proposalId.toString());
+  if (entity == null) {
+    return
+  }
+
+  entity.isRemoved = true;
+
+  entity.save()
+}
