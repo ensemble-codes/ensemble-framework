@@ -9,6 +9,7 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
+typechain/
 
 # Logs
 logs
