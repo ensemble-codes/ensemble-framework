@@ -21,9 +21,9 @@ dataSources:
         - name: ServiceRegistry
           file: ./abis/ServiceRegistry.json
       eventHandlers:
-        - event: ServiceRegistered(string,string,string)
+        - event: ServiceRegistered(indexed uint256,string,string)
           handler: handleServiceRegistered
-        - event: ServiceUpdated(string,string,string)
+        - event: ServiceUpdated(indexed uint256,string,string)
           handler: handleServiceUpdated
       file: ./src/service-registry.ts
   - kind: ethereum

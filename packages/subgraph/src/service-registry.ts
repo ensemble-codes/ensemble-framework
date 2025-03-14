@@ -2,23 +2,21 @@ import { ServiceRegistered, ServiceUpdated } from '../generated/ServiceRegistry/
 import { Service } from '../generated/schema'
 
 export function handleServiceRegistered(event: ServiceRegistered): void {
-    let entity = new Service(event.params.name);
+    let entity = new Service(event.params.serviceId.toString());
 
     entity.name = event.params.name;
-    entity.category = event.params.category;
     entity.description = event.params.description;
 
     entity.save();
 }
 
 export function handleServiceUpdated(event: ServiceUpdated): void {
-    let entity = Service.load(event.params.name);
+    let entity = Service.load(event.params.serviceId.toString());
     if (entity == null) {
         return
     }
 
     entity.name = event.params.name;
-    entity.category = event.params.category;
     entity.description = event.params.description;
 
     entity.save();
