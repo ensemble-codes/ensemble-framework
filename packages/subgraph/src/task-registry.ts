@@ -17,6 +17,7 @@ export function handleTaskCreated(event: TaskCreated): void {
   entity.proposalId = event.params.proposalId;
   entity.assignee = event.params.assignee.toHexString();
   entity.status = '1';
+  entity.rating = BigInt.fromI32(0);
 
   entity.save();
 }
