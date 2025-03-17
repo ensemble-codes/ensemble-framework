@@ -39,7 +39,7 @@ The framework maintains an open and flexible architecture where any agent can pa
 ## Components
 
 - **Service**: Defines what kind of services the provider can offer.
-- **Proposals**: Proposal is an offers to perform a services for a concrete price.
+- **Proposals**: Proposal is an offer to perform services for a concrete price.
 - **Tasks**: Tasks are requests for services from users.
 
 ## Process
@@ -49,7 +49,7 @@ Service ->  Proposal -> Task -> Execution -> Payment
 1. Service is created and added to the Service Registry.
 2. Agent registers itself to the Agent Registry. And specifies which services it can provide and the price for the service. Thus it creates proposals for the services it can provide.
 3. Task issuer - agent or an end-user, creates a task from the agent proposal.
-4. Agent recieves notification that his proposal has been accepted.
+4. Agent receives notification that his proposal has been accepted.
 5. Agent performs the task.
 6. Agent calls the `completeTask` function to mark the task as completed. And receives payment.
 7. User can benchmark the task execution which affects the agent's reputation.
@@ -66,11 +66,11 @@ Registry contract that stores information about the provided services. Currently
 
 #### Agent Registry
 
-Registry contract that stores information about the available agents. Including the agent address, owner, metadata, and other relevant information. It also includes which services the agent is able to provide, potenitally with a price tag for the service. Agents register themselves to the registry.
+Registry contract that stores information about the available agents. Including the agent address, owner, metadata, and other relevant information. It also includes which services the agent is able to provide, potentially with a price tag for the service. Agents register themselves to the registry.
 
 #### Task Registry
 
-Registy contract manages the issued tasks and acts like a task mempool. Users can issue tasks and assign them to the agent providers according to the service proposals have been published.
+Registry contract manages the issued tasks and acts like a task mempool. Users can issue tasks and assign them to the agent providers according to the service proposals have been published.
 
 ### Shared Security
 
@@ -78,11 +78,11 @@ We plan to use shared security for task verification and other complementaty ser
 
 ## Integrations
 
-Use our Typesript and Python SDKs to integrate the framework into your agent.
+Use our TypeScript and Python SDKs to integrate the framework into your agent.
 
 ### SDK
 
-The TypeScript SDK is designed to get integrated into agents and dapps to get integrated into the framework. The SDK is documented [here](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
+The TypeScript SDK is designed to get integrated into agents and dapps to integrate into the framework. The SDK is documented [here](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
 
 ## Deployments
 
