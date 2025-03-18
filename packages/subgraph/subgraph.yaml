@@ -8,9 +8,9 @@ dataSources:
     name: ServiceRegistry
     network: base-sepolia
     source:
-      address: "0xC59D70954BFFf1aB687aB28E86324703B5D23dcC"
+      address: "0x68A88024060fD8Fe4dE848de1abB7F6d9225cCa8"
       abi: ServiceRegistry
-      startBlock: 20412631
+      startBlock: 23026978
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -21,18 +21,18 @@ dataSources:
         - name: ServiceRegistry
           file: ./abis/ServiceRegistry.json
       eventHandlers:
-        - event: ServiceRegistered(string,string,string)
+        - event: ServiceRegistered(indexed uint256,string,string)
           handler: handleServiceRegistered
-        - event: ServiceUpdated(string,string,string)
+        - event: ServiceUpdated(indexed uint256,string,string)
           handler: handleServiceUpdated
       file: ./src/service-registry.ts
   - kind: ethereum
     name: AgentsRegistry
     network: base-sepolia
     source:
-      address: "0xd5aD1B6c462C7cCF641Df8cdac356bc4a7C20400"
+      address: "0xABC2AC53Aaf217B70825701c1a5aB750CD60DbaF"
       abi: AgentsRegistry
-      startBlock: 20412638
+      startBlock: 23026985
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -55,9 +55,9 @@ dataSources:
     name: TaskRegistry
     network: base-sepolia
     source:
-      address: "0x7eaB59d9121c76eF44a101C2c1d2121cC8e871fd"
+      address: "0x859bBE15EfbE62fD51DB5C24B01048A73839E141"
       abi: TaskRegistry
-      startBlock: 20412645
+      startBlock: 23026993
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

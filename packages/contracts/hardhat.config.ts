@@ -3,6 +3,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-ignition-ethers";
 import "@nomicfoundation/hardhat-verify";
 import * as dotenv from "dotenv";
+import 'solidity-coverage';
 
 dotenv.config();
 

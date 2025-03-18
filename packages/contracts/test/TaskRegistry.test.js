@@ -3,23 +3,25 @@ const { ethers } = require("hardhat");
 
 describe("TaskRegistry", function () {
     let TaskRegistry, taskRegistry, AgentsRegistry, agentsRegistry;
-    let agentOwner, agentAddress, taskIssuer, addr4;
+    let agentOwner, agentAddress, taskIssuer, eveAddress;
     let taskPrice = ethers.parseEther("0.01");
-    let proposalId = 0;
+    let proposalId = 1;
     let prompt = "Test prompt";
 
     async function setup() {
         await serviceRegistry.registerService("Service1", "Category1", "Description1");
         await agentsRegistry.connect(agentOwner).registerAgent(
+            agentAddress,
             "Service Agent",
             "https://uri",
-            agentAddress,
             "Service1",
             taskPrice
         );
+
+        await agentsRegistry.setTaskRegistry(taskRegistry);
     }
     beforeEach(async function () {
-        [taskIssuer, agentOwner, agentAddress, addr4] = await ethers.getSigners();
+        [taskIssuer, agentOwner, agentAddress, eveAddress] = await ethers.getSigners();
         
         ServiceRegistry = await ethers.getContractFactory("ServiceRegistry");
         serviceRegistry = await ServiceRegistry.deploy();
@@ -51,7 +53,6 @@ describe("TaskRegistry", function () {
         });
 
         it("should fail if the price is incorrect", async function () {
-            const proposalId = 0;
 
             const wrongTaskPrice = ethers.parseEther("0.02");
 
@@ -86,7 +87,7 @@ describe("TaskRegistry", function () {
             .to.emit(taskRegistry, "TaskCreated")
             .withArgs(taskIssuer, agentAddress, 1, proposalId, prompt);
 
-            await expect(taskRegistry.connect(addr4).completeTask(1, "Test result"))
+            await expect(taskRegistry.connect(eveAddress).completeTask(1, "Test result"))
                 .to.be.revertedWith("Not authorized");
         });
 
@@ -102,66 +103,82 @@ describe("TaskRegistry", function () {
         });
     });
 
-    // describe("getTasksByOwner", function () {
-    //     it("should return tasks by owner", async function () {
-    //         const proposalId = 1;
-    //         const prompt = "Test prompt";
-    //         const price = ethers.parseEther("1");
+    describe("rateTask", function () {
+        beforeEach(async function () {
+            await setup();
 
-    //         await agentsRegistry.registerAgent("Agent1", "uri1", addr1.address, "Service1", price);
-    //         await taskRegistry.createTask(prompt, proposalId, { value: price });
+            await expect(taskRegistry.createTask(prompt, proposalId, { value: taskPrice })).not.to.be.reverted
+            await expect(taskRegistry.connect(agentAddress).completeTask(1, "Test result"))
+                .and.to.emit(taskRegistry, "TaskCompleted")
+                .withArgs(1, "Test result");
+        });
 
-    //         const tasks = await taskRegistry.getTasksByOwner(owner.address);
-    //         expect(tasks.length).to.equal(1);
-    //         expect(tasks[0]).to.equal(1);
-    //     });
-    // });
+        it("should rate a task", async function () {
+            const rating = 80; // Example rating
+            await expect(taskRegistry.connect(taskIssuer).rateTask(1, rating))
+                .to.emit(taskRegistry, "TaskRated")
+                .withArgs(1, rating);
 
-    // describe("getTask", function () {
-    //     it("should return task details", async function () {
-    //         const proposalId = 1;
-    //         const prompt = "Test prompt";
-    //         const price = ethers.parseEther("1");
+            const updatedTask = await taskRegistry.getTask(1);
+            expect(updatedTask.rating).to.equal(rating);
+        });
 
-    //         await agentsRegistry.registerAgent("Agent1", "uri1", addr1.address, "Service1", price);
-    //         await taskRegistry.createTask(prompt, proposalId, { value: price });
+        it("should fail if not the issuer", async function () {
+            await expect(taskRegistry.connect(eveAddress).rateTask(1, 80))
+                .to.be.revertedWith("Not the issuer of the task");
+        });
 
-    //         const task = await taskRegistry.getTask(1);
-    //         expect(task.prompt).to.equal(prompt);
-    //         expect(task.owner).to.equal(owner.address);
-    //         expect(task.status).to.equal(0); // TaskStatus.CREATED
-    //         expect(task.proposalId).to.equal(proposalId);
-    //     });
-    // });
+        it("should fail if task is not completed", async function () {
+            await expect(taskRegistry.createTask(prompt, proposalId, { value: taskPrice })).not.to.be.reverted
 
-    // describe("getStatus", function () {
-    //     it("should return task status", async function () {
-    //         const proposalId = 1;
-    //         const prompt = "Test prompt";
-    //         const price = ethers.parseEther("1");
+            await expect(taskRegistry.connect(taskIssuer).rateTask(2, 80))
+                .to.be.revertedWith("Task is not completed");
+        });
 
-    //         await agentsRegistry.registerAgent("Agent1", "uri1", addr1.address, "Service1", price);
-    //         await taskRegistry.createTask(prompt, proposalId, { value: price });
+        it("should fail if rating is out of range", async function () {
+            await expect(taskRegistry.connect(taskIssuer).rateTask(1, 101))
+                .to.be.revertedWith("Rating must be between 0 and 100");
+        });
 
-    //         const status = await taskRegistry.getStatus(1);
-    //         expect(status).to.equal(0); // TaskStatus.CREATED
-    //     });
-    // });
+        it("should only rate task ones", async function () {
+            const rating = 80; // Example rating
+            await expect(taskRegistry.connect(taskIssuer).rateTask(1, rating))
+                .to.emit(taskRegistry, "TaskRated")
+                .withArgs(1, rating);
 
-    // describe("getAssignee", function () {
-    //     it("should return task assignee", async function () {
-    //         const proposalId = 1;
-    //         const prompt = "Test prompt";
-    //         const price = ethers.parseEther("1");
+            await expect(taskRegistry.connect(taskIssuer).rateTask(1, rating))
+                .to.be.revertedWith("Task got rating already");
+        });
+    });
 
-    //         await agentsRegistry.registerAgent("Agent1", "uri1", addr1.address, "Service1", price);
-    //         await taskRegistry.createTask(prompt, proposalId, { value: price });
+    describe("cancelTask", function () {
+        beforeEach(async function () {
+            await setup();
 
-    //         const task = await taskRegistry.getTask(1);
-    //         task.assignee = addr1.address;
+            await expect(taskRegistry.createTask(prompt, proposalId, { value: taskPrice })).not.to.be.reverted
+        });
 
-    //         const assignee = await taskRegistry.getAssignee(1);
-    //         expect(assignee).to.equal(addr1.address);
-    //     });
-    // });
+        it("should cancel a task", async function () {
+            await expect(taskRegistry.connect(taskIssuer).cancelTask(1))
+                .to.emit(taskRegistry, "TaskCanceled")
+                .withArgs(1);
+
+            const updatedTask = await taskRegistry.getTask(1);
+            expect(updatedTask.status).to.equal(3);
+        });
+
+        it("should not cancel a task twice", async function () {
+            await expect(taskRegistry.connect(taskIssuer).cancelTask(1))
+                .to.emit(taskRegistry, "TaskCanceled")
+                .withArgs(1);
+
+            await expect(taskRegistry.connect(taskIssuer).cancelTask(1))
+                .to.be.revertedWith("Task cannot be canceled");
+        });
+
+        it("should fail if not the issuer", async function () {
+            await expect(taskRegistry.connect(eveAddress).cancelTask(1))
+                .to.be.revertedWith("Not the issuer of the task");
+        });
+    });
 });

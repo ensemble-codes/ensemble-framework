@@ -49,15 +49,15 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "serviceId",
+        "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "string",
-        "name": "category",
+        "name": "name",
         "type": "string"
       },
       {
@@ -74,15 +74,15 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "serviceId",
+        "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "string",
-        "name": "category",
+        "name": "name",
         "type": "string"
       },
       {
@@ -267,29 +267,6 @@
       }
     ],
     "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "category",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      }
-    ],
-    "name": "updateService",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

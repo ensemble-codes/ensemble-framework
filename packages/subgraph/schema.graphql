@@ -1,5 +1,5 @@
 type Service @entity {
-  id: String!
+  id: ID!
   name: String!
   category: String!
   description: String!
@@ -11,9 +11,9 @@ type Agent @entity {
   agentUri: String!
   owner: Bytes!
   reputation: BigInt!
-  isRegistered: Boolean!
   metadata: IpfsMetadata
   tasks: [Task!]! @derivedFrom(field: "assignee")
+  proposals: [Proposal!]! @derivedFrom(field: "issuer")
 }
 
 type Task @entity {
@@ -24,6 +24,7 @@ type Task @entity {
   assignee: Agent!
   proposalId: BigInt!
   result: String
+  rating: BigInt!
 }
 
 type Proposal @entity {
@@ -31,6 +32,7 @@ type Proposal @entity {
   issuer: Agent!
   service: String!
   price: BigInt!
+  isRemoved: Boolean!
 }
 
 type IpfsMetadata @entity {
@@ -42,4 +44,5 @@ type IpfsMetadata @entity {
   telegram: String
   dexscreener: String
   github: String
+  website: String
 }
