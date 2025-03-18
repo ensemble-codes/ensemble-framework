@@ -9,7 +9,8 @@
     "watch-build": "tsc --watch",
     "test": "jest",
     "docs": "typedoc",
-    "typechain": "typechain --target ethers-v6 ./src/abi/*.json --out-dir ./typechain"
+    "typechain": "typechain --target ethers-v6 ./src/abi/*.json --out-dir ./typechain",
+    "postinstall": "npm run typechain"
   },
   "dependencies": {
     "@jest/globals": "^29.7.0",

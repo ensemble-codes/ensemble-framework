@@ -12,7 +12,6 @@ type Agent @entity {
   owner: Bytes!
   reputation: BigInt!
   metadata: IpfsMetadata
-  isActive: Boolean!
   tasks: [Task!]! @derivedFrom(field: "assignee")
   proposals: [Proposal!]! @derivedFrom(field: "issuer")
 }
