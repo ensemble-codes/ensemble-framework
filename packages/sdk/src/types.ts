@@ -19,12 +19,10 @@ export type AgentSocials = {
   website?: string;
 }
 
-export type AgentAttributes = [
-  {
-    trait_type: string;
-    value: string;
-  }
-]
+export type AgentAttributes = {
+  trait_type: string;
+  value: string;
+}[]
 
 export type AgentMetadata = {
   name: string;
