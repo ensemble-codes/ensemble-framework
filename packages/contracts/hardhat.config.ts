@@ -60,7 +60,9 @@ const config: HardhatUserConfig = {
         timeout: 40000
     },
     etherscan: {
-      apiKey: process.env.BASE_ETHERSCAN_API_KEY,
+      apiKey: {
+          'base-sepolia': '',
+      },
       customChains: [
         {
           network: "neonevm",
@@ -69,7 +71,15 @@ const config: HardhatUserConfig = {
             apiURL: "https://devnet-api.neonscan.org/hardhat/verify",
             browserURL: "https://devnet.neonscan.org"
           }
-        }
+        },
+        {
+            network: "base-sepolia",
+            chainId: 84532,
+            urls: {
+              apiURL: "https://api-sepolia.basescan.org/api",
+              browserURL: "https://sepolia.basescan.org"
+            }
+          }
       ]
     },
     sourcify: {

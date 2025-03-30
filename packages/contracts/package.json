@@ -10,7 +10,8 @@
     "test": "hardhat test",
     "clean": "hardhat clean",
     "node": "hardhat node",
-    "deploy": "hardhat run scripts/deploy.ts"
+    "deploy": "hardhat run scripts/deploy.ts",
+    "verify": "hardhat verify --network base-sepolia"
   },
   "keywords": [],
   "author": "",
