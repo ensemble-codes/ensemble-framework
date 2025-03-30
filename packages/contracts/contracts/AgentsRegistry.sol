@@ -12,7 +12,6 @@ import "./interfaces/IAgentRegistryV1.sol";
  * @notice A smart contract that stores information about the agents, and the services proposals provided by the agents.
  */
 contract AgentsRegistry is Ownable, IProposalStruct {
-
     struct AgentData {
         string name;
         string agentUri;
@@ -128,7 +127,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      *
      * Emits a {ProposalAdded} event.
      */
-    function addProposal(address agent, string memory serviceName, uint256 servicePrice) external onlyAgentOwner(agent) returns (uint256) {
+    function addProposal(address agent, string memory serviceName, uint256 servicePrice) public onlyAgentOwner(agent) returns (uint256) {
         require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
 
         ServiceProposal memory proposal = ServiceProposal(agent, serviceName, servicePrice, nextProposalId, true);
@@ -181,6 +180,31 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         agentData.agent = agentDataV1.agent;
         agentData.reputation = agentDataV1.reputation;
         agentData.totalRatings = 0;
+
+        uint256 numProposalsRegistered = IAgentRegistryV1(agentRegistryV1).nextProposalId();
+        for (uint256 i = 0; i < numProposalsRegistered; i++) {
+            IAgentRegistryV1.Proposal memory proposal = IAgentRegistryV1(agentRegistryV1).getProposal(i);
+
+            if (proposal.issuer == agent) {
+                bool isServiceRegistered = serviceRegistry.isServiceRegistered(
+                    proposal.serviceName
+                );
+
+                if (!isServiceRegistered) {
+                    ServiceRegistry.Service memory service = ServiceRegistry(
+                        IAgentRegistryV1(agentRegistryV1).serviceRegistry()
+                    ).getService(proposal.serviceName);
+
+                    serviceRegistry.registerService(
+                        service.name,
+                        service.category,
+                        service.description
+                    );
+                }
+
+                addProposal(agent, proposal.serviceName, proposal.price);
+            }
+        }
 
         emit AgentRegistered(agent, agentData.owner, agentData.name, agentData.agentUri);
     }

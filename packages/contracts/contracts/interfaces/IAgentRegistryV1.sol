@@ -16,8 +16,13 @@ interface IAgentRegistryV1 {
         address agent;
         uint256 reputation;
         bool isRegistered;
-        Proposal[] proposals;
     }
 
     function getAgentData(address _agent) external view returns (AgentDataV1 memory);
+
+    function getProposal(uint256 _proposalId) external view returns (Proposal memory);
+
+    function nextProposalId() external view returns (uint256);
+
+    function serviceRegistry() external view returns (address);
 }
