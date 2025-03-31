@@ -145,7 +145,7 @@ export class Ensemble {
    * @returns {Promise<string>} A promise that resolves to the agent address.
    */
   async getWalletAddress(): Promise<string> {
-    return this.agentService.getAddress();
+    return this.agentService.getAgentAddress();
   }
 
   /**

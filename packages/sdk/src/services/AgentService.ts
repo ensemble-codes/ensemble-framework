@@ -15,10 +15,10 @@ export class AgentService {
   ) {}
 
   /**
-   * Gets the address of the signer.
-   * @returns {Promise<string>} A promise that resolves to the signer address.
+   * Gets the address of the agent.
+   * @returns {Promise<string>} A promise that resolves to the agent.
    */
-  async getAddress(): Promise<string> {
+  async getAgentAddress(): Promise<string> {
     return this.signer.getAddress();
   }
 
