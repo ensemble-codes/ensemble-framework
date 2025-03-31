@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "./ServiceRegistry.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IProposalStruct.sol";
-
+import "./interfaces/IAgentRegistryV1.sol";
 
 /**
  * @title AgentsRegistry
@@ -12,7 +12,6 @@ import "./interfaces/IProposalStruct.sol";
  * @notice A smart contract that stores information about the agents, and the services proposals provided by the agents.
  */
 contract AgentsRegistry is Ownable, IProposalStruct {
-
     struct AgentData {
         string name;
         string agentUri;
@@ -22,6 +21,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         uint256 totalRatings;
     }
 
+    IAgentRegistryV1 public agentRegistryV1;
     ServiceRegistry public serviceRegistry;
     address public taskRegistry;
 
@@ -34,7 +34,11 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         _;
     }
 
-    constructor(ServiceRegistry _serviceRegistry) Ownable(msg.sender) {
+    constructor(
+        IAgentRegistryV1 _agentRegistryV1, 
+        ServiceRegistry _serviceRegistry
+    ) Ownable(msg.sender) {
+        agentRegistryV1 = _agentRegistryV1;
         serviceRegistry = _serviceRegistry;
         nextProposalId = 1;
     }
@@ -123,7 +127,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      *
      * Emits a {ProposalAdded} event.
      */
-    function addProposal(address agent, string memory serviceName, uint256 servicePrice) external onlyAgentOwner(agent) returns (uint256) {
+    function addProposal(address agent, string memory serviceName, uint256 servicePrice) public onlyAgentOwner(agent) returns (uint256) {
         require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
 
         ServiceProposal memory proposal = ServiceProposal(agent, serviceName, servicePrice, nextProposalId, true);
@@ -156,6 +160,53 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         emit ProposalRemoved(agent, proposalId);
 
         return true;
+    }
+
+    /**
+     * @dev Migrates an agent.
+     * @param agent The address of the agent.
+     */
+    function migrateAgent(address agent) external {
+        require(agents[agent].agent == address(0), "Agent already registered");
+
+        IAgentRegistryV1.AgentDataV1 memory agentDataV1 = IAgentRegistryV1(agentRegistryV1).getAgentData(agent);
+        
+        require(agentDataV1.owner == msg.sender || msg.sender == owner(), "Not owner or agent owner");
+
+        AgentData storage agentData = agents[agent];
+        agentData.name = agentDataV1.name;
+        agentData.agentUri = agentDataV1.agentUri;
+        agentData.owner = agentDataV1.owner;
+        agentData.agent = agentDataV1.agent;
+        agentData.reputation = agentDataV1.reputation;
+        agentData.totalRatings = 0;
+
+        uint256 numProposalsRegistered = IAgentRegistryV1(agentRegistryV1).nextProposalId();
+        for (uint256 i = 0; i < numProposalsRegistered; i++) {
+            IAgentRegistryV1.Proposal memory proposal = IAgentRegistryV1(agentRegistryV1).getProposal(i);
+
+            if (proposal.issuer == agent) {
+                bool isServiceRegistered = serviceRegistry.isServiceRegistered(
+                    proposal.serviceName
+                );
+
+                if (!isServiceRegistered) {
+                    ServiceRegistry.Service memory service = ServiceRegistry(
+                        IAgentRegistryV1(agentRegistryV1).serviceRegistry()
+                    ).getService(proposal.serviceName);
+
+                    serviceRegistry.registerService(
+                        service.name,
+                        service.category,
+                        service.description
+                    );
+                }
+
+                addProposal(agent, proposal.serviceName, proposal.price);
+            }
+        }
+
+        emit AgentRegistered(agent, agentData.owner, agentData.name, agentData.agentUri);
     }
 
     function addRating(address agent, uint256 _rating) public returns (uint256) {

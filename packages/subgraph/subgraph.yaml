@@ -8,7 +8,7 @@ dataSources:
     name: ServiceRegistry
     network: base-sepolia
     source:
-      address: "0x68A88024060fD8Fe4dE848de1abB7F6d9225cCa8"
+      address: "0x376a79A7D4436e48Eed06c50B644048554642f80"
       abi: ServiceRegistry
       startBlock: 23026978
     mapping:
@@ -30,7 +30,7 @@ dataSources:
     name: AgentsRegistry
     network: base-sepolia
     source:
-      address: "0xABC2AC53Aaf217B70825701c1a5aB750CD60DbaF"
+      address: "0xe8BdeA37d56430Fbc36511BDa7595D2DEbF0b71c"
       abi: AgentsRegistry
       startBlock: 23026985
     mapping:
@@ -55,7 +55,7 @@ dataSources:
     name: TaskRegistry
     network: base-sepolia
     source:
-      address: "0x859bBE15EfbE62fD51DB5C24B01048A73839E141"
+      address: "0xA3009bD5b5A772F4abf0A2FbF151F2ff81213794"
       abi: TaskRegistry
       startBlock: 23026993
     mapping:

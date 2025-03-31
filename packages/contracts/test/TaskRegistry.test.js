@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const AgentRegistryV1Artifact = require('./artifacts/AgentsRegistryV1.json')
 
 describe("TaskRegistry", function () {
     let TaskRegistry, taskRegistry, AgentsRegistry, agentsRegistry;
@@ -24,11 +25,16 @@ describe("TaskRegistry", function () {
         [taskIssuer, agentOwner, agentAddress, eveAddress] = await ethers.getSigners();
         
         ServiceRegistry = await ethers.getContractFactory("ServiceRegistry");
-        serviceRegistry = await ServiceRegistry.deploy();
+        serviceRegistry = await ServiceRegistry.deploy()
+        
+        const ServiceRegistryV1 = await ethers.getContractFactory("ServiceRegistry");
+        const serviceRegistryV1 = await ServiceRegistryV1.deploy();
 
+        const AgentRegistryV1 = await ethers.getContractFactoryFromArtifact(AgentRegistryV1Artifact);
+        const agentRegistryV1 = await AgentRegistryV1.deploy(serviceRegistryV1.target);
 
         AgentsRegistry = await ethers.getContractFactory("AgentsRegistry");
-        agentsRegistry = await AgentsRegistry.deploy(serviceRegistry.target);
+        agentsRegistry = await AgentsRegistry.deploy(agentRegistryV1.target, serviceRegistry.target);
 
         TaskRegistry = await ethers.getContractFactory("TaskRegistry");
         taskRegistry = await TaskRegistry.deploy(agentsRegistry.target);
