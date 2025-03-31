@@ -1,4 +1,4 @@
-export default function pasrePrompt(prompt: string) {
+export default function parsePrompt(prompt: string) {
     const params = prompt.split(".")
     const args: {[key: string]: string} = {}
     
