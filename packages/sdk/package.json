@@ -5,13 +5,13 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "prepublish": "npm run typechain && npm run build",
     "build": "tsc",
     "watch-build": "tsc --watch",
     "test": "jest",
     "docs": "typedoc",
     "upload-docs": "aws s3 cp ./docs s3://$ENSEMBLE_S3_BUCKET_NAME --recursive",
-    "typechain": "typechain --target ethers-v6 ./src/abi/*.json --out-dir ./typechain",
-    "postinstall": "npm run typechain"
+    "typechain": "typechain --target ethers-v6 ./src/abi/*.json --out-dir ./typechain"
   },
   "dependencies": {
     "@jest/globals": "^29.7.0",
