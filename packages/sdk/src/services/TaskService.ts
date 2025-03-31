@@ -1,11 +1,14 @@
 import { ethers } from "ethers";
-import { TaskCreationParams, TaskData, TaskStatus } from "../types";
+import { TaskCreationParams, TaskData, TaskExecutionData, TaskStatus } from "../types";
 import { ProposalNotFoundError } from "../errors";
 import { AgentService } from "./AgentService";
 import { TaskRegistry } from "../../typechain";
+import parsePrompt from "../utils/parsePrompt";
 
 export class TaskService {
-  private onNewTask: (task: TaskData) => void = () => {};
+  private onNewTask: (task: TaskExecutionData) => void = () => {};
+
+  private processedTasks: Map<bigint, boolean> = new Map();
 
   constructor(
     private readonly taskRegistry: TaskRegistry, 
@@ -133,24 +136,41 @@ export class TaskService {
   /**
    * Subscribes to new task creation events.
    */
-  public subscribe() {
+  async subscribe() {
     console.log("Subscribing to TaskCreated events");
-    const filter = this.taskRegistry.filters.TaskCreated();
+    
+    const agentAddress = await this.agentService.getAgentAddress();
+
+    const filter = this.taskRegistry.filters.TaskCreated(undefined, agentAddress);
     
     this.taskRegistry.on(
       filter,
-      (issuer, assignee, taskId, proposalId, prompt) => {
+      async (issuer, assignee, taskId, proposalId, prompt) => {
+        if (this.processedTasks.get(taskId)) {
+          console.log("Task already processed");
+          return;
+        }
+
         console.log(
           `New Task Created Event => Issuer: ${issuer} - Assignee: ${assignee} - TaskId: ${taskId} - ProposalId: ${proposalId} - Prompt: ${prompt}`
         );
 
+        const proposal = await this.agentService.getProposal(proposalId.toString());
+        const params = parsePrompt(prompt);
+        
+        // TODO: handle cases of error been thrown by handler
         this.onNewTask({
-          issuer,
           id: taskId,
-          prompt,
           status: BigInt(TaskStatus.CREATED),
-          proposalId
+          serviceName: proposal.serviceName,
+          issuer,
+          prompt,
+          assignee,
+          proposalId,
+          params,
         });
+
+        this.processedTasks.set(taskId, true);
       }
     );
   }

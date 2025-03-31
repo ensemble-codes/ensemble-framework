@@ -55,6 +55,17 @@ export interface TaskData {
   rating?: bigint;
 }
 
+export interface TaskExecutionData {
+  id: bigint;
+  prompt: string;
+  issuer: string;
+  assignee: string;
+  serviceName: string;
+  proposalId: bigint;
+  status: bigint;
+  params: {[key: string]: string}
+}
+
 export interface Proposal {
   id: bigint;
   issuer: string;
