@@ -9,16 +9,13 @@ interface IAgentRegistryV1 {
         uint256 proposalId;
     }
 
-    struct AgentDataV1 {
-        string name;
-        string agentUri;
-        address owner;
-        address agent;
-        uint256 reputation;
-        bool isRegistered;
-    }
-
-    function getAgentData(address _agent) external view returns (AgentDataV1 memory);
+    function getAgentData(address _agent) external view returns (
+        string memory agentName,
+        string memory agentUri,
+        address agentOwner,
+        address agentAddress,
+        uint256 agentReputation
+    );
 
     function getProposal(uint256 _proposalId) external view returns (Proposal memory);
 

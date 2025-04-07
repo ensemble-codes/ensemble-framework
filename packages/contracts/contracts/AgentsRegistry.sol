@@ -30,12 +30,15 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     uint256 public nextProposalId;
 
     modifier onlyAgentOwner(address agent) {
-        require(agents[agent].owner == msg.sender, "Not the owner of the agent");
+        require(
+            agents[agent].owner == msg.sender,
+            "Not the owner of the agent"
+        );
         _;
     }
 
     constructor(
-        IAgentRegistryV1 _agentRegistryV1, 
+        IAgentRegistryV1 _agentRegistryV1,
         ServiceRegistry _serviceRegistry
     ) Ownable(msg.sender) {
         agentRegistryV1 = _agentRegistryV1;
@@ -43,13 +46,27 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         nextProposalId = 1;
     }
 
-    event AgentRegistered(address indexed agent, address indexed owner, string name, string agentUri);
+    event AgentRegistered(
+        address indexed agent,
+        address indexed owner,
+        string name,
+        string agentUri
+    );
     event ReputationUpdated(address indexed agent, uint256 newReputation);
 
-    event ProposalAdded(address indexed agent, uint256 proposalId, string name, uint256 price);
+    event ProposalAdded(
+        address indexed agent,
+        uint256 proposalId,
+        string name,
+        uint256 price
+    );
     event ProposalRemoved(address indexed agent, uint256 proposalId);
-    event ProposalUpdated(address indexed agent, uint256 proposalId, uint256 price);
-    
+    event ProposalUpdated(
+        address indexed agent,
+        uint256 proposalId,
+        uint256 price
+    );
+
     /**
      * @dev Sets the address of the TaskRegistry contract.
      * @param _taskRegistry The address of the TaskRegistry contract.
@@ -67,7 +84,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         require(_serviceRegistry != address(0), "Invalid address");
         serviceRegistry = ServiceRegistry(_serviceRegistry);
     }
-    
+
     /**
      * @dev Registers a new agent with the given details.
      * @param name The name of the agent.
@@ -75,7 +92,6 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      * @param agent The address of the agent.
      * @param serviceName The name of the service.
      * @param servicePrice The price of the service.
-     * @return true if the agent was registered successfully, false otherwise.
      *
      * Requirements:
      *
@@ -90,34 +106,23 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         string memory agentUri,
         string memory serviceName,
         uint256 servicePrice
-    ) external returns (uint256) {
+    ) external {
         require(agents[agent].agent == address(0), "Agent already registered");
-        require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
-        
-        AgentData storage agentData = agents[agent];
-        agentData.name = name;
-        agentData.agentUri = agentUri;
-        agentData.owner = msg.sender;
-        agentData.agent = agent;
-        agentData.reputation = 0;
+        require(
+            serviceRegistry.isServiceRegistered(serviceName),
+            "Service not registered"
+        );
 
-        ServiceProposal memory proposal = ServiceProposal(agent, serviceName, servicePrice, nextProposalId, false);
-        proposals[nextProposalId] = proposal;
+        _createAgent(agent, name, agentUri, msg.sender, 0);
 
-        nextProposalId++;
-        emit AgentRegistered(agent, msg.sender, name, agentUri);
-        emit ProposalAdded(agent, proposal.proposalId, serviceName, servicePrice);
-
-        return nextProposalId - 1;
+        _createProposal(agent, serviceName, servicePrice);
     }
-
 
     /**
      * @dev Adds a new proposal for an agent.
      * @param agent The address of the agent.
      * @param serviceName The name of the service.
      * @param servicePrice The price of the service.
-     * @return true if the proposal was added successfully, false otherwise.
      *
      * Requirements:
      *
@@ -127,16 +132,17 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      *
      * Emits a {ProposalAdded} event.
      */
-    function addProposal(address agent, string memory serviceName, uint256 servicePrice) public onlyAgentOwner(agent) returns (uint256) {
-        require(serviceRegistry.isServiceRegistered(serviceName), "Service not registered");
+    function addProposal(
+        address agent,
+        string memory serviceName,
+        uint256 servicePrice
+    ) public onlyAgentOwner(agent) {
+        require(
+            serviceRegistry.isServiceRegistered(serviceName),
+            "Service not registered"
+        );
 
-        ServiceProposal memory proposal = ServiceProposal(agent, serviceName, servicePrice, nextProposalId, true);
-        proposals[nextProposalId] = proposal;
-
-        nextProposalId++;
-        emit ProposalAdded(agent, proposal.proposalId, serviceName, servicePrice);
-
-        return nextProposalId - 1;
+        _createProposal(agent, serviceName, servicePrice);
     }
 
     /**
@@ -153,10 +159,17 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      *
      * Emits a {ProposalRemoved} event.
      */
-    function removeProposal(address agent, uint256 proposalId) external onlyAgentOwner(agent) returns (bool) {
-        require(proposals[proposalId].issuer == agent, "ServiceProposal not found");
+    function removeProposal(
+        address agent,
+        uint256 proposalId
+    ) external onlyAgentOwner(agent) returns (bool) {
+        require(
+            proposals[proposalId].issuer == agent,
+            "ServiceProposal not found"
+        );
 
         delete proposals[proposalId];
+
         emit ProposalRemoved(agent, proposalId);
 
         return true;
@@ -169,51 +182,39 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     function migrateAgent(address agent) external {
         require(agents[agent].agent == address(0), "Agent already registered");
 
-        IAgentRegistryV1.AgentDataV1 memory agentDataV1 = IAgentRegistryV1(agentRegistryV1).getAgentData(agent);
-        
-        require(agentDataV1.owner == msg.sender || msg.sender == owner(), "Not owner or agent owner");
+        (
+            string memory agentName,
+            string memory agentUri,
+            address agentOwner,
+            address agentAddress,
+            uint256 agentReputation
+        ) = IAgentRegistryV1(agentRegistryV1).getAgentData(agent);
 
-        AgentData storage agentData = agents[agent];
-        agentData.name = agentDataV1.name;
-        agentData.agentUri = agentDataV1.agentUri;
-        agentData.owner = agentDataV1.owner;
-        agentData.agent = agentDataV1.agent;
-        agentData.reputation = agentDataV1.reputation;
-        agentData.totalRatings = 0;
+        require(
+            msg.sender == agentOwner || msg.sender == owner(),
+            "Not owner or agent owner"
+        );
 
-        uint256 numProposalsRegistered = IAgentRegistryV1(agentRegistryV1).nextProposalId();
-        for (uint256 i = 0; i < numProposalsRegistered; i++) {
-            IAgentRegistryV1.Proposal memory proposal = IAgentRegistryV1(agentRegistryV1).getProposal(i);
+        _createAgent(agent, agentName, agentUri, agentOwner, agentReputation);
 
-            if (proposal.issuer == agent) {
-                bool isServiceRegistered = serviceRegistry.isServiceRegistered(
-                    proposal.serviceName
-                );
-
-                if (!isServiceRegistered) {
-                    ServiceRegistry.Service memory service = ServiceRegistry(
-                        IAgentRegistryV1(agentRegistryV1).serviceRegistry()
-                    ).getService(proposal.serviceName);
-
-                    serviceRegistry.registerService(
-                        service.name,
-                        service.category,
-                        service.description
-                    );
-                }
-
-                addProposal(agent, proposal.serviceName, proposal.price);
-            }
-        }
-
-        emit AgentRegistered(agent, agentData.owner, agentData.name, agentData.agentUri);
+        _migrateAgentProposals(agent);
     }
 
-    function addRating(address agent, uint256 _rating) public returns (uint256) {
+    function addRating(
+        address agent,
+        uint256 _rating
+    ) public returns (uint256) {
         require(msg.sender == taskRegistry, "Not the TaskRegistry contract");
-        require(_rating >= 0 && _rating <= 100, "Rating must be between 0 and 100");
+        require(
+            _rating >= 0 && _rating <= 100,
+            "Rating must be between 0 and 100"
+        );
         agents[agent].totalRatings += 1;
-        agents[agent].reputation = (agents[agent].reputation * (agents[agent].totalRatings - 1) + _rating) / agents[agent].totalRatings;
+        agents[agent].reputation =
+            (agents[agent].reputation *
+                (agents[agent].totalRatings - 1) +
+                _rating) /
+            agents[agent].totalRatings;
         emit ReputationUpdated(agent, agents[agent].reputation);
 
         return agents[agent].reputation;
@@ -228,14 +229,96 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      * @param _agent The address of the agent.
      * @return AgentData The data of the agent.
      */
-    function getAgentData(address _agent) external view returns (AgentData memory
-    ) {
+    function getAgentData(
+        address _agent
+    ) external view returns (AgentData memory) {
         AgentData storage data = agents[_agent];
         return data;
     }
 
-
-    function getProposal(uint256 proposalId) external view returns (ServiceProposal memory) {
+    function getProposal(
+        uint256 proposalId
+    ) external view returns (ServiceProposal memory) {
         return proposals[proposalId];
+    }
+
+    function _createAgent(
+        address agent,
+        string memory name,
+        string memory agentUri,
+        address owner,
+        uint256 reputation
+    ) private {
+        AgentData storage agentData = agents[agent];
+        agentData.name = name;
+        agentData.agentUri = agentUri;
+        agentData.owner = owner;
+        agentData.agent = agent;
+        agentData.reputation = reputation;
+
+        emit AgentRegistered(agent, owner, name, agentUri);
+    }
+
+    function _createProposal(
+        address agent,
+        string memory serviceName,
+        uint256 servicePrice
+    ) private {
+        ServiceProposal memory newProposal = ServiceProposal(
+            agent,
+            serviceName,
+            servicePrice,
+            nextProposalId,
+            true
+        );
+
+        proposals[nextProposalId] = newProposal;
+
+        emit ProposalAdded(agent, nextProposalId, serviceName, servicePrice);
+
+        nextProposalId++;
+    }
+
+    function _ensureServiceRegistered(string memory serviceName) private {
+        if (!serviceRegistry.isServiceRegistered(serviceName)) {
+            address serviceRegistryV1Addr = IAgentRegistryV1(agentRegistryV1)
+                .serviceRegistry();
+
+            ServiceRegistry serviceRegistryV1 = ServiceRegistry(
+                serviceRegistryV1Addr
+            );
+
+            ServiceRegistry.Service memory service = serviceRegistryV1
+                .getService(serviceName);
+
+            serviceRegistry.registerService(
+                service.name,
+                service.category,
+                service.description
+            );
+        }
+    }
+
+    function _migrateAgentProposals(address agent) private {
+        uint256 numProposalsRegistered = IAgentRegistryV1(agentRegistryV1)
+            .nextProposalId();
+
+        for (uint256 i = 0; i < numProposalsRegistered; i++) {
+            IAgentRegistryV1.Proposal memory proposal = IAgentRegistryV1(
+                agentRegistryV1
+            ).getProposal(i);
+
+            if (proposal.issuer != agent) {
+                continue;
+            }
+
+            _ensureServiceRegistered(proposal.serviceName);
+
+            _createProposal(agent, proposal.serviceName, proposal.price);
+        }
+    }
+
+    function _migrateAgentTasks(address agent) private {
+        
     }
 }
