@@ -8,14 +8,29 @@ import {
 import {
   Task,
 } from "../generated/schema"
+import { blacklistedAgents } from "./constants";
 
 export function handleTaskCreated(event: TaskCreated): void {
+  
+  let taskId = ''
+  if (event.block.number < BigInt.fromString('23026993')) {
+    taskId = BigInt.fromString('1000').plus(event.params.taskId).toString()
+  } else {
+    taskId = event.params.taskId.toString();
+  }
+
   let entity = new Task(event.params.taskId.toString());
+
+  let assignee = event.params.assignee.toHexString();
+
+  if (blacklistedAgents.includes(assignee)) {
+    return
+  }
 
   entity.prompt = event.params.prompt;
   entity.issuer = event.params.issuer;
   entity.proposalId = event.params.proposalId;
-  entity.assignee = event.params.assignee.toHexString();
+  entity.assignee = assignee;
   entity.status = '1';
   entity.rating = BigInt.fromI32(0);
 
