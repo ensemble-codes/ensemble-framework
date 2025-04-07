@@ -1,9 +1,12 @@
 {
   "name": "@ensemble-ai/sdk",
-  "version": "0.3.1",
+  "version": "0.3.3",
   "description": "TypeScript SDK for the Agentic Hub",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "prepublish": "npm run typechain && npm run build",
     "build": "tsc",
