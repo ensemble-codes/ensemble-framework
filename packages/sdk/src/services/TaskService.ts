@@ -145,7 +145,7 @@ export class TaskService {
     
     this.taskRegistry.on(
       filter,
-      async (issuer, assignee, taskId, proposalId, prompt) => {
+      async ({ args: [issuer, assignee, taskId, proposalId, prompt] }: any) => {
         if (this.processedTasks.get(taskId)) {
           console.log("Task already processed");
           return;
