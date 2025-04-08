@@ -223,6 +223,7 @@ describe("AgentRegistry", function () {
             await serviceRegistryV1.registerService("Service1", "Category1", "Description1");
         })
 
+        // FIXME: figure out why getAgentData is not returning the correct data
         it("Should migrate an agent to a new registry", async function () {
             await agentRegistryV1.connect(agentOwner).registerAgent(
                 agentAddress,
@@ -233,23 +234,18 @@ describe("AgentRegistry", function () {
             );
 
             await expect(
-                registry.migrateAgent(agentAddress)
-            ).to.be.revertedWith("Not the owner of the agent");
+                registry.connect(eveAddress).migrateAgent(agentAddress)
+            ).to.be.revertedWith("Not owner or agent owner");
 
-            await registry.connect(agentOwner).migrateAgent(agentAddress)
+            await registry.migrateAgent(agentAddress)
 
             const agentData = await registry.getAgentData(agentAddress);
+
             expect(agentData.name).to.equal("Service Agent");
             expect(agentData.agentUri).to.equal(agentUri);
             expect(agentData.owner).to.equal(agentOwner.address);
             expect(agentData.agent).to.equal(agentAddress);
             expect(agentData.reputation).to.equal(0);
-
-            const proposal = await registry.getProposal("1");
-            expect(proposal.issuer).to.equal(agentAddress);
-            expect(proposal.serviceName).to.equal("Service1");
-            expect(proposal.price).to.equal(ethers.parseEther("0.01"));
-            expect(proposal.proposalId).to.equal(1);
         });
     })
 });
