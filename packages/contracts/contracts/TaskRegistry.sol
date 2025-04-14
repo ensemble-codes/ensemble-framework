@@ -35,9 +35,12 @@ contract TaskRegistry is Ownable, IProposalStruct {
         require(msg.sender == tasks[taskId].issuer, "Not the issuer of the task");
         _;
     }
-    constructor(AgentsRegistry _agentRegistry) Ownable(msg.sender) {
+    constructor(
+        uint256 _nextTaskId, 
+        AgentsRegistry _agentRegistry
+    ) Ownable(msg.sender) {
+        nextTaskId = _nextTaskId;
         agentRegistry = _agentRegistry;
-        nextTaskId = 1;
     }
     
     event TaskCreated(address indexed issuer, address indexed assignee, uint256 taskId, uint256 proposalId, string prompt);
