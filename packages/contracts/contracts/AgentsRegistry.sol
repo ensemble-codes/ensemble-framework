@@ -186,7 +186,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
             string memory agentName,
             string memory agentUri,
             address agentOwner,
-            address agentAddress,
+            ,
             uint256 agentReputation
         ) = IAgentRegistryV1(agentRegistryV1).getAgentData(agent);
 

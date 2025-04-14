@@ -8,7 +8,7 @@ const TaskRegistryModule = buildModule("TaskRegistryModule", (m: any) => {
 
   const { serviceRegistry, agentsRegistry } = m.useModule(AgentsRegistry);
 
-  const taskRegistry = m.contract("TaskRegistry", [agentsRegistry]);
+  const taskRegistry = m.contract("TaskRegistry", [1000, agentsRegistry]);
 
   return { taskRegistry, serviceRegistry, agentsRegistry };
 });
