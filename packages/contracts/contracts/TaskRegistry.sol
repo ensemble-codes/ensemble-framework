@@ -36,10 +36,10 @@ contract TaskRegistry is Ownable, IProposalStruct {
         _;
     }
     constructor(
-        uint256 _nextTaskId, 
+        uint256 _initalTaskId, 
         AgentsRegistry _agentRegistry
     ) Ownable(msg.sender) {
-        nextTaskId = _nextTaskId;
+        nextTaskId = _initalTaskId;
         agentRegistry = _agentRegistry;
     }
     
