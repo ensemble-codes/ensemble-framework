@@ -18,6 +18,7 @@ type Agent @entity {
 
 type Task @entity {
   id: ID!
+  taskId: Int!
   prompt: String!
   issuer: Bytes!
   status: String!
