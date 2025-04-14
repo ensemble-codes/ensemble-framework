@@ -5,7 +5,11 @@ async function main() {
   const ensemble = setupSdk();
 
   for (const service of servicesList) {
-    await ensemble.registerService(service);
+    try {
+      await ensemble.registerService(service);
+    } catch (error) {
+      console.error(`Error registering service ${service.name}:`, error);
+    }
   }
 
   process.stdin.resume();

@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import ethers from "ethers";
+import { JsonRpcProvider, Wallet } from "ethers";
 import { PinataSDK } from "pinata-web3";
 import { Ensemble } from "../../src";
 
@@ -16,9 +16,9 @@ const chainId = parseInt(process.env.CHAIN_ID!, 10);
 const networkName = process.env.NETWORK_NAME!;
 
 export const setupEnv = () => {
-  const provider = new ethers.JsonRpcProvider(process.env.RPC_URL!);
+  const provider = new JsonRpcProvider(process.env.RPC_URL!);
   const pk = process.env.PRIVATE_KEY!;
-  const wallet = new ethers.Wallet(pk, provider);
+  const wallet = new Wallet(pk, provider);
 
   return {
     provider,
