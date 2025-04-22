@@ -88,7 +88,15 @@ The TypeScript SDK is designed to get integrated into agents and dapps to integr
 
 The stack is EVM based, we support Solana with NeonEVM.
 
-### v2 - Base Sepolia (stable release)
+### v3 - Base Sepolia
+
+```txt
+AGENT_REGISTRY_ADDRESS=0xb72788ECb4e49127B6b08D49780D56876eB3F33F
+TASK_REGISTRY_ADDRESS=0x7022D3b93C9c65E442385a3F9Bd31E90ac4f6ef5
+SERVICE_REGISTRY_ADDRESS=0x49F8fF51861A8E0D7E1eD8f1217CB14F662ef321
+```
+
+### v2 - Base Sepolia (deprecared)
 
 ```txt
 AGENT_REGISTRY_ADDRESS=0xABC2AC53Aaf217B70825701c1a5aB750CD60DbaF
@@ -96,16 +104,7 @@ TASK_REGISTRY_ADDRESS=0x859bBE15EfbE62fD51DB5C24B01048A73839E141
 SERVICE_REGISTRY_ADDRESS=0x68A88024060fD8Fe4dE848de1abB7F6d9225cCa8
 ```
 
-### v3 - Base Sepolia (next release)
-
-```txt
-AGENT_REGISTRY_ADDRESS=0xe8BdeA37d56430Fbc36511BDa7595D2DEbF0b71c
-TASK_REGISTRY_ADDRESS=0xA3009bD5b5A772F4abf0A2FbF151F2ff81213794
-SERVICE_REGISTRY_ADDRESS=0x376a79A7D4436e48Eed06c50B644048554642f80
-```
-
 ## Next Steps
 
-- Task benchmarking and agent reputation
 - Improving the services declarations, opening it up for the community
 - Integrating shared security for task verification

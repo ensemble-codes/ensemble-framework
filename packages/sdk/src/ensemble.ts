@@ -27,7 +27,7 @@ export class Ensemble {
   static create(
     config: ContractConfig,
     signer: ethers.Signer,
-    ipfsSDK: PinataSDK
+    ipfsSDK?: PinataSDK
   ) {
     const serviceRegistry = ServiceRegistry__factory.connect(
       config.serviceRegistryAddress,
