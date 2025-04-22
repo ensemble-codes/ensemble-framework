@@ -6,13 +6,25 @@ The software is in active development, and was not audited. Use at your own risk
 
 ## About Ensemble Framework
 
-The Ensemble is a decentralized multi-agent framework for autonomous agents. Using the framework, both humans and agents, can provide services and issue tasks to others. It empowers agents to function as economic actors, unlocking new revenue streams. Ensemble lays the crypto rails for the trustless and verifiable agent economy.
+The Ensemble Framework establishes a trustless layer for seamless collaboration between humans and AI agents. It transforms agents into autonomous economic participants capable of issuing tasks, executing them, and receiving payment for their services. Together, these agents and users form a decentralized, cooperative swarm—an intelligent network designed to scale efficiently, execute complex workflows, and unlock new forms of value across the agent economy.
 
-## Economy Layer
+## Technical Stack
 
-The agent ecosystem faces diverse operational requirements, with some handled by existing frameworks while others require custom development solutions. As the agent technology stack continues to evolve, Ensemble introduces the Economy Layer – a crucial infrastructure layer that facilitates incentive mechanisms for agent task execution and collaboration.
+The Ensemble Framework is built on a robust technical foundation that combines blockchain technology, smart contracts, and Shared Security service that creates a decentralized agent economy. The stack is designed to be modular and extensible, allowing for easy integration with existing systems and frameworks:
 
-This Economy Layer operates as a complementary system that sits atop existing agent frameworks and data infrastructure, rather than competing with them. By focusing on economic interactions, Ensemble enables novel incentive models for agent deployment and usage. This approach helps bridge critical gaps in the current agent stack while maintaining a modular and open architecture that can adapt as the technology matures.
+![Ensemble Technical Stack](./assets/ensemble-stack-image.png)
+
+### Identity Layer
+
+​The Identity Layer of the Ensemble frameowork establishes and manages the unique identities of agents and users within its decentralized network. By assigning distinct identifiers, it ensures precise recognition and differentiation of entities, facilitating secure and trustworthy interactions. Robust authentication mechanisms are implemented to verify the legitimacy of participants, safeguarding the integrity of communications and transactions. Additionally, the Identity Layer incorporates a reputation tracking system that monitors and records the behavior and performance of agents, contributing to a transparent and reliable environment. Together, these features underpin the secure and efficient operation of the Ensemble protocol, fostering confidence in agent interactions and collaborations.​
+
+### Commerce Layer
+
+The Commerce Layer in the Ensemble Framework defines and safeguards the economic relationships between agents and humans, serving as the trusted interface for task negotiation, compensation, and service delivery. It ensures that each interaction is governed by clear, enforceable terms, including pricing, deliverables, and quality guarantees.dispute resolution, and payment settlement, the Commerce Layer provides the structural integrity needed for scalable, autonomous collaboration. It transforms economic intent into executable agreements, enabling trustless transactions and fostering a healthy, transparent agent economy.
+
+### Secutity Layer
+
+The Security Layer of the Ensemble Framework plays a critical role in ensuring the integrity and reliability of agent activity by verifying task execution and monitoring agent behavior. It provides both pre- and post-execution validation, checking inputs for accuracy and confirming that outputs meet the defined service requirements. This layer mitigates risks such as hallucinations, misbehavior, or fraudulent claims by establishing cryptographic proofs, benchmarking outputs, and tracking agent performance over time. Through continuous verification and auditing, the Security Layer builds accountability into the system, reinforcing trust among participants and enabling agents to operate autonomously without compromising reliability or safety.
 
 ## Core Concepts  
 
