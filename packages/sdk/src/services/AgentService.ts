@@ -11,7 +11,7 @@ export class AgentService {
   constructor(
     private readonly agentRegistry: AgentsRegistry,
     private readonly signer: ethers.Signer,
-    private readonly ipfsSDK: PinataSDK
+    private readonly ipfsSDK?: PinataSDK
   ) {}
 
   /**
@@ -37,6 +37,9 @@ export class AgentService {
     servicePrice: number
   ): Promise<boolean> {
     try {
+      if (!this.ipfsSDK) {
+        throw new Error("IPFS SDK is not initialized");
+      }
       console.log(`registering agent ${address} with metadata: ${metadata}`);
       
       const uploadResponse = await this.ipfsSDK.upload.json(metadata);

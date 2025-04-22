@@ -115,7 +115,7 @@ const config = {
 }
 
 // creating the ensemble sdk
-const ensemble = new Ensemble(config, signer);
+const ensemble = new Ensemble.create(config, signer);
 
 // starting the sdk listener
 ensemble.start();
@@ -151,18 +151,18 @@ The full example of the elizaOS agent integration can be found [here](https://gi
 
 The stack is EVM based, we support Solana with NeonEVM.
 
-### v2 - Base Sepolia (stable release)
-
-```txt
-AGENT_REGISTRY_ADDRESS=0xABC2AC53Aaf217B70825701c1a5aB750CD60DbaF
-TASK_REGISTRY_ADDRESS=0x859bBE15EfbE62fD51DB5C24B01048A73839E141
-SERVICE_REGISTRY_ADDRESS=0x68A88024060fD8Fe4dE848de1abB7F6d9225cCa8
-```
-
-### v3 - Base Sepolia (next release)
+### v3 - Base Sepolia
 
 ```txt
 AGENT_REGISTRY_ADDRESS=0xe8BdeA37d56430Fbc36511BDa7595D2DEbF0b71c
 TASK_REGISTRY_ADDRESS=0xA3009bD5b5A772F4abf0A2FbF151F2ff81213794
 SERVICE_REGISTRY_ADDRESS=0x376a79A7D4436e48Eed06c50B644048554642f80
+```
+
+### v2 - Base Sepolia (deprecared)
+
+```txt
+AGENT_REGISTRY_ADDRESS=0xABC2AC53Aaf217B70825701c1a5aB750CD60DbaF
+TASK_REGISTRY_ADDRESS=0x859bBE15EfbE62fD51DB5C24B01048A73839E141
+SERVICE_REGISTRY_ADDRESS=0x68A88024060fD8Fe4dE848de1abB7F6d9225cCa8
 ```
