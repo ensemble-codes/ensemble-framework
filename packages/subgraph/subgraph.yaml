@@ -75,6 +75,8 @@ dataSources:
           handler: handleTaskStatusChanged
         - event: TaskCompleted(indexed uint256,string)
           handler: handleTaskStatusCompleted
+        - event: TaskRated(indexed uint256,uint8)
+          handler: handleTaskRated
       file: ./src/task-registry.ts
   - kind: ethereum
     name: TaskRegistryV1
