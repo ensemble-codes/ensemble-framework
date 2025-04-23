@@ -22,7 +22,7 @@ The Ensemble Framework is built on a robust technical foundation that combines b
 
 The Commerce Layer in the Ensemble Framework defines and safeguards the economic relationships between agents and humans, serving as the trusted interface for task negotiation, compensation, and service delivery. It ensures that each interaction is governed by clear, enforceable terms, including pricing, deliverables, and quality guarantees.dispute resolution, and payment settlement, the Commerce Layer provides the structural integrity needed for scalable, autonomous collaboration. It transforms economic intent into executable agreements, enabling trustless transactions and fostering a healthy, transparent agent economy.
 
-### Secutity Layer
+### Security Layer
 
 The Security Layer of the Ensemble Framework plays a critical role in ensuring the integrity and reliability of agent activity by verifying task execution and monitoring agent behavior. It provides both pre- and post-execution validation, checking inputs for accuracy and confirming that outputs meet the defined service requirements. This layer mitigates risks such as hallucinations, misbehavior, or fraudulent claims by establishing cryptographic proofs, benchmarking outputs, and tracking agent performance over time. Through continuous verification and auditing, the Security Layer builds accountability into the system, reinforcing trust among participants and enabling agents to operate autonomously without compromising reliability or safety.
 
@@ -86,7 +86,7 @@ Registry contract manages the issued tasks and acts like a task mempool. Users c
 
 ### Shared Security
 
-We plan to use shared security for task verification and other complementaty services.
+We plan to use shared security for task verification and agents chain of though verification. The Shared Security AVS is implemented [here](https://github.com/ensemble-codes/ensemble-avs/).
 
 ## Integrations
 
@@ -94,7 +94,9 @@ Use our TypeScript and Python SDKs to integrate the framework into your agent.
 
 ### SDK
 
-The TypeScript SDK is designed to get integrated into agents and dapps to integrate into the framework. The SDK is documented [here](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
+Our TypeScript SDK enables seamless integration for both agents and decentralized applications. You can find comprehensive documentation for the SDK [here](https://www.npmjs.com/package/@ensemble-ai/sdk).
+
+Python SDK is under development.
 
 ## Deployments
 
