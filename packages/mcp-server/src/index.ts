@@ -19,6 +19,7 @@ const server = new McpServer({
 // Tool for finding agents that match a user's request
 server.tool(
   'find-agents',
+  'Gets a list for agents on Ensemble that match a user request',
   {
     query: z.string().describe('The user request or search query to find matching agents for'),
     limit: z.number().min(1).max(config.matching.maxLimit).optional()
@@ -34,21 +35,12 @@ server.tool(
       });
 
       return {
-        contents: [
-          {
-            type: 'application/json',
-            json: agents,
-          },
-          {
-            type: 'text',
-            text: `Found ${agents.length} matching agents based on your request.`,
-          },
-        ],
+        content: [{ type: "text", text: JSON.stringify(agents, null, 2) }],
       };
     } catch (error) {
       console.error('Error finding agents:', error);
       return {
-        contents: [
+        content: [
           {
             type: 'text',
             text: `Error finding agents: ${error instanceof Error ? error.message : String(error)}`,
@@ -169,13 +161,7 @@ const transport = new StdioServerTransport();
 
 server.connect(transport);
 
-// Start the server
-// server.listen({
-//   port: config.server.port,
-//   stdio: config.server.env === 'development',
-// });
-
-// console.log(`MCP Server started on port ${config.server.port}`);
+console.log(`MCP Server started on port ${config.server.port}`);
 
 // server.sendLoggingMessage({
 //   level: "info",

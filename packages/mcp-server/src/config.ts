@@ -7,7 +7,7 @@ export const config = {
     env: process.env.NODE_ENV || 'development',
   },
   subgraph: {
-    url: process.env.SUBGRAPH_URL || 'https://api.studio.thegraph.com/query/78363/ensemble-v2/version/latest',
+    url: process.env.SUBGRAPH_URL || 'https://api.goldsky.com/api/public/project_cm9zz5dndyzbf01tm1a1874j0/subgraphs/ensemble/0.1.0/gn',
   },
   matching: {
     defaultLimit: 5,
