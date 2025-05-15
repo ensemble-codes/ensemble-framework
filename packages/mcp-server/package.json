@@ -1,5 +1,5 @@
 {
-  "name": "@ensemble/mcp-server",
+  "name": "@ensemble-ai/mcp-server",
   "version": "0.1.0",
   "description": "MCP server for Ensemble agent matching",
   "main": "dist/src/index.js",
