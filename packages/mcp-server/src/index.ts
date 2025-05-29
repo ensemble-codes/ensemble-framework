@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from 'zod';
@@ -155,13 +156,16 @@ server.tool(
 //   };
 // });
 
+async function runServer() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.log("Ensemble MCP Server running on stdio");
+}
 
-
-const transport = new StdioServerTransport();
-
-server.connect(transport);
-
-console.log(`MCP Server started on port ${config.server.port}`);
+runServer().catch((error) => {
+  console.error("Fatal error in main():", error);
+  process.exit(1);
+});
 
 // server.sendLoggingMessage({
 //   level: "info",

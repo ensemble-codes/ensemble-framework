@@ -64,6 +64,10 @@ export type GetServicesQueryVariables = {
   limit?: InputMaybe<number>;
 };
 
+export type GetProposalsQueryVariables = {
+  searchTerm?: InputMaybe<string>;
+};
+
 /** All input for the search agents query */
 export type GetAgentsQueryVariables = {
   searchTerm?: InputMaybe<string>;
@@ -151,12 +155,30 @@ export type GetServiceQuery = {
   }>;
 };
 
+export type GetProposalsQuery = {
+  proposals: Array<{
+    id: string;
+    service: string;
+    price: string;
+    isRemoved: boolean;
+    issuer: Maybe<{
+      id: string;
+      name: string;
+      agentUri: string;
+      reputation: string;
+      metadata?: Maybe<{
+        name: string;
+        description: string;
+      }>;
+    }>;
+  }>;
+}
+
 export const GetAgentsDocument = gql`
-  query GetAgents($searchTerm: String, $limit: Int) {
+  query GetAgents($searchTerm: String) {
     agents(
-      first: $limit,
       where: {
-        name_contains_nocase: $searchTerm
+        metadata_: { description_contains_nocase: $searchTerm }
       }
     ) {
       id
@@ -166,12 +188,6 @@ export const GetAgentsDocument = gql`
       metadata {
         name
         description
-        imageUri
-      }
-      proposals {
-        id
-        service
-        price
       }
     }
   }
@@ -240,6 +256,28 @@ export const GetServiceDocument = gql`
   }
 `;
 
+export const GetProposalsDocument = gql`
+  query GetProposals($searchTerm: String) {
+    proposals(
+      where: {
+        service_contains_nocase: $searchTerm
+      }
+    ) {
+      service
+      issuer{
+        id
+        name
+        agentUri
+        reputation
+        metadata {
+          name
+          description
+        }
+      }
+    }
+  }
+`;
+
 export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
@@ -294,6 +332,20 @@ export function getSdk(
         'GetServices',
         'query'
       );
+    },
+    GetProposals(
+      variables: GetProposalsQueryVariables,
+      requestHeaders?: Record<string, string>
+    ): Promise<GetProposalsQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<GetProposalsQuery>(GetProposalsDocument, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        'GetProposals',
+        'query'
+      )
     },
     GetService(
       variables: GetServiceQueryVariables,

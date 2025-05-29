@@ -1,15 +1,11 @@
 import { subgraphClient } from '../subgraph/client';
-import { Agent, Service } from '../subgraph/generated';
+import { Agent, Proposal, Service } from '../subgraph/generated';
 import { config } from '../config';
 
 interface AgentMatch {
   id: string;
   name: string;
   description: string;
-  imageUri?: string;
-  score: number;
-  serviceMatch?: string;
-  price?: string;
   reputation: string;
 }
 
@@ -29,72 +25,27 @@ export class AgentMatcher {
    */
   async findMatchingAgents(query: string, options: SearchOptions = {}): Promise<AgentMatch[]> {
     const { limit = 5, minReputationScore = 0 } = options;
-    
-    // First, search for services by description
-    const serviceResults = await this.findMatchingServices(query, limit);
-    // console.log(serviceResults)
-    // Track all matched agents to avoid duplicates
-    const matchedAgentIds = new Set<string>();
-    const matches: AgentMatch[] = [];
-    
-    // Find agents offering the matching services
-    if (serviceResults.length > 0) {
-      const agentsData = await subgraphClient.GetAgents({});
-      // console.log(agentsData)
-      const agents = agentsData.agents;
-      
-      // Match agents that provide the identified services
-      for (const service of serviceResults) {
-        // Find agents that offer this service
-        const agentsForService = agents.filter(agent => 
-          agent.proposals.some(proposal => 
-            proposal.service.toLowerCase() === service.name.toLowerCase()
-          )
-        );
-        
-        for (const agent of agentsForService) {
-          // Skip if already matched or reputation is below threshold
-          if (matchedAgentIds.has(agent.id) || 
-              parseInt(agent.reputation) < minReputationScore) {
-            continue;
-          }
-          
-          // Find the matching proposal
-          const matchingProposal = agent.proposals.find(
-            proposal => proposal.service.toLowerCase() === service.name.toLowerCase()
-          );
-          
-          if (matchingProposal) {
-            matchedAgentIds.add(agent.id);
-            
-            // Calculate score (higher reputation = higher score)
-            const reputationScore = parseInt(agent.reputation) || 0;
-            
-            matches.push({
-              id: agent.id,
-              name: agent.metadata?.name || agent.name,
-              description: agent.metadata?.description || 'No description available',
-              imageUri: agent.metadata?.imageUri,
-              score: reputationScore + 50, // Services match score bonus
-              serviceMatch: service.name,
-              price: matchingProposal.price,
-              reputation: agent.reputation
-            });
-            
-            // Break if we've reached the limit
-            if (matches.length >= limit) {
-              break;
-            }
-          }
-        }
-        
-        // Break if we've reached the limit
-        if (matches.length >= limit) {
-          break;
-        }
+
+    const proposalResults = await this.findMatchingProposals(query);
+
+    const matchedAgentIds = new Set<string>()
+    const matches: AgentMatch[] = []
+
+    for (const proposal of proposalResults) {
+      if (matchedAgentIds.has(proposal.issuer.id)) {
+        continue;
       }
+      
+      matchedAgentIds.add(proposal.issuer.id)
+
+      matches.push({
+        id: proposal.issuer.id,
+        name: proposal.issuer.metadata?.name || proposal.issuer.name,
+        description: proposal.issuer.metadata?.description || 'No description available',
+        reputation: proposal.issuer.reputation
+      })
     }
-    
+  
     // If we still need more matches, search for agents by name/description
     if (matches.length < limit) {
       const additionalAgents = await this.findAgentsByDescription(
@@ -108,7 +59,23 @@ export class AgentMatcher {
     }
     
     // Sort by score (highest first)
-    return matches.sort((a, b) => b.score - a.score);
+    return matches;
+  }
+
+  private async findMatchingProposals(query: string): Promise<Proposal[]> {
+    const words = query.toLowerCase().split(/\s+/)
+      .filter(word => {
+        if (/agent+s*/i.test(word)) return false;
+        
+        return true;
+      });
+
+    
+    const result = await subgraphClient.GetProposals({
+      searchTerm: words[0] ?? '',
+    });
+
+    return result.proposals.filter(p => p.issuer !== null) as Proposal[];
   }
   
   /**
@@ -161,19 +128,26 @@ export class AgentMatcher {
    * Find agents by their metadata description or name
    */
   private async findAgentsByDescription(
-    query: string, 
+    query: string,
     limit: number,
     excludedIds: Set<string>,
     minReputationScore: number
   ): Promise<AgentMatch[]> {
-    const words = query.toLowerCase().split(/\s+/);
+    const words = query.toLowerCase().split(/\s+/)
+      .filter(word => {
+        if (/agent+s*/i.test(word)) return false;
+        
+        return true;
+      });
+
     
     // Get all agents from the subgraph
     // Always include a searchTerm to avoid null filter errors
     const result = await subgraphClient.GetAgents({ 
-      limit: 100,
-      searchTerm: ''  // Using empty string instead of null
+      limit,
+      searchTerm: words[0] ?? ''  // Using empty string instead of null
     });
+    
     const agents = result.agents;
     
     // Score each agent based on how well it matches the query
@@ -189,43 +163,16 @@ export class AgentMatcher {
       const name = (agent.metadata?.name || agent.name).toLowerCase();
       const description = (agent.metadata?.description || '').toLowerCase();
       
-      // Calculate match score based on words found in name and description
-      let score = 0;
-      for (const word of words) {
-        if (word.length < 3) continue; // Skip very short words
-        
-        // Higher score for words in the name
-        if (name.includes(word)) {
-          score += 4;
-        }
-        
-        // Lower score for words in the description
-        if (description.includes(word)) {
-          score += 2;
-        }
-      }
-      
-      // Only include if there's a match
-      if (score > 0) {
-        // Add in reputation score
-        const reputationScore = parseInt(agent.reputation) || 0;
-        score += reputationScore;
-        
         matchedAgents.push({
           id: agent.id,
-          name: agent.metadata?.name || agent.name,
-          description: agent.metadata?.description || 'No description available',
-          imageUri: agent.metadata?.imageUri,
-          score: score,
+          name: name,
+          description: description,
           reputation: agent.reputation
         });
-      }
     }
     
     // Sort by score and limit results
     return matchedAgents
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
   }
   
   /**
