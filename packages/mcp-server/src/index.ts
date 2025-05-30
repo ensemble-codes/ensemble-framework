@@ -159,7 +159,7 @@ server.tool(
 async function runServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log("Ensemble MCP Server running on stdio");
+  // console.log("Ensemble MCP Server running on stdio");
 }
 
 runServer().catch((error) => {
