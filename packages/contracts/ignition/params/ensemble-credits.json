@@ -1,0 +1,6 @@
+{
+  "tokenName": "Ensemble Credits",
+  "tokenSymbol": "EC",
+  "initialAdmin": "${DEPLOYER_ADDRESS}",
+  "initialSupply": 0
+} 

@@ -33,7 +33,7 @@ const config: HardhatUserConfig = {
             chainId: 8453,
             accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
         },
-        'base-sepolia': {
+        baseSepolia: {
             url: process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org",
             chainId: 84532,
             accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
@@ -61,7 +61,7 @@ const config: HardhatUserConfig = {
     },
     etherscan: {
       apiKey: {
-          'base-sepolia': process.env.BASE_SEPOLIA_API_KEY || "",
+        baseSepolia: process.env.BASESCAN_API_KEY || "",
       },
       customChains: [
         {
@@ -73,7 +73,7 @@ const config: HardhatUserConfig = {
           }
         },
         {
-            network: "base-sepolia",
+            network: "baseSepolia",
             chainId: 84532,
             urls: {
               apiURL: "https://api-sepolia.basescan.org/api",
