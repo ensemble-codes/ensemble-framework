@@ -1,5 +1,6 @@
 {
   "ServiceRegistryModule#ServiceRegistry": "0x49F8fF51861A8E0D7E1eD8f1217CB14F662ef321",
   "AgentsRegistryModule#AgentsRegistry": "0xb72788ECb4e49127B6b08D49780D56876eB3F33F",
-  "TaskRegistryModule#TaskRegistry": "0x7022D3b93C9c65E442385a3F9Bd31E90ac4f6ef5"
+  "TaskRegistryModule#TaskRegistry": "0x7022D3b93C9c65E442385a3F9Bd31E90ac4f6ef5",
+  "EnsembleCreditsModule#EnsembleCredits": "0x725793D074ABa08cFE3B5Ac622fBd54F66821966"
 }
