@@ -11,7 +11,7 @@ describe("TaskRegistry", function () {
 
     async function setup() {
         await serviceRegistry.registerService("Service1", "Category1", "Description1");
-        await agentsRegistry.connect(agentOwner).registerAgent(
+        await agentsRegistry.connect(agentOwner).registerAgentWithService(
             agentAddress,
             "Service Agent",
             "https://uri",

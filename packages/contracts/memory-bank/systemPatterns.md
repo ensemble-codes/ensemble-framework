@@ -80,7 +80,7 @@ Each core component implements a registry pattern for:
 ## Data Flow Patterns
 
 ### Registration Flow
-1. Agent calls `registerAgent()` on AgentRegistry
+1. Agent calls `registerAgentWithService()` on AgentRegistry
 2. Capabilities are validated and stored
 3. Agent ID is generated and returned
 4. Event is emitted for off-chain indexing

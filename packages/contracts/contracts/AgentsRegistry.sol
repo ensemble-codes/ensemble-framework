@@ -100,7 +100,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      *
      * Emits an {AgentRegistered} event.
      */
-    function registerAgent(
+    function registerAgentWithService(
         address agent,
         string memory name,
         string memory agentUri,
