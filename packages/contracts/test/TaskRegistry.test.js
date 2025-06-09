@@ -37,7 +37,7 @@ describe("TaskRegistry", function () {
         agentsRegistry = await AgentsRegistry.deploy(agentRegistryV1.target, serviceRegistry.target);
 
         TaskRegistry = await ethers.getContractFactory("TaskRegistry");
-        taskRegistry = await TaskRegistry.deploy(agentsRegistry.target);
+        taskRegistry = await TaskRegistry.deploy(1, agentsRegistry.target);
     });
 
     describe("createTask", function () {
