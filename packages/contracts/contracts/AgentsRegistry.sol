@@ -58,13 +58,16 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         address indexed agent,
         uint256 proposalId,
         string name,
-        uint256 price
+        uint256 price,
+        address tokenAddress
     );
     event ProposalRemoved(address indexed agent, uint256 proposalId);
+
     event ProposalUpdated(
         address indexed agent,
         uint256 proposalId,
-        uint256 price
+        uint256 price,
+        address tokenAddress
     );
 
     /**
@@ -129,7 +132,8 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         string memory name,
         string memory agentUri,
         string memory serviceName,
-        uint256 servicePrice
+        uint256 servicePrice,
+        address tokenAddress
     ) external {
         require(agents[agent].agent == address(0), "Agent already registered");
         require(
@@ -139,7 +143,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
 
         _createAgent(agent, name, agentUri, msg.sender, 0);
 
-        _createProposal(agent, serviceName, servicePrice);
+        _createProposal(agent, serviceName, servicePrice, tokenAddress);
     }
 
     /**
@@ -159,14 +163,15 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     function addProposal(
         address agent,
         string memory serviceName,
-        uint256 servicePrice
+        uint256 servicePrice,
+        address tokenAddress
     ) public onlyAgentOwner(agent) {
         require(
             serviceRegistry.isServiceRegistered(serviceName),
             "Service not registered"
         );
 
-        _createProposal(agent, serviceName, servicePrice);
+        _createProposal(agent, serviceName, servicePrice, tokenAddress);
     }
 
     /**
@@ -280,19 +285,21 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     function _createProposal(
         address agent,
         string memory serviceName,
-        uint256 servicePrice
+        uint256 servicePrice,
+        address tokenAddress
     ) private {
         ServiceProposal memory newProposal = ServiceProposal(
             agent,
             serviceName,
             servicePrice,
+            tokenAddress,
             nextProposalId,
             true
         );
 
         proposals[nextProposalId] = newProposal;
 
-        emit ProposalAdded(agent, nextProposalId, serviceName, servicePrice);
+        emit ProposalAdded(agent, nextProposalId, serviceName, servicePrice, tokenAddress);
 
         nextProposalId++;
     }
@@ -332,7 +339,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
 
             _ensureServiceRegistered(proposal.serviceName);
 
-            _createProposal(agent, proposal.serviceName, proposal.price);
+            _createProposal(agent, proposal.serviceName, proposal.price, address(0));
         }
     }
 
