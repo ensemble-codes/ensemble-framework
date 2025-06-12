@@ -1,6 +1,6 @@
 {
-  "name": "ensemble-ai-agents",
-  "version": "1.0.0",
+  "name": "ensemble-contracts",
+  "version": "0.3.2",
   "main": "hardhat.config.js",
   "directories": {
     "test": "test"
