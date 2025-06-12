@@ -10,12 +10,13 @@ interface IAgentRegistryV1 {
         uint256 reputation;
         uint256 totalRatings;
     }
-
+    
     struct Proposal {
         address issuer;
         string serviceName;
         uint256 price;
         uint256 proposalId;
+        bool isActive;
     }
 
     function getAgentData(address _agent) external view returns (AgentData memory);

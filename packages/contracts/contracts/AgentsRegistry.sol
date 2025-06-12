@@ -307,7 +307,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
                 agentRegistryV1
             ).getProposal(i);
 
-            if (proposal.issuer != agent) {
+            if (proposal.issuer != agent || !proposal.isActive) {
                 continue;
             }
 
