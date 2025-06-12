@@ -90,8 +90,32 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         serviceRegistry = ServiceRegistry(_serviceRegistry);
     }
 
+
     /**
      * @dev Registers a new agent with the given details.
+     * @param name The name of the agent.
+     * @param agentUri The URI pointing to the agent's metadata.
+     * @param agent The address of the agent.
+     *
+     * Requirements:
+     *
+     * - The agent must not already be registered.
+     * - The caller will be set as the owner of the agent.
+     *
+     * Emits an {AgentRegistered} event.
+     */
+    function registerAgent(
+        address agent,
+        string memory name,
+        string memory agentUri
+    ) external {
+        require(agents[agent].agent == address(0), "Agent already registered");
+
+        _createAgent(agent, name, agentUri, msg.sender, 0);
+    }
+
+    /**
+     * @dev Registers a new agent with the given details and the proposal.
      * @param name The name of the agent.
      * @param agentUri The URI pointing to the agent's metadata.
      * @param agent The address of the agent.
@@ -105,7 +129,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      *
      * Emits an {AgentRegistered} event.
      */
-    function registerAgent(
+    function registerAgentWithProposal(
         address agent,
         string memory name,
         string memory agentUri,
