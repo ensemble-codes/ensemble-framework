@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const AgentRegistryV1Artifact = require('./artifacts/AgentsRegistryV1.json')
 
-describe("AgentRegistry", function () {
+describe.only("AgentRegistry", function () {
     let AgentRegistry;
     let agentRegistryV1
     let registry;
@@ -41,13 +41,13 @@ describe("AgentRegistry", function () {
         });
     })
 
-    describe('#RegisterAgent', () => {
+    describe('#registerAgentWithProposal', () => {
         this.beforeEach(async function () {
             await serviceRegistry.registerService("Service1", "Category1", "Description1");
         })
         it("Should not register an agent if the service is not registered", async function () {
             await expect(
-                registry.connect(agentOwner).registerAgent(
+                registry.connect(agentOwner).registerAgentWithProposal(
                     agentAddress,
                     "Service Agent",
                     agentUri,
@@ -58,7 +58,7 @@ describe("AgentRegistry", function () {
         });
 
         it("Should register new agent", async function () {
-            const request = registry.connect(agentOwner).registerAgent(
+            const request = registry.connect(agentOwner).registerAgentWithProposal(
                 agentAddress,
                 "Service Agent",
                 agentUri,
@@ -89,7 +89,7 @@ describe("AgentRegistry", function () {
         });
 
         it("Should not register the same agent twice", async function () {
-            await registry.connect(agentOwner).registerAgent(
+            await registry.connect(agentOwner).registerAgentWithProposal(
                 agentAddress,
                 "Service Agent",
                 agentUri,
@@ -98,7 +98,7 @@ describe("AgentRegistry", function () {
             );
 
             await expect(
-                registry.connect(agentOwner).registerAgent(
+                registry.connect(agentOwner).registerAgentWithProposal(
                     agentAddress,
                     "Service Agent",
                     agentUri,
@@ -114,7 +114,7 @@ describe("AgentRegistry", function () {
 
         beforeEach(async function () {
             // await serviceRegistry.registerService("Service1", "Category1", "Description1");
-            registry.connect(agentOwner).registerAgent(
+            await registry.connect(agentOwner).registerAgentWithProposal(
                 agentAddress,
                 "Service Agent",
                 agentUri,
@@ -172,7 +172,7 @@ describe("AgentRegistry", function () {
     describe('#Reputation', () => {
 
         beforeEach(async () => {
-            await registry.connect(agentOwner).registerAgent(
+            await registry.connect(agentOwner).registerAgentWithProposal(
                 agentAddress,
                 "Service Agent",
                 agentUri,
