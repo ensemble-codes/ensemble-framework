@@ -61,7 +61,13 @@ contract TaskRegistry is Ownable, IProposalStruct {
     ) external payable returns (TaskData memory) {
         ServiceProposal memory proposal = agentRegistry.getProposal(proposalId);
         require(proposal.issuer != address(0), "ServiceProposal not found");
-        require(proposal.price == msg.value, "Invalid price");
+        
+        if (proposal.tokenAddress == address(0)) {
+            require(proposal.price == msg.value, "Invalid price");
+        } else {
+            require(msg.value == 0, "No ETH should be sent for ERC20 payments");
+            TransferHelper.safeTransferFrom(proposal.tokenAddress, msg.sender, address(this), proposal.price);
+        }
 
         TaskData storage task = tasks[nextTaskId];
         task.id = nextTaskId;
@@ -91,8 +97,12 @@ contract TaskRegistry is Ownable, IProposalStruct {
         task.result = result;
         ServiceProposal memory proposal = agentRegistry.getProposal(task.proposalId);
         
-        TransferHelper.safeTransferETH(proposal.issuer, proposal.price);
-
+        if (proposal.tokenAddress == address(0)) {
+            TransferHelper.safeTransferETH(task.issuer, proposal.price);
+        } else {
+            TransferHelper.safeTransfer(proposal.tokenAddress, task.issuer, proposal.price);
+        }
+        
         emit TaskStatusChanged(taskId, task.status);
         emit TaskCompleted(taskId, result);
     }
@@ -129,7 +139,11 @@ contract TaskRegistry is Ownable, IProposalStruct {
         ServiceProposal memory proposal = agentRegistry.getProposal(task.proposalId);
         
         // Refund the payment to the issuer
-        TransferHelper.safeTransferETH(task.issuer, proposal.price);
+        if (proposal.tokenAddress == address(0)) {
+            TransferHelper.safeTransferETH(task.issuer, proposal.price);
+        } else {
+            TransferHelper.safeTransfer(proposal.tokenAddress, task.issuer, proposal.price);
+        }
         
         emit TaskStatusChanged(taskId, task.status);
         emit TaskCanceled(taskId);

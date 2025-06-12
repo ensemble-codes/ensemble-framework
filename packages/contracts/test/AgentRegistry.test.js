@@ -182,7 +182,8 @@ describe("AgentRegistry", function () {
                     "Service Agent",
                     agentUri,
                     "NonExistentService",
-                    ethers.parseEther("0.01")
+                    ethers.parseEther("0.01"),
+                    ethers.ZeroAddress
                 )
             ).to.be.revertedWith("Service not registered");
         });
@@ -193,14 +194,15 @@ describe("AgentRegistry", function () {
                 "Service Agent",
                 agentUri,
                 "Service1",
-                ethers.parseEther("0.01")
+                ethers.parseEther("0.01"),
+                ethers.ZeroAddress
             );
 
             await expect(request)
                 .to.emit(registry, "AgentRegistered")
                 .withArgs(agentAddress, agentOwner, "Service Agent", agentUri)
                 .to.emit(registry, "ProposalAdded")
-                .withArgs(agentAddress, 1, "Service1", ethers.parseEther("0.01"));
+                .withArgs(agentAddress, 1, "Service1", ethers.parseEther("0.01"), ethers.ZeroAddress);
             
             const agentData = await registry.getAgentData(agentAddress);
 
@@ -224,7 +226,8 @@ describe("AgentRegistry", function () {
                 "Service Agent",
                 agentUri,
                 "Service1",
-                ethers.parseEther("0.01")
+                ethers.parseEther("0.01"),
+                ethers.ZeroAddress
             );
 
             await expect(
@@ -233,7 +236,8 @@ describe("AgentRegistry", function () {
                     "Service Agent",
                     agentUri,
                     "Service1",
-                    ethers.parseEther("0.01")
+                    ethers.parseEther("0.01"),
+                    ethers.ZeroAddress
                 )
             ).to.be.revertedWith("Agent already registered");
         });
@@ -243,37 +247,38 @@ describe("AgentRegistry", function () {
     describe('#Proposals', () => {
 
         beforeEach(async function () {
-            // await serviceRegistry.registerService("Service1", "Category1", "Description1");
             await registry.connect(agentOwner).registerAgentWithProposal(
                 agentAddress,
                 "Service Agent",
                 agentUri,
                 "Service1",
-                ethers.parseEther("0.01")
+                ethers.parseEther("0.01"),
+                ethers.ZeroAddress
             );
         });
 
 
         it("Should add a proposal", async function () {
-            await registry.connect(agentOwner).addProposal(agentAddress, "Service1", ethers.parseEther("0.02"));
+            await registry.connect(agentOwner).addProposal(agentAddress, "Service1", ethers.parseEther("0.02"), ethers.ZeroAddress);
             const proposalId = 2
             expect(await registry.getProposal(proposalId)).to.deep.equal([
                 agentAddress.address,
                 "Service1",
                 ethers.parseEther("0.02"),
+                ethers.ZeroAddress,
                 proposalId,
                 true
             ]);
         });
 
         it("Should not add a proposal if service is not registered", async function () {
-            await expect(registry.connect(agentOwner).addProposal(agentAddress, "NonExistentService", ethers.parseEther("0.02")))
+            await expect(registry.connect(agentOwner).addProposal(agentAddress, "NonExistentService", ethers.parseEther("0.02"), ethers.ZeroAddress))
                 .to.be.revertedWith("Service not registered");
         });
 
         it("Should remove a proposal", async function () {
 
-            await registry.connect(agentOwner).addProposal(agentAddress, "Service1", ethers.parseEther("0.02"));
+            await registry.connect(agentOwner).addProposal(agentAddress, "Service1", ethers.parseEther("0.02"), ethers.ZeroAddress);
 
             await registry.connect(agentOwner).removeProposal(agentAddress, 2);
 
@@ -281,6 +286,7 @@ describe("AgentRegistry", function () {
                 ethers.ZeroAddress,
                 "",
                 0,
+                ethers.ZeroAddress,
                 0,
                 false
             ]);
@@ -292,6 +298,7 @@ describe("AgentRegistry", function () {
                 ethers.ZeroAddress,
                 "",
                 0,
+                ethers.ZeroAddress,
                 0,
                 false
             ]);
@@ -307,7 +314,8 @@ describe("AgentRegistry", function () {
                 "Service Agent",
                 agentUri,
                 "Service1",
-                ethers.parseEther("0.01")
+                ethers.parseEther("0.01"),
+                ethers.ZeroAddress
             );
         })
         it("Should only allow taskRegistry to add a rating", async function () {
@@ -376,6 +384,7 @@ describe("AgentRegistry", function () {
             expect(agentData.owner).to.equal(agentOwner.address);
             expect(agentData.agent).to.equal(agentAddress);
             expect(agentData.reputation).to.equal(0);
+            expect(agentData.totalRatings).to.equal(0);
         });
     })
 
