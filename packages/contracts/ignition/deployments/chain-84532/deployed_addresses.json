@@ -1,6 +1,5 @@
 {
-  "ServiceRegistryModule#ServiceRegistry": "0x49F8fF51861A8E0D7E1eD8f1217CB14F662ef321",
-  "AgentsRegistryModule#AgentsRegistry": "0xb72788ECb4e49127B6b08D49780D56876eB3F33F",
-  "TaskRegistryModule#TaskRegistry": "0x7022D3b93C9c65E442385a3F9Bd31E90ac4f6ef5",
-  "EnsembleCreditsModule#EnsembleCredits": "0x725793D074ABa08cFE3B5Ac622fBd54F66821966"
+  "ServiceRegistryModule#ServiceRegistry": "0x66e2CF8e1Db59eAeD279b1f5c0175a6467850917",
+  "AgentsRegistryModule#AgentsRegistry": "0x3bEA054766f3D2E00AAbaAD2A2AC7beB9fCF0427",
+  "TaskRegistryModule#TaskRegistry": "0x75292f428E6bDb5AD6328C3f76618CB419EEe2bc"
 }

@@ -102,6 +102,12 @@ Python SDK is under development.
 
 The stack is EVM based, we support Solana with NeonEVM.
 
+### v3 - Base
+
+AGENT_REGISTRY_ADDRESS=0xC97a6f47dA28A9c6a6d5DcD6E2eD481eD1d4EC1D
+TASK_REGISTRY_ADDRESS=0xfEE4F3a034B242f2DdadC2f3090787FFaaa0a7b6
+SERVICE_REGISTRY_ADDRESS=0xB8727be9cca5b95E9297278259870150E838DdD1
+
 ### v3 - Base Sepolia
 
 ```txt
