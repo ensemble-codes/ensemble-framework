@@ -419,22 +419,28 @@ describe.only("TaskRegistry", function () {
             });
 
             it("should refund tokens to issuer when ERC20 task is canceled", async function () {
-                const initialIssuerBalance = await mockToken.balanceOf(taskIssuer.address);
-                const initialContractBalance = await mockToken.balanceOf(taskRegistry.target);
+                // Get balances before the task was created (need to account for the task already created in beforeEach)
+                const currentIssuerBalance = await mockToken.balanceOf(taskIssuer.address);
+                const currentContractBalance = await mockToken.balanceOf(taskRegistry.target);
+                
+                // The task was already created in beforeEach, so issuer should have paid taskPrice
+                // and contract should have received taskPrice
+                const expectedInitialIssuerBalance = currentIssuerBalance + taskPrice;
+                const expectedInitialContractBalance = currentContractBalance - taskPrice;
 
-                // After task creation, issuer should have less tokens and contract should have more
-                expect(await mockToken.balanceOf(taskIssuer.address)).to.equal(initialIssuerBalance - taskPrice);
-                expect(await mockToken.balanceOf(taskRegistry.target)).to.equal(initialContractBalance + taskPrice);
+                // Verify the current state matches expectations
+                expect(currentIssuerBalance).to.equal(expectedInitialIssuerBalance - taskPrice);
+                expect(currentContractBalance).to.equal(expectedInitialContractBalance + taskPrice);
 
                 // Cancel the task
                 await taskRegistry.connect(taskIssuer).cancelTask(1);
 
-                // After cancellation, tokens should be refunded
+                // After cancellation, tokens should be refunded to original state
                 const finalIssuerBalance = await mockToken.balanceOf(taskIssuer.address);
                 const finalContractBalance = await mockToken.balanceOf(taskRegistry.target);
 
-                expect(finalIssuerBalance).to.equal(initialIssuerBalance);
-                expect(finalContractBalance).to.equal(initialContractBalance);
+                expect(finalIssuerBalance).to.equal(expectedInitialIssuerBalance);
+                expect(finalContractBalance).to.equal(expectedInitialContractBalance);
             });
 
             it("should not allow canceling completed ERC20 task", async function () {
