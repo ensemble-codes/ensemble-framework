@@ -393,12 +393,13 @@ describe("AgentRegistry", function () {
         const newAgentUri = "https://ipfs.io/ipfs/updated-hash";
 
         beforeEach(async function () {
-            await registry.connect(agentOwner).registerAgent(
+            await registry.connect(agentOwner).registerAgentWithProposal(
                 agentAddress,
                 "Service Agent",
                 agentUri,
                 "Service1",
-                ethers.parseEther("0.01")
+                ethers.parseEther("0.01"),
+                ethers.ZeroAddress
             );
         });
 
@@ -541,6 +542,197 @@ describe("AgentRegistry", function () {
             agentData = await registry.getAgentData(agentAddress);
             expect(agentData.name).to.equal("Second Update");
             expect(agentData.agentUri).to.equal("https://second-update.com");
+        });
+    });
+
+    describe('#UnregisterAgent', () => {
+        beforeEach(async function () {
+            await serviceRegistry.registerService("UnregisterService", "Category1", "Description1");
+            await registry.connect(agentOwner).registerAgentWithProposal(
+                agentAddress,
+                "Service Agent",
+                agentUri,
+                "UnregisterService",
+                ethers.parseEther("0.01"),
+                ethers.ZeroAddress
+            );
+        });
+
+        it("Should successfully unregister an agent", async function () {
+            const unregisterTx = registry.connect(agentOwner).unregisterAgent(agentAddress);
+
+            await expect(unregisterTx)
+                .to.emit(registry, "AgentUnregistered")
+                .withArgs(agentAddress, agentOwner.address)
+                .to.emit(registry, "ProposalRemoved")
+                .withArgs(agentAddress, 1);
+
+            // Verify agent data is cleared
+            const agentData = await registry.getAgentData(agentAddress);
+            expect(agentData.agent).to.equal(ethers.ZeroAddress);
+            expect(agentData.owner).to.equal(ethers.ZeroAddress);
+            expect(agentData.name).to.equal("");
+            expect(agentData.agentUri).to.equal("");
+            expect(agentData.reputation).to.equal(0);
+            expect(agentData.totalRatings).to.equal(0);
+
+            // Verify proposal is removed
+            const proposal = await registry.getProposal(1);
+            expect(proposal.issuer).to.equal(ethers.ZeroAddress);
+            expect(proposal.serviceName).to.equal("");
+            expect(proposal.isActive).to.equal(false);
+        });
+
+        it("Should not allow non-owner to unregister agent", async function () {
+            const [, , , unauthorizedUser] = await ethers.getSigners();
+            
+            await expect(
+                registry.connect(unauthorizedUser).unregisterAgent(agentAddress)
+            ).to.be.revertedWith("Not the owner of the agent");
+        });
+
+        it("Should not allow unregistering non-existent agent", async function () {
+            const [, , , , unregisteredAgent] = await ethers.getSigners();
+            
+            await expect(
+                registry.connect(unregisteredAgent).unregisterAgent(unregisteredAgent.address)
+            ).to.be.revertedWith("Not the owner of the agent");
+        });
+
+        it("Should allow re-registration after unregistering", async function () {
+            // Unregister agent
+            await registry.connect(agentOwner).unregisterAgent(agentAddress);
+
+            // Re-register the same agent
+            const reregisterTx = registry.connect(agentOwner).registerAgent(
+                agentAddress,
+                "Re-registered Agent",
+                "https://new-uri.com"
+            );
+
+            await expect(reregisterTx)
+                .to.emit(registry, "AgentRegistered")
+                .withArgs(agentAddress, agentOwner.address, "Re-registered Agent", "https://new-uri.com");
+
+            const agentData = await registry.getAgentData(agentAddress);
+            expect(agentData.name).to.equal("Re-registered Agent");
+            expect(agentData.agentUri).to.equal("https://new-uri.com");
+            expect(agentData.owner).to.equal(agentOwner.address);
+            expect(agentData.agent).to.equal(agentAddress);
+            expect(agentData.reputation).to.equal(0);
+            expect(agentData.totalRatings).to.equal(0);
+        });
+
+        it("Should remove multiple proposals when unregistering", async function () {
+            // Add another proposal
+            await registry.connect(agentOwner).addProposal(
+                agentAddress, 
+                "UnregisterService", 
+                ethers.parseEther("0.02"), 
+                ethers.ZeroAddress
+            );
+
+            const unregisterTx = registry.connect(agentOwner).unregisterAgent(agentAddress);
+
+            await expect(unregisterTx)
+                .to.emit(registry, "AgentUnregistered")
+                .withArgs(agentAddress, agentOwner.address)
+                .to.emit(registry, "ProposalRemoved")
+                .withArgs(agentAddress, 2);
+
+            // Verify that only the active proposal was removed (proposal 1 was already removed)
+            const proposal1 = await registry.getProposal(1);
+            const proposal2 = await registry.getProposal(2);
+            
+            // Proposal 1 should remain in its already-removed state
+            expect(proposal1.issuer).to.equal(ethers.ZeroAddress);
+            expect(proposal1.isActive).to.equal(false);
+            
+            // Proposal 2 should now be removed by unregister
+            expect(proposal2.issuer).to.equal(ethers.ZeroAddress);
+            expect(proposal2.isActive).to.equal(false);
+        });
+
+        it("Should preserve reputation history for other agents", async function () {
+            // Register another agent
+            const [, , , , secondAgent] = await ethers.getSigners();
+            await registry.connect(agentOwner).registerAgent(
+                secondAgent.address,
+                "Second Agent",
+                agentUri
+            );
+
+            // Add reputation to both agents
+            await registry.connect(admin).setTaskRegistry(admin);
+            await registry.connect(admin).addRating(agentAddress, 80);
+            await registry.connect(admin).addRating(secondAgent.address, 90);
+
+            // Unregister first agent
+            await registry.connect(agentOwner).unregisterAgent(agentAddress);
+
+            // Verify second agent's reputation is preserved
+            const secondAgentData = await registry.getAgentData(secondAgent.address);
+            expect(secondAgentData.reputation).to.equal(90);
+            expect(secondAgentData.totalRatings).to.equal(1);
+
+            // Verify first agent's data is cleared
+            const firstAgentData = await registry.getAgentData(agentAddress);
+            expect(firstAgentData.reputation).to.equal(0);
+            expect(firstAgentData.totalRatings).to.equal(0);
+        });
+
+        it("Should handle unregistering agent with no proposals", async function () {
+            // Register agent without proposals
+            const [, , , , agentWithoutProposals] = await ethers.getSigners();
+            await registry.connect(agentOwner).registerAgent(
+                agentWithoutProposals.address,
+                "Agent Without Proposals",
+                agentUri
+            );
+
+            const unregisterTx = registry.connect(agentOwner).unregisterAgent(agentWithoutProposals.address);
+
+            await expect(unregisterTx)
+                .to.emit(registry, "AgentUnregistered")
+                .withArgs(agentWithoutProposals.address, agentOwner.address);
+            
+            // Should not emit ProposalRemoved events since there are no proposals
+            await expect(unregisterTx).to.not.emit(registry, "ProposalRemoved");
+
+            // Verify agent data is cleared
+            const agentData = await registry.getAgentData(agentWithoutProposals.address);
+            expect(agentData.agent).to.equal(ethers.ZeroAddress);
+        });
+
+        it("Should handle unregistering agent after some proposals were already removed", async function () {
+            // Add multiple proposals
+            await registry.connect(agentOwner).addProposal(
+                agentAddress, 
+                "UnregisterService", 
+                ethers.parseEther("0.02"), 
+                ethers.ZeroAddress
+            );
+
+            // Remove one proposal manually
+            await registry.connect(agentOwner).removeProposal(agentAddress, 1);
+
+            // Unregister agent (should only remove remaining active proposal)
+            const unregisterTx = registry.connect(agentOwner).unregisterAgent(agentAddress);
+
+            await expect(unregisterTx)
+                .to.emit(registry, "AgentUnregistered")
+                .withArgs(agentAddress, agentOwner.address)
+                .to.emit(registry, "ProposalRemoved")
+                .withArgs(agentAddress, 2);
+
+            // Verify both proposals are now removed (one was manually removed, one removed by unregister)
+            const proposal1 = await registry.getProposal(1);
+            const proposal2 = await registry.getProposal(2);
+            
+            expect(proposal1.issuer).to.equal(ethers.ZeroAddress);
+            expect(proposal1.isActive).to.equal(false);
+            expect(proposal2.issuer).to.equal(ethers.ZeroAddress);
+            expect(proposal2.isActive).to.equal(false);
         });
     });
 });

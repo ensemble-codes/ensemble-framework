@@ -75,6 +75,11 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         string agentUri
     );
 
+    event AgentUnregistered(
+        address indexed agent,
+        address indexed owner
+    );
+
     /**
      * @dev Sets the address of the TaskRegistry contract.
      * @param _taskRegistry The address of the TaskRegistry contract.
@@ -376,5 +381,44 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         agents[agent].agentUri = agentUri;
         
         emit AgentDataUpdated(agent, name, agentUri);
+    }
+
+    /**
+     * @dev Unregisters an existing agent and removes all associated proposals.
+     * @param agent The address of the agent to unregister.
+     *
+     * Requirements:
+     *
+     * - The caller must be the owner of the agent.
+     * - The agent must be registered.
+     *
+     * Emits an {AgentUnregistered} event and {ProposalRemoved} events for each removed proposal.
+     */
+    function unregisterAgent(address agent) external onlyAgentOwner(agent) {
+        require(agents[agent].agent != address(0), "Agent not registered");
+        
+        address agentOwner = agents[agent].owner;
+        
+        // Remove all active proposals for this agent
+        _removeAllAgentProposals(agent);
+        
+        // Clear agent data
+        delete agents[agent];
+        
+        emit AgentUnregistered(agent, agentOwner);
+    }
+
+    /**
+     * @dev Internal function to remove all proposals associated with an agent.
+     * @param agent The address of the agent whose proposals should be removed.
+     */
+    function _removeAllAgentProposals(address agent) private {
+        // Iterate through all proposals to find and remove agent's proposals
+        for (uint256 i = 1; i < nextProposalId; i++) {
+            if (proposals[i].issuer == agent && proposals[i].isActive) {
+                delete proposals[i];
+                emit ProposalRemoved(agent, i);
+            }
+        }
     }
 }

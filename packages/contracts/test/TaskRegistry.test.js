@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const AgentRegistryV1Artifact = require('./artifacts/AgentsRegistryV1.json')
 
-describe.only("TaskRegistry", function () {
+describe("TaskRegistry", function () {
     let TaskRegistry, taskRegistry, AgentsRegistry, agentsRegistry;
     let agentOwner, agentAddress, taskIssuer, eveAddress;
     let taskPrice = ethers.parseEther("0.01");
