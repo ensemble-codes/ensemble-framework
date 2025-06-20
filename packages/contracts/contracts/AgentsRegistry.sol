@@ -187,20 +187,14 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     function migrateAgent(address agent) external {
         require(agents[agent].agent == address(0), "Agent already registered");
 
-        (
-            string memory agentName,
-            string memory agentUri,
-            address agentOwner,
-            ,
-            uint256 agentReputation
-        ) = IAgentRegistryV1(agentRegistryV1).getAgentData(agent);
+        IAgentRegistryV1.AgentData memory v1AgentData = IAgentRegistryV1(agentRegistryV1).getAgentData(agent);
 
         require(
-            msg.sender == agentOwner || msg.sender == owner(),
+            msg.sender == v1AgentData.owner || msg.sender == owner(),
             "Not owner or agent owner"
         );
 
-        _createAgent(agent, agentName, agentUri, agentOwner, agentReputation);
+        _createAgent(agent, v1AgentData.name, v1AgentData.agentUri, v1AgentData.owner, v1AgentData.reputation);
 
         _migrateAgentProposals(agent);
     }
