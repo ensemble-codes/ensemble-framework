@@ -66,6 +66,11 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         uint256 proposalId,
         uint256 price
     );
+    event AgentDataUpdated(
+        address indexed agent,
+        string name,
+        string agentUri
+    );
 
     /**
      * @dev Sets the address of the TaskRegistry contract.
@@ -320,5 +325,31 @@ contract AgentsRegistry is Ownable, IProposalStruct {
 
     function _migrateAgentTasks(address agent) private {
         
+    }
+
+    /**
+     * @dev Updates the data of an existing agent.
+     * @param agent The address of the agent to update.
+     * @param name The new name of the agent.
+     * @param agentUri The new URI pointing to the agent's metadata.
+     *
+     * Requirements:
+     *
+     * - The caller must be the owner of the agent.
+     * - The agent must be registered.
+     *
+     * Emits an {AgentDataUpdated} event.
+     */
+    function updateAgentData(
+        address agent,
+        string memory name,
+        string memory agentUri
+    ) external onlyAgentOwner(agent) {
+        require(agents[agent].agent != address(0), "Agent not registered");
+        
+        agents[agent].name = name;
+        agents[agent].agentUri = agentUri;
+        
+        emit AgentDataUpdated(agent, name, agentUri);
     }
 }

@@ -248,4 +248,160 @@ describe("AgentRegistry", function () {
             expect(agentData.reputation).to.equal(0);
         });
     })
+
+    describe('#UpdateAgentData', () => {
+        const newAgentName = "Updated Agent Name";
+        const newAgentUri = "https://ipfs.io/ipfs/updated-hash";
+
+        beforeEach(async function () {
+            await registry.connect(agentOwner).registerAgent(
+                agentAddress,
+                "Service Agent",
+                agentUri,
+                "Service1",
+                ethers.parseEther("0.01")
+            );
+        });
+
+        it("Should successfully update agent data", async function () {
+            const updateTx = registry.connect(agentOwner).updateAgentData(
+                agentAddress,
+                newAgentName,
+                newAgentUri
+            );
+
+            await expect(updateTx)
+                .to.emit(registry, "AgentDataUpdated")
+                .withArgs(agentAddress, newAgentName, newAgentUri);
+
+            const agentData = await registry.getAgentData(agentAddress);
+            expect(agentData.name).to.equal(newAgentName);
+            expect(agentData.agentUri).to.equal(newAgentUri);
+            
+            // Verify other fields remain unchanged
+            expect(agentData.owner).to.equal(agentOwner.address);
+            expect(agentData.agent).to.equal(agentAddress);
+            expect(agentData.reputation).to.equal(0);
+            expect(agentData.totalRatings).to.equal(0);
+        });
+
+        it("Should not allow non-owner to update agent data", async function () {
+            const [, , , unauthorizedUser] = await ethers.getSigners();
+            
+            await expect(
+                registry.connect(unauthorizedUser).updateAgentData(
+                    agentAddress,
+                    newAgentName,
+                    newAgentUri
+                )
+            ).to.be.revertedWith("Not the owner of the agent");
+        });
+
+        it("Should not allow updating unregistered agent", async function () {
+            const [, , , , unregisteredAgent] = await ethers.getSigners();
+            
+            await expect(
+                registry.connect(unregisteredAgent).updateAgentData(
+                    unregisteredAgent.address,
+                    newAgentName,
+                    newAgentUri
+                )
+            ).to.be.revertedWith("Not the owner of the agent");
+        });
+
+        it("Should allow updating with empty strings", async function () {
+            const emptyName = "";
+            const emptyUri = "";
+
+            const updateTx = registry.connect(agentOwner).updateAgentData(
+                agentAddress,
+                emptyName,
+                emptyUri
+            );
+
+            await expect(updateTx)
+                .to.emit(registry, "AgentDataUpdated")
+                .withArgs(agentAddress, emptyName, emptyUri);
+
+            const agentData = await registry.getAgentData(agentAddress);
+            expect(agentData.name).to.equal(emptyName);
+            expect(agentData.agentUri).to.equal(emptyUri);
+        });
+
+        it("Should allow updating only name", async function () {
+            const originalAgentData = await registry.getAgentData(agentAddress);
+            
+            await registry.connect(agentOwner).updateAgentData(
+                agentAddress,
+                newAgentName,
+                originalAgentData.agentUri // Keep original URI
+            );
+
+            const updatedAgentData = await registry.getAgentData(agentAddress);
+            expect(updatedAgentData.name).to.equal(newAgentName);
+            expect(updatedAgentData.agentUri).to.equal(originalAgentData.agentUri);
+        });
+
+        it("Should allow updating only URI", async function () {
+            const originalAgentData = await registry.getAgentData(agentAddress);
+            
+            await registry.connect(agentOwner).updateAgentData(
+                agentAddress,
+                originalAgentData.name, // Keep original name
+                newAgentUri
+            );
+
+            const updatedAgentData = await registry.getAgentData(agentAddress);
+            expect(updatedAgentData.name).to.equal(originalAgentData.name);
+            expect(updatedAgentData.agentUri).to.equal(newAgentUri);
+        });
+
+        it("Should preserve reputation and ratings after update", async function () {
+            // Add some reputation first
+            await registry.connect(admin).setTaskRegistry(admin);
+            await registry.connect(admin).addRating(agentAddress, 80);
+            
+            const originalAgentData = await registry.getAgentData(agentAddress);
+            expect(originalAgentData.reputation).to.equal(80);
+            expect(originalAgentData.totalRatings).to.equal(1);
+
+            // Update agent data
+            await registry.connect(agentOwner).updateAgentData(
+                agentAddress,
+                newAgentName,
+                newAgentUri
+            );
+
+            // Verify reputation and ratings are preserved
+            const updatedAgentData = await registry.getAgentData(agentAddress);
+            expect(updatedAgentData.reputation).to.equal(80);
+            expect(updatedAgentData.totalRatings).to.equal(1);
+            expect(updatedAgentData.name).to.equal(newAgentName);
+            expect(updatedAgentData.agentUri).to.equal(newAgentUri);
+        });
+
+        it("Should allow multiple updates", async function () {
+            // First update
+            await registry.connect(agentOwner).updateAgentData(
+                agentAddress,
+                "First Update",
+                "https://first-update.com"
+            );
+
+            let agentData = await registry.getAgentData(agentAddress);
+            expect(agentData.name).to.equal("First Update");
+            expect(agentData.agentUri).to.equal("https://first-update.com");
+
+            // Second update
+            await registry.connect(agentOwner).updateAgentData(
+                agentAddress,
+                "Second Update",
+                "https://second-update.com"
+            );
+
+            agentData = await registry.getAgentData(agentAddress);
+            expect(agentData.name).to.equal("Second Update");
+            expect(agentData.agentUri).to.equal("https://second-update.com");
+        });
+    });
 });
