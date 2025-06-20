@@ -75,7 +75,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         string agentUri
     );
 
-    event AgentUnregistered(
+    event AgentRemoved(
         address indexed agent,
         address indexed owner
     );
@@ -384,17 +384,17 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     }
 
     /**
-     * @dev Unregisters an existing agent and removes all associated proposals.
-     * @param agent The address of the agent to unregister.
+     * @dev Removes an existing agent and removes all associated proposals.
+     * @param agent The address of the agent to remove.
      *
      * Requirements:
      *
      * - The caller must be the owner of the agent.
      * - The agent must be registered.
      *
-     * Emits an {AgentUnregistered} event and {ProposalRemoved} events for each removed proposal.
+     * Emits an {AgentRemoved} event and {ProposalRemoved} events for each removed proposal.
      */
-    function unregisterAgent(address agent) external onlyAgentOwner(agent) {
+    function removeAgent(address agent) external onlyAgentOwner(agent) {
         require(agents[agent].agent != address(0), "Agent not registered");
         
         address agentOwner = agents[agent].owner;
@@ -405,7 +405,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
         // Clear agent data
         delete agents[agent];
         
-        emit AgentUnregistered(agent, agentOwner);
+        emit AgentRemoved(agent, agentOwner);
     }
 
     /**
