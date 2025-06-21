@@ -388,7 +388,7 @@ describe("AgentRegistry", function () {
         });
     })
 
-    describe('#UpdateAgentData', () => {
+    describe('#SetAgentData', () => {
         const newAgentName = "Updated Agent Name";
         const newAgentUri = "https://ipfs.io/ipfs/updated-hash";
 
@@ -404,7 +404,7 @@ describe("AgentRegistry", function () {
         });
 
         it("Should successfully update agent data", async function () {
-            const updateTx = registry.connect(agentOwner).updateAgentData(
+            const updateTx = registry.connect(agentOwner).setAgentData(
                 agentAddress,
                 newAgentName,
                 newAgentUri
@@ -429,7 +429,7 @@ describe("AgentRegistry", function () {
             const [, , , unauthorizedUser] = await ethers.getSigners();
             
             await expect(
-                registry.connect(unauthorizedUser).updateAgentData(
+                registry.connect(unauthorizedUser).setAgentData(
                     agentAddress,
                     newAgentName,
                     newAgentUri
@@ -441,7 +441,7 @@ describe("AgentRegistry", function () {
             const [, , , , unregisteredAgent] = await ethers.getSigners();
             
             await expect(
-                registry.connect(unregisteredAgent).updateAgentData(
+                registry.connect(unregisteredAgent).setAgentData(
                     unregisteredAgent.address,
                     newAgentName,
                     newAgentUri
@@ -453,7 +453,7 @@ describe("AgentRegistry", function () {
             const emptyName = "";
             const emptyUri = "";
 
-            const updateTx = registry.connect(agentOwner).updateAgentData(
+            const updateTx = registry.connect(agentOwner).setAgentData(
                 agentAddress,
                 emptyName,
                 emptyUri
@@ -471,7 +471,7 @@ describe("AgentRegistry", function () {
         it("Should allow updating only name", async function () {
             const originalAgentData = await registry.getAgentData(agentAddress);
             
-            await registry.connect(agentOwner).updateAgentData(
+            await registry.connect(agentOwner).setAgentData(
                 agentAddress,
                 newAgentName,
                 originalAgentData.agentUri // Keep original URI
@@ -485,7 +485,7 @@ describe("AgentRegistry", function () {
         it("Should allow updating only URI", async function () {
             const originalAgentData = await registry.getAgentData(agentAddress);
             
-            await registry.connect(agentOwner).updateAgentData(
+            await registry.connect(agentOwner).setAgentData(
                 agentAddress,
                 originalAgentData.name, // Keep original name
                 newAgentUri
@@ -506,7 +506,7 @@ describe("AgentRegistry", function () {
             expect(originalAgentData.totalRatings).to.equal(1);
 
             // Update agent data
-            await registry.connect(agentOwner).updateAgentData(
+            await registry.connect(agentOwner).setAgentData(
                 agentAddress,
                 newAgentName,
                 newAgentUri
@@ -522,7 +522,7 @@ describe("AgentRegistry", function () {
 
         it("Should allow multiple updates", async function () {
             // First update
-            await registry.connect(agentOwner).updateAgentData(
+            await registry.connect(agentOwner).setAgentData(
                 agentAddress,
                 "First Update",
                 "https://first-update.com"
@@ -533,7 +533,7 @@ describe("AgentRegistry", function () {
             expect(agentData.agentUri).to.equal("https://first-update.com");
 
             // Second update
-            await registry.connect(agentOwner).updateAgentData(
+            await registry.connect(agentOwner).setAgentData(
                 agentAddress,
                 "Second Update",
                 "https://second-update.com"

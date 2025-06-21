@@ -358,7 +358,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
     }
 
     /**
-     * @dev Updates the data of an existing agent.
+     * @dev Sets the data of an existing agent.
      * @param agent The address of the agent to update.
      * @param name The new name of the agent.
      * @param agentUri The new URI pointing to the agent's metadata.
@@ -370,7 +370,7 @@ contract AgentsRegistry is Ownable, IProposalStruct {
      *
      * Emits an {AgentDataUpdated} event.
      */
-    function updateAgentData(
+    function setAgentData(
         address agent,
         string memory name,
         string memory agentUri
