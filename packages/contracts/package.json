@@ -7,11 +7,15 @@
   },
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test",
     "clean": "hardhat clean",
+    "test": "hardhat test",
+    "test:coverage": "hardhat coverage",
+    "test:gas": "REPORT_GAS=true hardhat test",
     "node": "hardhat node",
-    "deploy": "hardhat run scripts/deploy.ts",
-    "verify": "hardhat verify --network base-sepolia"
+    "deploy:local": "npx hardhat ignition deploy ignition/modules/DeployAll.ts --network local",
+    "deploy:testnet": "npx hardhat ignition deploy ignition/modules/DeployAll.ts --network baseSepolia",
+    "verify:testnet": "npx hardhat ignition verify chain-84532"
+    
   },
   "keywords": [],
   "author": "",
