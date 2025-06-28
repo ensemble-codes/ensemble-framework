@@ -1,7 +1,7 @@
 # System Patterns: Ensemble Framework
 
 ## Architecture Overview
-The Ensemble Framework follows a modular registry pattern with three core registries managing different aspects of the AI agent economy:
+The Ensemble Framework follows a modular registry pattern with three core registries managing different aspects of the AI agent economy, enhanced with a non-transferable credit system:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -10,7 +10,20 @@ The Ensemble Framework follows a modular registry pattern with three core regist
 │ - Identity      │◄──►│ - Creation      │◄──►│ - Discovery     │
 │ - Capabilities  │    │ - Assignment    │    │ - Matching      │
 │ - Reputation    │    │ - Execution     │    │ - Validation    │
+│ - Removal       │    │ - ERC20 Support │    │ - Pricing       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+         ▲                       ▲                       ▲
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │EnsembleCredits  │
+                    │                 │
+                    │ - Non-transfer  │
+                    │ - Minting       │
+                    │ - Burning       │
+                    │ - Role Control  │
+                    └─────────────────┘
 ```
 
 ## Key Design Patterns
@@ -20,6 +33,7 @@ Each core component implements a registry pattern for:
 - **Standardized Registration**: Consistent interface for entity registration
 - **Efficient Lookups**: Optimized data structures for quick queries
 - **Access Control**: Proper permissions for registration and updates
+- **Lifecycle Management**: Complete CRUD operations including removal
 
 ### 2. Interface Segregation
 - **IAgent.sol** - Agent-specific operations
@@ -31,6 +45,13 @@ Each core component implements a registry pattern for:
 - **Separation of Concerns**: Each registry handles distinct functionality
 - **Loose Coupling**: Registries can operate independently
 - **Extensibility**: New registries can be added without modification
+- **Credit Integration**: Non-transferable token system for economic incentives
+
+### 4. Non-transferable Token Pattern
+- **EnsembleCredits**: Purpose-built for ecosystem rewards and payments
+- **Role-based Minting**: Controlled token creation through access control
+- **Burning Capability**: Token destruction for deflation mechanisms
+- **Self-managing Roles**: Hierarchical permission system
 
 ## Component Relationships
 
@@ -41,6 +62,8 @@ Each core component implements a registry pattern for:
   - Capability tracking and verification
   - Reputation scoring system
   - Access control for agent operations
+  - **Enhanced**: Agent removal with proposal cleanup
+  - **Enhanced**: Agent data updates via `setAgentData`
 
 ### Task Registry
 - **Purpose**: Decentralized task lifecycle management
@@ -49,6 +72,8 @@ Each core component implements a registry pattern for:
   - Assignment mechanisms
   - Progress tracking and validation
   - Completion verification and rewards
+  - **Enhanced**: ERC20 token payment support
+  - **Enhanced**: Comprehensive payment handling
 
 ### Service Registry
 - **Purpose**: Service discovery and matching
@@ -57,6 +82,16 @@ Each core component implements a registry pattern for:
   - Capability-based matching
   - Quality scoring and feedback
   - Economic pricing mechanisms
+
+### EnsembleCredits Token
+- **Purpose**: Ecosystem-specific value transfer and rewards
+- **Key Features**:
+  - Non-transferable ERC20 implementation
+  - 6 decimal precision for micro-transactions
+  - Role-based minting system
+  - Burning capabilities (self and minter-controlled)
+  - Self-managing access control hierarchy
+  - Custom errors for gas efficiency
 
 ## Technical Decisions
 
@@ -70,12 +105,19 @@ Each core component implements a registry pattern for:
 - **Struct Packing**: Optimized storage to reduce gas costs
 - **Event Emissions**: Comprehensive logging for off-chain indexing
 - **State Validation**: Robust checks for data integrity
+- **Custom Errors**: Gas-efficient error handling
 
 ### Security Patterns
 - **Access Control**: Role-based permissions using OpenZeppelin
 - **Reentrancy Guards**: Protection against common attack vectors
 - **Input Validation**: Comprehensive parameter checking
 - **Emergency Controls**: Pause mechanisms for critical operations
+
+### Token Economics
+- **Non-transferable Design**: Prevents speculation and maintains utility focus
+- **Hierarchical Roles**: Minters can manage other minters for scalability
+- **Flexible Supply**: Constructor supports optional initial minting
+- **Burning Mechanisms**: Both user-initiated and minter-controlled destruction
 
 ## Data Flow Patterns
 
@@ -87,10 +129,11 @@ Each core component implements a registry pattern for:
 
 ### Task Execution Flow
 1. Task is created via `createTask()` on TaskRegistry
-2. Eligible agents discover task through events
-3. Agent assigns to task via `assignTask()`
-4. Task execution is tracked and validated
-5. Completion triggers payment through ServiceRegistry
+2. Payment (ETH or ERC20) is held in escrow
+3. Eligible agents discover task through events
+4. Agent assigns to task via `assignTask()`
+5. Task execution is tracked and validated
+6. Completion triggers payment release and potential credit rewards
 
 ### Service Discovery Flow
 1. Services are registered in ServiceRegistry
@@ -98,8 +141,39 @@ Each core component implements a registry pattern for:
 3. Matching algorithm returns compatible services
 4. Selection and engagement occur through smart contracts
 
+### Credit Flow (Planned)
+1. Credits are minted to agents for task completion
+2. Credits can be burned for service payments
+3. Role-based minting allows ecosystem expansion
+4. Non-transferable nature maintains utility focus
+
+### Agent Lifecycle Management
+1. Agent registration with identity and capabilities
+2. Service offering and task participation
+3. Reputation building through task completion
+4. Data updates via `setAgentData` for profile management
+5. Complete removal via `removeAgent` with cleanup
+
 ## Deployment Patterns
 - **Hardhat Ignition**: Declarative deployment management
 - **Multi-Network**: Consistent deployments across chains
 - **Environment Configuration**: Network-specific parameters
-- **Verification**: Automatic contract verification on deployment 
+- **Verification**: Automatic contract verification on deployment
+
+## Recent Enhancements
+
+### Agent Registry Improvements
+- **Agent Removal**: Complete `removeAgent` functionality with proposal cleanup
+- **Data Management**: `setAgentData` for updating agent information
+- **Access Control**: Enhanced ownership validation and security
+
+### Task Registry Enhancements
+- **ERC20 Support**: Full integration of ERC20 token payments
+- **Payment Escrow**: Secure holding and release of task payments
+- **Comprehensive Testing**: Edge cases and error conditions covered
+
+### Credit System Integration
+- **Token Implementation**: Complete EnsembleCredits contract
+- **Role Management**: Self-managing minter hierarchy
+- **Gas Optimization**: Custom errors and efficient operations
+- **Security**: Comprehensive validation and access controls 

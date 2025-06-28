@@ -1,7 +1,7 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
-describe("ServiceRegistry", function () {
+describe("ServiceRegistryUpgradeable", function () {
     let ServiceRegistry;
     let registry;
     let owner, addr1;
@@ -15,8 +15,11 @@ describe("ServiceRegistry", function () {
 
     beforeEach(async function () {
         [owner, addr1] = await ethers.getSigners();
-        ServiceRegistry = await ethers.getContractFactory("ServiceRegistry");
-        registry = await ServiceRegistry.deploy();
+        ServiceRegistry = await ethers.getContractFactory("ServiceRegistryUpgradeable");
+        registry = await upgrades.deployProxy(ServiceRegistry, [], {
+            initializer: "initialize",
+            kind: "uups"
+        });
     });
 
     it("Should register a new service", async function () {

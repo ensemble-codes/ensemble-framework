@@ -1,5 +1,4 @@
-
-import { TaskRegistry } from "../typechain-types";
+import { TaskRegistryUpgradeable } from "../typechain-types";
 require('dotenv').config('../.env');
 
 const hre = require("hardhat");
@@ -13,8 +12,8 @@ async function main() {
     console.log("account address:", deployer.address);
 
     // Get the deployed contract instance
-    const TaskRegistry = await hre.ethers.getContractFactory("TaskRegistry");
-    const taskRegistry = await TaskRegistry.attach(taskRegistryAddress) as TaskRegistry;
+    const TaskRegistry = await hre.ethers.getContractFactory("TaskRegistryUpgradeable");
+    const taskRegistry = await TaskRegistry.attach(taskRegistryAddress) as TaskRegistryUpgradeable;
 
     try {
         // Create a task without ignition
@@ -24,7 +23,7 @@ async function main() {
         );
         // Wait for the transaction to be mined
         const simpleTaskReceipt = await simpleTask.wait();
-        console.log("Simple task created in tx:", simpleTaskReceipt.hash);
+        console.log("Simple task created in tx:", simpleTaskReceipt?.hash);
 
 
         // const secondTask = await taskRegistry.createTask(
