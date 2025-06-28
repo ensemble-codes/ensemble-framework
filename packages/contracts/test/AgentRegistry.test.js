@@ -1,8 +1,8 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 const AgentRegistryV1Artifact = require('./artifacts/AgentsRegistryV1.json')
 
-describe("AgentRegistry", function () {
+describe("AgentsRegistryUpgradeable", function () {
     let AgentRegistry;
     let agentRegistryV1
     let registry;
@@ -14,17 +14,29 @@ describe("AgentRegistry", function () {
     beforeEach(async function () {
         [admin, agentOwner, agentAddress, eveAddress] = await ethers.getSigners();
         
-        const ServiceRegistry = await ethers.getContractFactory("ServiceRegistry");
-        serviceRegistry = await ServiceRegistry.deploy();
+        // Deploy ServiceRegistryUpgradeable
+        const ServiceRegistry = await ethers.getContractFactory("ServiceRegistryUpgradeable");
+        serviceRegistry = await upgrades.deployProxy(ServiceRegistry, [], {
+            initializer: "initialize",
+            kind: "uups"
+        });
 
-        const ServiceRegistryV1 = await ethers.getContractFactory("ServiceRegistry");
-        serviceRegistryV1 = await ServiceRegistryV1.deploy();
+        // Deploy legacy ServiceRegistry for V1 compatibility
+        const ServiceRegistryV1 = await ethers.getContractFactory("ServiceRegistryUpgradeable");
+        serviceRegistryV1 = await upgrades.deployProxy(ServiceRegistryV1, [], {
+            initializer: "initialize",
+            kind: "uups"
+        });
 
         const AgentRegistryV1 = await ethers.getContractFactoryFromArtifact(AgentRegistryV1Artifact);
         agentRegistryV1 = await AgentRegistryV1.deploy(serviceRegistryV1.target);
 
-        AgentRegistry = await ethers.getContractFactory("AgentsRegistry");
-        registry = await AgentRegistry.deploy(agentRegistryV1.target, serviceRegistry.target);
+        // Deploy AgentsRegistryUpgradeable
+        AgentRegistry = await ethers.getContractFactory("AgentsRegistryUpgradeable");
+        registry = await upgrades.deployProxy(AgentRegistry, [agentRegistryV1.target, serviceRegistry.target], {
+            initializer: "initialize",
+            kind: "uups"
+        });
     });
 
     describe('#Setters', () => {

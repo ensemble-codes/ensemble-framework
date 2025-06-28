@@ -7,7 +7,18 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IProposalStruct.sol";
 import "./interfaces/IAgentRegistryV1.sol";
-import "./ServiceRegistry.sol";
+
+// Interface for V1 ServiceRegistry compatibility
+interface IServiceRegistryV1 {
+    struct Service {
+        string name;
+        string category;
+        string description;
+        bool isActive;
+    }
+    
+    function getService(string memory serviceName) external view returns (Service memory);
+}
 
 /**
  * @title AgentsRegistryUpgradeable
@@ -386,11 +397,11 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
             address serviceRegistryV1Addr = IAgentRegistryV1(agentRegistryV1)
                 .serviceRegistry();
 
-            ServiceRegistry serviceRegistryV1 = ServiceRegistry(
+            IServiceRegistryV1 serviceRegistryV1 = IServiceRegistryV1(
                 serviceRegistryV1Addr
             );
 
-            ServiceRegistry.Service memory service = serviceRegistryV1
+            IServiceRegistryV1.Service memory service = serviceRegistryV1
                 .getService(serviceName);
 
             serviceRegistry.registerService(

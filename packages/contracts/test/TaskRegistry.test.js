@@ -1,8 +1,8 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 const AgentRegistryV1Artifact = require('./artifacts/AgentsRegistryV1.json')
 
-describe("TaskRegistry", function () {
+describe("TaskRegistryUpgradeable", function () {
     let TaskRegistry, taskRegistry, AgentsRegistry, agentsRegistry;
     let agentOwner, agentAddress, taskIssuer, eveAddress;
     let taskPrice = ethers.parseEther("0.01");
@@ -54,20 +54,36 @@ describe("TaskRegistry", function () {
     beforeEach(async function () {
         [taskIssuer, agentOwner, agentAddress, eveAddress] = await ethers.getSigners();
         
-        ServiceRegistry = await ethers.getContractFactory("ServiceRegistry");
-        serviceRegistry = await ServiceRegistry.deploy()
+        // Deploy ServiceRegistryUpgradeable
+        const ServiceRegistry = await ethers.getContractFactory("ServiceRegistryUpgradeable");
+        serviceRegistry = await upgrades.deployProxy(ServiceRegistry, [], {
+            initializer: "initialize",
+            kind: "uups"
+        });
         
-        const ServiceRegistryV1 = await ethers.getContractFactory("ServiceRegistry");
-        const serviceRegistryV1 = await ServiceRegistryV1.deploy();
+        // Deploy legacy ServiceRegistry for V1 compatibility
+        const ServiceRegistryV1 = await ethers.getContractFactory("ServiceRegistryUpgradeable");
+        const serviceRegistryV1 = await upgrades.deployProxy(ServiceRegistryV1, [], {
+            initializer: "initialize",
+            kind: "uups"
+        });
 
         const AgentRegistryV1 = await ethers.getContractFactoryFromArtifact(AgentRegistryV1Artifact);
         const agentRegistryV1 = await AgentRegistryV1.deploy(serviceRegistryV1.target);
 
-        AgentsRegistry = await ethers.getContractFactory("AgentsRegistry");
-        agentsRegistry = await AgentsRegistry.deploy(agentRegistryV1.target, serviceRegistry.target);
+        // Deploy AgentsRegistryUpgradeable
+        AgentsRegistry = await ethers.getContractFactory("AgentsRegistryUpgradeable");
+        agentsRegistry = await upgrades.deployProxy(AgentsRegistry, [agentRegistryV1.target, serviceRegistry.target], {
+            initializer: "initialize",
+            kind: "uups"
+        });
 
-        TaskRegistry = await ethers.getContractFactory("TaskRegistry");
-        taskRegistry = await TaskRegistry.deploy(1, agentsRegistry.target);
+        // Deploy TaskRegistryUpgradeable
+        TaskRegistry = await ethers.getContractFactory("TaskRegistryUpgradeable");
+        taskRegistry = await upgrades.deployProxy(TaskRegistry, [1, agentsRegistry.target], {
+            initializer: "initialize",
+            kind: "uups"
+        });
     });
 
     describe("createTask", function () {
