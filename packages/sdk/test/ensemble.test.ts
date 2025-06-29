@@ -113,7 +113,7 @@ describe("Ensemble Unit Tests", () => {
     );
 
     await expect(
-      sdk.registerAgent(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
+      sdk.registerAgentWithService(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
     ).rejects.toThrow(ServiceNotRegisteredError);
   });
 
@@ -141,7 +141,7 @@ describe("Ensemble Unit Tests", () => {
 
     agentService.registerAgentWithService.mockResolvedValueOnce(true);
 
-    const isRegistered = await sdk.registerAgent(
+    const isRegistered = await sdk.registerAgentWithService(
       agentAddress,
       agentMetadata,
       serviceName,
@@ -179,7 +179,7 @@ describe("Ensemble Unit Tests", () => {
     const servicePrice = 100;
 
     await expect(
-      sdk.registerAgent(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
+      sdk.registerAgentWithService(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
     ).rejects.toThrow(AgentAlreadyRegisteredError);
   });
 
