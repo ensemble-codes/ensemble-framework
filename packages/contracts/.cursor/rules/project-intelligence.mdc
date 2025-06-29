@@ -3,3 +3,113 @@ description:
 globs:
 alwaysApply: false
 ---
+# Ensemble Framework Project Intelligence
+
+## Critical Project Patterns
+
+### Memory Bank Accuracy is Essential
+- **Memory Bank Discrepancies**: Previous memory bank claimed EnsembleCredits had "39 comprehensive tests" but the test file doesn't exist
+- **Always Verify**: Check actual file existence before claiming completion status
+- **Current Reality**: EnsembleCredits.sol exists (222 lines, fully implemented) but has zero test coverage
+
+### Current Branch Context: feat/agent-regsitry-fixes
+- **Recent Enhancements**: Agent removal, data updates, ERC20 task support all recently implemented
+- **Test Coverage**: 69 passing tests for registries, but EnsembleCredits completely untested
+- **Git History**: Shows active development with significant recent improvements
+
+### Testing Priorities
+- **Critical Gap**: EnsembleCredits needs comprehensive test suite before deployment
+- **Test Pattern**: Existing tests show preference for thorough edge case coverage
+- **Integration Focus**: Tests should verify interaction with existing registry system
+
+### Contract Implementation Quality
+- **EnsembleCredits**: Well-implemented with proper OpenZeppelin patterns, custom errors, comprehensive NatSpec
+- **Security**: Follows established patterns with role-based access control
+- **Gas Optimization**: Uses custom errors instead of string messages
+- **Architecture**: Clean inheritance from ERC20, ERC20Burnable, AccessControl
+
+### Deployment Strategy
+- **Base Sepolia**: Current deployment target for testing
+- **Multi-network**: Framework designed for multiple EVM chains
+- **Verification**: Automatic contract verification expected
+- **Staging**: Test thoroughly before production deployment
+
+### Development Workflow Preferences
+- **Comprehensive Testing**: All registry contracts have extensive test coverage
+- **Security First**: OpenZeppelin patterns used throughout
+- **Documentation**: NatSpec comments expected for all public functions
+- **Error Handling**: Custom errors preferred for gas efficiency
+
+### Key Technical Decisions
+- **Non-transferable Tokens**: EnsembleCredits designed to prevent speculation
+- **6 Decimal Precision**: Optimized for micro-transactions
+- **Self-managing Roles**: Minters can add/remove other minters
+- **Registry Pattern**: Consistent pattern across all core contracts
+
+## Project-Specific Insights
+
+### EnsembleCredits Integration Strategy
+- **Purpose**: Ecosystem rewards and service payments
+- **Integration Points**: Should connect with TaskRegistry for automatic rewards
+- **Economic Model**: Non-transferable design maintains utility focus
+- **Scalability**: Role hierarchy allows ecosystem growth
+
+### Agent Registry Evolution
+- **Lifecycle Management**: Full CRUD operations including removal
+- **Proposal Cleanup**: Agent removal includes associated proposal cleanup
+- **Data Updates**: `setAgentData` allows profile modifications
+- **Access Control**: Strong ownership validation throughout
+
+### Task Registry Enhancements
+- **Payment Flexibility**: Both ETH and ERC20 token support
+- **Escrow System**: Secure payment holding and release
+- **Completion Tracking**: Comprehensive task lifecycle management
+- **Integration Ready**: Prepared for credit system integration
+
+## Development Standards
+
+### Test Requirements
+- **Comprehensive Coverage**: Edge cases, security scenarios, gas optimization
+- **Integration Testing**: Cross-contract workflow verification
+- **Error Testing**: Custom error validation
+- **Performance Testing**: Gas limit compliance
+
+### Code Quality Expectations
+- **Security Patterns**: Follow OpenZeppelin standards
+- **Documentation**: Complete NatSpec for all public functions
+- **Error Handling**: Custom errors with descriptive names
+- **Event Emission**: All state changes properly logged
+
+### Deployment Checklist
+- **Test Coverage**: Complete test suite required
+- **Contract Verification**: Source code verification on deployment
+- **Documentation**: Update README and deployment records
+- **Integration Testing**: Verify interaction with existing contracts
+
+## Current Session Learnings
+
+### Memory Bank Maintenance
+- **Accuracy Critical**: Inaccurate status claims can mislead development
+- **Regular Verification**: Always check actual file existence and test results
+- **Status Tracking**: Distinguish between implemented and tested features
+
+### Project State Assessment
+- **Registry System**: Mature and well-tested (69 passing tests)
+- **Credit System**: Implemented but untested (critical gap)
+- **Recent Improvements**: Significant enhancements in current branch
+- **Deployment Readiness**: Registries ready, credits need testing
+
+### Next Session Priorities
+- **EnsembleCredits Testing**: Absolute priority - comprehensive test suite needed
+- **Contract Verification**: Ensure compilation and basic functionality
+- **Integration Planning**: Design credit ecosystem workflows
+- **Documentation Accuracy**: Keep memory bank aligned with reality
+
+## Configuration Migration Notes
+
+### Cursor Rules Migration
+- **Date**: Current session
+- **Action**: Migrated from deprecated `.cursorrules` to `.cursor/rules/project-intelligence.mdc`
+- **Reason**: `.cursorrules` files are deprecated in favor of `.mdc` files in `.cursor/rules/` directory
+- **Format**: Markdown format with project-specific intelligence and patterns
+- **Maintenance**: This file should be updated as project patterns and insights evolve

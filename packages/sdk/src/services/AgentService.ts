@@ -23,18 +23,14 @@ export class AgentService {
   }
 
   /**
-   * Registers a new agent.
-   * @param {string} address - The address of the agent..
+   * Registers a new agent without service.
+   * @param {string} address - The address of the agent.
    * @param {AgentMetadata} metadata - The metadata of the agent.
-   * @param {string} serviceName - The name of the service.
-   * @param {number} servicePrice - The price of the service.
-   * @returns {Promise<string>} A promise that resolves to the agent address.
+   * @returns {Promise<boolean>} A promise that resolves to the agent registration status.
    */
   async registerAgent(
     address: string,
-    metadata: AgentMetadata,
-    serviceName: string,
-    servicePrice: number
+    metadata: AgentMetadata
   ): Promise<boolean> {
     try {
       if (!this.ipfsSDK) {
@@ -48,9 +44,56 @@ export class AgentService {
       const tx = await this.agentRegistry.registerAgent(
         address,
         metadata.name,
+        agentURI
+      );
+
+      console.log(`transaction to register agent was sent. tx: ${tx}`);
+      
+      await tx.wait();
+
+      return true;
+    } catch (error: any) {
+      console.error({ error });
+      if (error.reason === "Agent already registered") {
+        throw new AgentAlreadyRegisteredError(error.reason);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Registers a new agent with service.
+   * @param {string} address - The address of the agent..
+   * @param {AgentMetadata} metadata - The metadata of the agent.
+   * @param {string} serviceName - The name of the service.
+   * @param {number} servicePrice - The price of the service.
+   * @param {string} tokenAddress - The token address for payment.
+   * @returns {Promise<boolean>} A promise that resolves to the agent registration status.
+   */
+  async registerAgentWithService(
+    address: string,
+    metadata: AgentMetadata,
+    serviceName: string,
+    servicePrice: number,
+    tokenAddress: string = "0x0000000000000000000000000000000000000000" // Default to zero address for ETH
+  ): Promise<boolean> {
+    try {
+      if (!this.ipfsSDK) {
+        throw new Error("IPFS SDK is not initialized");
+      }
+      console.log(`registering agent ${address} with metadata: ${metadata}`);
+      
+      const uploadResponse = await this.ipfsSDK.upload.json(metadata);
+      const agentURI = `ipfs://${uploadResponse.IpfsHash}`;
+
+      const tx = await this.agentRegistry.registerAgentWithProposal(
+        address,
+        metadata.name,
         agentURI,
         serviceName,
-        servicePrice
+        servicePrice,
+        tokenAddress
       );
 
       console.log(`transaction to register agent was sent. tx: ${tx}`);
@@ -75,18 +118,21 @@ export class AgentService {
    * @param {string} agentAddress The address of the agent.
    * @param {string} serviceName The name of the service.
    * @param {number} servicePrice The price of the service.
+   * @param {string} tokenAddress The token address for payment.
    * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if the proposal was added.
    */
   async addProposal(
     agentAddress: string,
     serviceName: string,
-    servicePrice: number
+    servicePrice: number,
+    tokenAddress: string
   ): Promise<boolean> {
     try {
       const tx = await this.agentRegistry.addProposal(
         agentAddress,
         serviceName,
-        servicePrice
+        servicePrice,
+        tokenAddress
       );
 
       const receipt = await tx.wait();
@@ -153,6 +199,7 @@ export class AgentService {
       issuer,
       price,
       serviceName,
+      tokenAddress,
       isActive,
     } = await this.agentRegistry.getProposal(proposalId);
 
@@ -161,6 +208,7 @@ export class AgentService {
       issuer,
       price,
       serviceName,
+      tokenAddress,
       isActive,
     };
   }

@@ -29,6 +29,7 @@ describe("Ensemble Unit Tests", () => {
 
     agentService = {
       registerAgent: jest.fn(),
+      registerAgentWithService: jest.fn(),
     } as unknown as jest.Mocked<AgentService>;
 
     serviceRegistryService = {
@@ -107,12 +108,12 @@ describe("Ensemble Unit Tests", () => {
     const serviceName = "Bull-Post-test";
     const servicePrice = 100;
 
-    agentService.registerAgent.mockRejectedValueOnce(
+    agentService.registerAgentWithService.mockRejectedValueOnce(
       new ServiceNotRegisteredError("Service not registered")
     );
 
     await expect(
-      sdk.registerAgent(agentAddress, agentMetadata, serviceName, servicePrice)
+      sdk.registerAgent(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
     ).rejects.toThrow(ServiceNotRegisteredError);
   });
 
@@ -138,13 +139,14 @@ describe("Ensemble Unit Tests", () => {
     const serviceName = "Bull-Post";
     const servicePrice = 100;
 
-    agentService.registerAgent.mockResolvedValueOnce(true);
+    agentService.registerAgentWithService.mockResolvedValueOnce(true);
 
     const isRegistered = await sdk.registerAgent(
       agentAddress,
       agentMetadata,
       serviceName,
-      servicePrice
+      servicePrice,
+      "0x0000000000000000000000000000000000000000" // ETH address
     );
 
     expect(isRegistered).toEqual(true);
@@ -168,7 +170,7 @@ describe("Ensemble Unit Tests", () => {
       ],
     };
 
-    agentService.registerAgent.mockRejectedValueOnce(
+    agentService.registerAgentWithService.mockRejectedValueOnce(
       new AgentAlreadyRegisteredError("Agent already registered")
     );
 
@@ -177,7 +179,7 @@ describe("Ensemble Unit Tests", () => {
     const servicePrice = 100;
 
     await expect(
-      sdk.registerAgent(agentAddress, agentMetadata, serviceName, servicePrice)
+      sdk.registerAgent(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
     ).rejects.toThrow(AgentAlreadyRegisteredError);
   });
 
@@ -248,5 +250,36 @@ describe("Ensemble Unit Tests", () => {
     });
 
     expect(response).toEqual(task);
+  });
+
+  it("should register an agent without service successfully", async () => {
+    const agentMetadata: AgentMetadata = {
+      name: "Agent-test-only",
+      description: "This is an agent for testing without service.",
+      imageURI: "https://example.com/image.jpg",
+      socials: {
+        twitter: "https://twitter.com/agent-test",
+        telegram: "https://t.me/agent-test",
+        dexscreener: "https://dexscreener.com/agent-test",
+      },
+      attributes: [
+        {
+          trait_type: "Test",
+          value: "Test",
+        },
+      ],
+    };
+
+    const agentAddress = process.env.AGENT_ADDRESS!;
+
+    agentService.registerAgent.mockResolvedValueOnce(true);
+
+    const isRegistered = await sdk.registerAgentOnly(
+      agentAddress,
+      agentMetadata
+    );
+
+    expect(isRegistered).toEqual(true);
+    expect(agentService.registerAgent).toHaveBeenCalledWith(agentAddress, agentMetadata);
   });
 });
