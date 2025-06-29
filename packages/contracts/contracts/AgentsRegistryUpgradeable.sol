@@ -164,7 +164,7 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
      *
      * Emits an {AgentRegistered} event.
      */
-    function registerAgentWithProposal(
+    function registerAgentWithService(
         address agent,
         string memory name,
         string memory agentUri,

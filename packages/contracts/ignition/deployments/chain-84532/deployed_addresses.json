@@ -1,15 +1,12 @@
 {
-  "ServiceRegistryModule#ServiceRegistry": "0x66e2CF8e1Db59eAeD279b1f5c0175a6467850917",
-  "AgentsRegistryModule#AgentsRegistry": "0x3bEA054766f3D2E00AAbaAD2A2AC7beB9fCF0427",
-  "TaskRegistryModule#TaskRegistry": "0x75292f428E6bDb5AD6328C3f76618CB419EEe2bc",
-  "AgentsRegistryUpgradeableModule#AgentsRegistryImpl": "0x45730092C2B33D429a267cCD78D37132154E7078",
-  "EnsembleCreditsModule#EnsembleCredits": "0x7711567FffbE20D139F1812DF2AA91128D8566aF",
-  "ServiceRegistryUpgradeableModule#ServiceRegistryImpl": "0x9c258D501BdBfA19336eA3a86c58d364CF6F484D",
-  "TaskRegistryUpgradeableModule#TaskRegistryImpl": "0x3e9152547b24e32c18Df8ED0D843441e8194AFF1",
-  "ServiceRegistryUpgradeableModule#ServiceRegistryProxy": "0x28E1cB14bAd2b158ff687cD291645e7e2921D298",
-  "ServiceRegistryUpgradeableModule#ServiceRegistryProxied": "0x28E1cB14bAd2b158ff687cD291645e7e2921D298",
-  "AgentsRegistryUpgradeableModule#AgentsRegistryProxy": "0xc6DA0349A9F6a0D561e554594D0de237341c4A2F",
-  "AgentsRegistryUpgradeableModule#AgentsRegistryProxied": "0xc6DA0349A9F6a0D561e554594D0de237341c4A2F",
-  "TaskRegistryUpgradeableModule#TaskRegistryProxy": "0xAaB5Df56Cdc889419A242E317e0FF6c45C343cCD",
-  "TaskRegistryUpgradeableModule#TaskRegistryProxied": "0xAaB5Df56Cdc889419A242E317e0FF6c45C343cCD"
+  "AgentsRegistryUpgradeableModule#AgentsRegistryImpl": "0x54D38F096926915daae83f4F2a774EfA27a5Bc97",
+  "EnsembleCreditsModule#EnsembleCredits": "0x42b3286d260036568E1447Ff7D4F45a21E5120F1",
+  "ServiceRegistryUpgradeableModule#ServiceRegistryImpl": "0xa426a6874aCA4Af6A645F215c650a1643AC3E2fe",
+  "TaskRegistryUpgradeableModule#TaskRegistryImpl": "0x025a5d27FF77d77019e21e64B857D825B2082DBa",
+  "ServiceRegistryUpgradeableModule#ServiceRegistryProxy": "0x3Acbf1Ca047a18bE88E7160738A9B0bB64203244",
+  "ServiceRegistryUpgradeableModule#ServiceRegistryProxied": "0x3Acbf1Ca047a18bE88E7160738A9B0bB64203244",
+  "AgentsRegistryUpgradeableModule#AgentsRegistryProxy": "0xDbF645cC23066cc364C4Db915c78135eE52f11B2",
+  "AgentsRegistryUpgradeableModule#AgentsRegistryProxied": "0xDbF645cC23066cc364C4Db915c78135eE52f11B2",
+  "TaskRegistryUpgradeableModule#TaskRegistryProxy": "0x847fA49b999489fD2780fe2843A7b1608106b49b",
+  "TaskRegistryUpgradeableModule#TaskRegistryProxied": "0x847fA49b999489fD2780fe2843A7b1608106b49b"
 }

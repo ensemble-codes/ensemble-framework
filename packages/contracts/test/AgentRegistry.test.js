@@ -183,13 +183,13 @@ describe("AgentsRegistryUpgradeable", function () {
         });
     })
 
-    describe('#registerAgentWithProposal', () => {
+    describe('#registerAgentWithService', () => {
         this.beforeEach(async function () {
             await serviceRegistry.registerService("Service1", "Category1", "Description1");
         })
         it("Should not register an agent if the service is not registered", async function () {
             await expect(
-                registry.connect(agentOwner).registerAgentWithProposal(
+                registry.connect(agentOwner).registerAgentWithService(
                     agentAddress,
                     "Service Agent",
                     agentUri,
@@ -201,7 +201,7 @@ describe("AgentsRegistryUpgradeable", function () {
         });
 
         it("Should register new agent", async function () {
-            const request = registry.connect(agentOwner).registerAgentWithProposal(
+            const request = registry.connect(agentOwner).registerAgentWithService(
                 agentAddress,
                 "Service Agent",
                 agentUri,
@@ -233,7 +233,7 @@ describe("AgentsRegistryUpgradeable", function () {
         });
 
         it("Should not register the same agent twice", async function () {
-            await registry.connect(agentOwner).registerAgentWithProposal(
+            await registry.connect(agentOwner).registerAgentWithService(
                 agentAddress,
                 "Service Agent",
                 agentUri,
@@ -243,7 +243,7 @@ describe("AgentsRegistryUpgradeable", function () {
             );
 
             await expect(
-                registry.connect(agentOwner).registerAgentWithProposal(
+                registry.connect(agentOwner).registerAgentWithService(
                     agentAddress,
                     "Service Agent",
                     agentUri,
@@ -259,7 +259,7 @@ describe("AgentsRegistryUpgradeable", function () {
     describe('#Proposals', () => {
 
         beforeEach(async function () {
-            await registry.connect(agentOwner).registerAgentWithProposal(
+            await registry.connect(agentOwner).registerAgentWithService(
                 agentAddress,
                 "Service Agent",
                 agentUri,
@@ -321,7 +321,7 @@ describe("AgentsRegistryUpgradeable", function () {
     describe('#Reputation', () => {
 
         beforeEach(async () => {
-            await registry.connect(agentOwner).registerAgentWithProposal(
+            await registry.connect(agentOwner).registerAgentWithService(
                 agentAddress,
                 "Service Agent",
                 agentUri,
@@ -405,7 +405,7 @@ describe("AgentsRegistryUpgradeable", function () {
         const newAgentUri = "https://ipfs.io/ipfs/updated-hash";
 
         beforeEach(async function () {
-            await registry.connect(agentOwner).registerAgentWithProposal(
+            await registry.connect(agentOwner).registerAgentWithService(
                 agentAddress,
                 "Service Agent",
                 agentUri,
@@ -560,7 +560,7 @@ describe("AgentsRegistryUpgradeable", function () {
     describe('#RemoveAgent', () => {
         beforeEach(async function () {
             await serviceRegistry.registerService("RemoveService", "Category1", "Description1");
-            await registry.connect(agentOwner).registerAgentWithProposal(
+            await registry.connect(agentOwner).registerAgentWithService(
                 agentAddress,
                 "Service Agent",
                 agentUri,
