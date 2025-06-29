@@ -11,7 +11,7 @@ describe("TaskRegistryUpgradeable", function () {
 
     async function setupWithEthProposal() {
         await serviceRegistry.registerService("Service1", "Category1", "Description1");
-        await agentsRegistry.connect(agentOwner).registerAgentWithProposal(
+        await agentsRegistry.connect(agentOwner).registerAgentWithService(
             agentAddress,
             "Service Agent",
             "https://uri",
@@ -35,7 +35,7 @@ describe("TaskRegistryUpgradeable", function () {
         await serviceRegistry.registerService("Service1", "Category1", "Description1");
         
         // Register agent with ERC20 proposal
-        await agentsRegistry.connect(agentOwner).registerAgentWithProposal(
+        await agentsRegistry.connect(agentOwner).registerAgentWithService(
             agentAddress,
             "Service Agent",
             "https://uri",
