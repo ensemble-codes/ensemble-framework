@@ -723,7 +723,7 @@
         "type": "address"
       }
     ],
-    "name": "registerAgentWithProposal",
+    "name": "registerAgentWithService",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -161,7 +161,7 @@ export interface AddProposalParams {
   tokenAddress: string;
 }
 
-export interface RegisterAgentWithProposalParams {
+export interface registerAgentWithServiceParams {
   agentAddress: string;
   name: string;
   agentUri: string;

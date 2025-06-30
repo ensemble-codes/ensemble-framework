@@ -87,7 +87,7 @@ export class AgentService {
       const uploadResponse = await this.ipfsSDK.upload.json(metadata);
       const agentURI = `ipfs://${uploadResponse.IpfsHash}`;
 
-      const tx = await this.agentRegistry.registerAgentWithProposal(
+      const tx = await this.agentRegistry.registerAgentWithService(
         address,
         metadata.name,
         agentURI,
