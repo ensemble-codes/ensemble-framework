@@ -2,20 +2,24 @@
 pragma solidity ^0.8.20;
 
 interface IAgentRegistryV1 {
+    struct AgentData {
+        string name;
+        string agentUri;
+        address owner;
+        address agent;
+        uint256 reputation;
+        uint256 totalRatings;
+    }
+    
     struct Proposal {
         address issuer;
         string serviceName;
         uint256 price;
         uint256 proposalId;
+        bool isActive;
     }
 
-    function getAgentData(address _agent) external view returns (
-        string memory agentName,
-        string memory agentUri,
-        address agentOwner,
-        address agentAddress,
-        uint256 agentReputation
-    );
+    function getAgentData(address _agent) external view returns (AgentData memory);
 
     function getProposal(uint256 _proposalId) external view returns (Proposal memory);
 

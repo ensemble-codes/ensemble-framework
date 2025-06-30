@@ -16,7 +16,8 @@ async function main() {
         attributes: agent.attributes
       }, 
       agent.serviceName, 
-      agent.servicePrice
+      agent.servicePrice,
+      "0x0000000000000000000000000000000000000000" // ETH address
     );
   }
 
