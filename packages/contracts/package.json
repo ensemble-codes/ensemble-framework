@@ -1,17 +1,21 @@
 {
-  "name": "ensemble-ai-agents",
-  "version": "1.0.0",
+  "name": "ensemble-contracts",
+  "version": "0.3.2",
   "main": "hardhat.config.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test",
     "clean": "hardhat clean",
+    "test": "hardhat test",
+    "test:coverage": "hardhat coverage",
+    "test:gas": "REPORT_GAS=true hardhat test",
     "node": "hardhat node",
-    "deploy": "hardhat run scripts/deploy.ts",
-    "verify": "hardhat verify --network base-sepolia"
+    "deploy:local": "npx hardhat ignition deploy ignition/modules/DeployAll.ts --network local",
+    "deploy:testnet": "npx hardhat ignition deploy ignition/modules/DeployAll.ts --network baseSepolia",
+    "verify:testnet": "npx hardhat ignition verify chain-84532"
+    
   },
   "keywords": [],
   "author": "",
@@ -22,10 +26,14 @@
     "@nomicfoundation/hardhat-ignition-ethers": "0.15.8",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^5.1.0",
+    "@openzeppelin/contracts-upgradeable": "5.3.0",
     "chai": "4.5.0",
     "dotenv": "16.4.5",
     "ensemble-sdk": "file:../sdk",
     "hardhat": "^2.22.18",
     "solidity-coverage": "0.8.14"
+  },
+  "devDependencies": {
+    "@openzeppelin/hardhat-upgrades": "3.9.0"
   }
 }

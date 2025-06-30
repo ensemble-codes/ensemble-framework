@@ -1,27 +1,58 @@
 import hre from "hardhat";
-import AgentsRegistry from "../ignition/modules/AgentsRegistry";
-import TaskRegistry from "../ignition/modules/TaskRegistry";
-import ServiceRegistry from "../ignition/modules/ServiceRegistry";
+import { upgrades } from "hardhat";
 
 async function main(): Promise<void> {
     const [deployer] = await hre.ethers.getSigners();
 
     console.log(`Deployer address: ${deployer.address}`);
 
-    // Deploy AgentsRegistry
-    const { agentsRegistry } = await hre.ignition.deploy(AgentsRegistry);
+    // Deploy ServiceRegistryUpgradeable first (no dependencies)
+    console.log("Deploying ServiceRegistryUpgradeable...");
+    const ServiceRegistry = await hre.ethers.getContractFactory("ServiceRegistryUpgradeable");
+    const serviceRegistry = await upgrades.deployProxy(ServiceRegistry, [], {
+        initializer: "initialize",
+        kind: "uups"
+    });
+    await serviceRegistry.waitForDeployment();
+    const serviceRegistryAddress = await serviceRegistry.getAddress();
+    console.log(`SERVICE_REGISTRY_ADDRESS=${serviceRegistryAddress}`);
+
+    // For AgentsRegistry, we need a V1 registry address - let's create a mock one
+    console.log("Deploying mock V1 registry for compatibility...");
+    const mockV1Registry = await upgrades.deployProxy(ServiceRegistry, [], {
+        initializer: "initialize", 
+        kind: "uups"
+    });
+    await mockV1Registry.waitForDeployment();
+    const mockV1Address = await mockV1Registry.getAddress();
+
+    // Deploy AgentsRegistryUpgradeable (depends on ServiceRegistry)
+    console.log("Deploying AgentsRegistryUpgradeable...");
+    const AgentsRegistry = await hre.ethers.getContractFactory("AgentsRegistryUpgradeable");
+    const agentsRegistry = await upgrades.deployProxy(AgentsRegistry, [mockV1Address, serviceRegistryAddress], {
+        initializer: "initialize",
+        kind: "uups"
+    });
+    await agentsRegistry.waitForDeployment();
     const agentRegistryAddress = await agentsRegistry.getAddress();
     console.log(`AGENT_REGISTRY_ADDRESS=${agentRegistryAddress}`);
 
-    // Deploy TaskRegistry
-    const { taskRegistry } = await hre.ignition.deploy(TaskRegistry);
+    // Deploy TaskRegistryUpgradeable (depends on AgentsRegistry)
+    console.log("Deploying TaskRegistryUpgradeable...");
+    const TaskRegistry = await hre.ethers.getContractFactory("TaskRegistryUpgradeable");
+    const taskRegistry = await upgrades.deployProxy(TaskRegistry, [1, agentRegistryAddress], {
+        initializer: "initialize",
+        kind: "uups"
+    });
+    await taskRegistry.waitForDeployment();
     const taskRegistryAddress = await taskRegistry.getAddress();
     console.log(`TASK_REGISTRY_ADDRESS=${taskRegistryAddress}`);
 
-    // Deploy ServiceRegistry
-    const { serviceRegistry } = await hre.ignition.deploy(ServiceRegistry);
-    const serviceRegistryAddress = await serviceRegistry.getAddress();
-    console.log(`SERVICE_REGISTRY_ADDRESS=${serviceRegistryAddress}`);
+    console.log("\n=== Deployment Summary ===");
+    console.log(`ServiceRegistry: ${serviceRegistryAddress}`);
+    console.log(`AgentsRegistry: ${agentRegistryAddress}`);
+    console.log(`TaskRegistry: ${taskRegistryAddress}`);
+    console.log(`Mock V1 Registry: ${mockV1Address}`);
 
     // Uncomment the lines below if you want to create tasks for testing
     /*

@@ -29,6 +29,7 @@ describe("Ensemble Unit Tests", () => {
 
     agentService = {
       registerAgent: jest.fn(),
+      registerAgentWithService: jest.fn(),
     } as unknown as jest.Mocked<AgentService>;
 
     serviceRegistryService = {
@@ -107,12 +108,12 @@ describe("Ensemble Unit Tests", () => {
     const serviceName = "Bull-Post-test";
     const servicePrice = 100;
 
-    agentService.registerAgent.mockRejectedValueOnce(
+    agentService.registerAgentWithService.mockRejectedValueOnce(
       new ServiceNotRegisteredError("Service not registered")
     );
 
     await expect(
-      sdk.registerAgent(agentAddress, agentMetadata, serviceName, servicePrice)
+      sdk.registerAgentWithService(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
     ).rejects.toThrow(ServiceNotRegisteredError);
   });
 
@@ -138,13 +139,14 @@ describe("Ensemble Unit Tests", () => {
     const serviceName = "Bull-Post";
     const servicePrice = 100;
 
-    agentService.registerAgent.mockResolvedValueOnce(true);
+    agentService.registerAgentWithService.mockResolvedValueOnce(true);
 
-    const isRegistered = await sdk.registerAgent(
+    const isRegistered = await sdk.registerAgentWithService(
       agentAddress,
       agentMetadata,
       serviceName,
-      servicePrice
+      servicePrice,
+      "0x0000000000000000000000000000000000000000" // ETH address
     );
 
     expect(isRegistered).toEqual(true);
@@ -168,7 +170,7 @@ describe("Ensemble Unit Tests", () => {
       ],
     };
 
-    agentService.registerAgent.mockRejectedValueOnce(
+    agentService.registerAgentWithService.mockRejectedValueOnce(
       new AgentAlreadyRegisteredError("Agent already registered")
     );
 
@@ -177,7 +179,7 @@ describe("Ensemble Unit Tests", () => {
     const servicePrice = 100;
 
     await expect(
-      sdk.registerAgent(agentAddress, agentMetadata, serviceName, servicePrice)
+      sdk.registerAgentWithService(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
     ).rejects.toThrow(AgentAlreadyRegisteredError);
   });
 

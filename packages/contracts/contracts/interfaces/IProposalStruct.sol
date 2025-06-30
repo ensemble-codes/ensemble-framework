@@ -5,6 +5,7 @@ interface IProposalStruct {
       address issuer;
       string serviceName;
       uint256 price;
+      address tokenAddress;
       uint256 proposalId;
       bool isActive;
   }

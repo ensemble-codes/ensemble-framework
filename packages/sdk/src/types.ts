@@ -11,6 +11,60 @@ export interface AgentAssignedEvent {
   agent: string;
 }
 
+export interface ProposalAddedEvent {
+  agent: string;
+  proposalId: bigint;
+  name: string;
+  price: bigint;
+  tokenAddress: string;
+}
+
+export interface ProposalRemovedEvent {
+  agent: string;
+  proposalId: bigint;
+}
+
+export interface ProposalUpdatedEvent {
+  agent: string;
+  proposalId: bigint;
+  price: bigint;
+  tokenAddress: string;
+}
+
+export interface ReputationUpdatedEvent {
+  agent: string;
+  newReputation: bigint;
+}
+
+export interface ProposalApprovedEvent {
+  taskId: bigint;
+  proposal: Proposal;
+}
+
+export interface TaskAssignedEvent {
+  taskId: bigint;
+  agent: string;
+}
+
+export interface TaskCanceledEvent {
+  taskId: bigint;
+}
+
+export interface TaskCompletedEvent {
+  taskId: bigint;
+  result: string;
+}
+
+export interface TaskRatedEvent {
+  taskId: bigint;
+  rating: number;
+}
+
+export interface TaskStatusChangedEvent {
+  taskId: bigint;
+  status: TaskStatus;
+}
+
 export type AgentSocials = {
   twitter: string;
   telegram: string;
@@ -71,6 +125,7 @@ export interface Proposal {
   issuer: string;
   price: BigNumberish;
   serviceName: string;
+  tokenAddress: string;
   isActive: boolean;
 }
 
@@ -99,6 +154,28 @@ export interface TaskCreationParams {
   proposalId: string;
 }
 
+export interface AddProposalParams {
+  agentAddress: string;
+  serviceName: string;
+  servicePrice: BigNumberish;
+  tokenAddress: string;
+}
+
+export interface registerAgentWithServiceParams {
+  agentAddress: string;
+  name: string;
+  agentUri: string;
+  serviceName: string;
+  servicePrice: BigNumberish;
+  tokenAddress: string;
+}
+
+export interface RegisterAgentParams {
+  agentAddress: string;
+  name: string;
+  agentUri: string;
+}
+
 export interface NetworkConfig {
   chainId: number;
   name?: string;
@@ -111,3 +188,7 @@ export interface ContractConfig {
   serviceRegistryAddress: string;
   network: NetworkConfig;
 }
+
+export type LegacyRegisterAgentParams = RegisterAgentParams;
+
+export type LegacyAddProposalParams = Omit<AddProposalParams, 'tokenAddress'>;

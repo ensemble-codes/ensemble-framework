@@ -23,6 +23,7 @@ alwaysApply: true
     - Use multiple responses for complex answers.
     - For code tweaks, show minimal context - a few lines around changes max.
     - Don't be lazy, write all the code to implement features I ask for.
+    - When tests are failing, ask if you should fix the test or the code
     
     Solidity Best Practices
     - Use explicit function visibility modifiers and appropriate natspec comments.
