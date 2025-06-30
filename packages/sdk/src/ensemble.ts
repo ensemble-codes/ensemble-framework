@@ -122,24 +122,15 @@ export class Ensemble {
    * Registers a new agent with service.
    * @param {string} address - The address of the agent.
    * @param {AgentMetadata} metadata - The metadata of the agent.
-   * @param {string} serviceName - The name of the service.
-   * @param {number} servicePrice - The price of the service.
-   * @param {string} tokenAddress - The token address for payment.
    * @returns {Promise<boolean>} A promise that resolves to the agent registration status.
    */
   async registerAgent(
     address: string,
-    metadata: AgentMetadata,
-    serviceName: string,
-    servicePrice: number,
-    tokenAddress: string = "0x0000000000000000000000000000000000000000" // Default to zero address for ETH
+    metadata: AgentMetadata
   ): Promise<boolean> {
-    return this.registerAgentWithService(
+    return this.agentService.registerAgent(
       address,
-      metadata,
-      serviceName,
-      servicePrice,
-      tokenAddress
+      metadata
     );
   }
 
