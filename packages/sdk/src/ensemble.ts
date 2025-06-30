@@ -135,19 +135,6 @@ export class Ensemble {
   }
 
   /**
-   * Registers a new agent without service.
-   * @param {string} address - The address of the agent.
-   * @param {AgentMetadata} metadata - The metadata of the agent.
-   * @returns {Promise<boolean>} A promise that resolves to the agent registration status.
-   */
-  async registerAgentOnly(
-    address: string,
-    metadata: AgentMetadata
-  ): Promise<boolean> {
-    return this.agentService.registerAgent(address, metadata);
-  }
-
-  /**
    * Registers a new agent with service.
    * @param {string} address - The address of the agent.
    * @param {AgentMetadata} metadata - The metadata of the agent.

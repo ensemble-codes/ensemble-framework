@@ -251,35 +251,4 @@ describe("Ensemble Unit Tests", () => {
 
     expect(response).toEqual(task);
   });
-
-  it("should register an agent without service successfully", async () => {
-    const agentMetadata: AgentMetadata = {
-      name: "Agent-test-only",
-      description: "This is an agent for testing without service.",
-      imageURI: "https://example.com/image.jpg",
-      socials: {
-        twitter: "https://twitter.com/agent-test",
-        telegram: "https://t.me/agent-test",
-        dexscreener: "https://dexscreener.com/agent-test",
-      },
-      attributes: [
-        {
-          trait_type: "Test",
-          value: "Test",
-        },
-      ],
-    };
-
-    const agentAddress = process.env.AGENT_ADDRESS!;
-
-    agentService.registerAgent.mockResolvedValueOnce(true);
-
-    const isRegistered = await sdk.registerAgentOnly(
-      agentAddress,
-      agentMetadata
-    );
-
-    expect(isRegistered).toEqual(true);
-    expect(agentService.registerAgent).toHaveBeenCalledWith(agentAddress, agentMetadata);
-  });
 });
