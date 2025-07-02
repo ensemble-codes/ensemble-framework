@@ -8,7 +8,7 @@ dataSources:
     name: ServiceRegistry
     network: base-sepolia
     source:
-      address: "0x49F8fF51861A8E0D7E1eD8f1217CB14F662ef321"
+      address: "0x3Acbf1Ca047a18bE88E7160738A9B0bB64203244"
       abi: ServiceRegistry
       startBlock: 23026978
     mapping:
@@ -21,16 +21,16 @@ dataSources:
         - name: ServiceRegistry
           file: ./abis/ServiceRegistry.json
       eventHandlers:
-        - event: ServiceRegistered(indexed uint256,string,string)
+        - event: ServiceRegistered(string,string,string)
           handler: handleServiceRegistered
-        - event: ServiceUpdated(indexed uint256,string,string)
+        - event: ServiceUpdated(string,string,string)
           handler: handleServiceUpdated
       file: ./src/service-registry.ts
   - kind: ethereum
     name: AgentsRegistry
     network: base-sepolia
     source:
-      address: "0xb72788ECb4e49127B6b08D49780D56876eB3F33F"
+      address: "0xDbF645cC23066cc364C4Db915c78135eE52f11B2"
       abi: AgentsRegistry
       startBlock: 23026985
     mapping:
@@ -48,14 +48,14 @@ dataSources:
           handler: handleAgentRegistered
         - event: ReputationUpdated(indexed address,uint256)
           handler: handleUpdateReputation
-        - event: ProposalAdded(indexed address,uint256,string,uint256)
+        - event: ProposalAdded(indexed address,uint256,string,uint256,address)
           handler: handleProposalAdded
       file: ./src/agents-registry.ts
   - kind: ethereum
     name: TaskRegistry
     network: base-sepolia
     source:
-      address: "0x7022D3b93C9c65E442385a3F9Bd31E90ac4f6ef5"
+      address: "0x847fA49b999489fD2780fe2843A7b1608106b49b"
       abi: TaskRegistry
       startBlock: 23026993
     mapping:
@@ -77,31 +77,6 @@ dataSources:
           handler: handleTaskStatusCompleted
         - event: TaskRated(indexed uint256,uint8)
           handler: handleTaskRated
-      file: ./src/task-registry.ts
-  - kind: ethereum
-    name: TaskRegistryV1
-    network: base-sepolia
-    source:
-      address: "0x7eaB59d9121c76eF44a101C2c1d2121cC8e871fd"
-      abi: TaskRegistry
-      startBlock: 22027680
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - Task
-        - Agent
-      abis:
-        - name: TaskRegistry
-          file: ./abis/TaskRegistry.json
-      eventHandlers:
-        - event: TaskCreated(indexed address,indexed address,uint256,uint256,string)
-          handler: handleTaskCreated
-        - event: TaskStatusChanged(indexed uint256,uint8)
-          handler: handleTaskStatusChanged
-        - event: TaskCompleted(indexed uint256,string)
-          handler: handleTaskStatusCompleted
       file: ./src/task-registry.ts
 templates:
   - kind: file/ipfs

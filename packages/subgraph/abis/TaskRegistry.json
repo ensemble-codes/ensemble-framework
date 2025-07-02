@@ -1,14 +1,50 @@
 [
   {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
     "inputs": [
       {
-        "internalType": "contract AgentsRegistry",
-        "name": "_agentRegistry",
+        "internalType": "address",
+        "name": "target",
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "name": "AddressEmptyCode",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "ERC1967InvalidImplementation",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ERC1967NonPayable",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "FailedCall",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidInitialization",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotInitializing",
+    "type": "error"
   },
   {
     "inputs": [
@@ -31,6 +67,35 @@
     ],
     "name": "OwnableUnauthorizedAccount",
     "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UUPSUnauthorizedCallContext",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "slot",
+        "type": "bytes32"
+      }
+    ],
+    "name": "UUPSUnsupportedProxiableUUID",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -76,6 +141,11 @@
             "internalType": "uint256",
             "name": "price",
             "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenAddress",
+            "type": "address"
           },
           {
             "internalType": "uint256",
@@ -215,7 +285,7 @@
       },
       {
         "indexed": false,
-        "internalType": "enum TaskRegistry.TaskStatus",
+        "internalType": "enum TaskRegistryUpgradeable.TaskStatus",
         "name": "status",
         "type": "uint8"
       }
@@ -224,11 +294,37 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "UPGRADE_INTERFACE_VERSION",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "agentRegistry",
     "outputs": [
       {
-        "internalType": "contract AgentsRegistry",
+        "internalType": "contract AgentsRegistryUpgradeable",
         "name": "",
         "type": "address"
       }
@@ -300,7 +396,7 @@
             "type": "address"
           },
           {
-            "internalType": "enum TaskRegistry.TaskStatus",
+            "internalType": "enum TaskRegistryUpgradeable.TaskStatus",
             "name": "status",
             "type": "uint8"
           },
@@ -325,7 +421,7 @@
             "type": "uint8"
           }
         ],
-        "internalType": "struct TaskRegistry.TaskData",
+        "internalType": "struct TaskRegistryUpgradeable.TaskData",
         "name": "",
         "type": "tuple"
       }
@@ -363,7 +459,7 @@
     "name": "getStatus",
     "outputs": [
       {
-        "internalType": "enum TaskRegistry.TaskStatus",
+        "internalType": "enum TaskRegistryUpgradeable.TaskStatus",
         "name": "",
         "type": "uint8"
       }
@@ -399,7 +495,7 @@
             "type": "address"
           },
           {
-            "internalType": "enum TaskRegistry.TaskStatus",
+            "internalType": "enum TaskRegistryUpgradeable.TaskStatus",
             "name": "status",
             "type": "uint8"
           },
@@ -424,7 +520,7 @@
             "type": "uint8"
           }
         ],
-        "internalType": "struct TaskRegistry.TaskData",
+        "internalType": "struct TaskRegistryUpgradeable.TaskData",
         "name": "",
         "type": "tuple"
       }
@@ -449,6 +545,24 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_initialTaskId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "contract AgentsRegistryUpgradeable",
+        "name": "_agentRegistry",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -483,6 +597,19 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "proxiableUUID",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -539,7 +666,7 @@
         "type": "address"
       },
       {
-        "internalType": "enum TaskRegistry.TaskStatus",
+        "internalType": "enum TaskRegistryUpgradeable.TaskStatus",
         "name": "status",
         "type": "uint8"
       },
@@ -578,6 +705,24 @@
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "upgradeToAndCall",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   }
 ]

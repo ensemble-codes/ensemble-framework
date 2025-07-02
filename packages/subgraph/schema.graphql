@@ -34,12 +34,18 @@ type Proposal @entity {
   service: String!
   price: BigInt!
   isRemoved: Boolean!
+  tokenAddress: Bytes!
 }
 
 type IpfsMetadata @entity {
   id: ID!
   name: String!
   description: String!
+  agentCategory: String!
+  openingGreeting: String!
+  attributes: [String!]!
+  instructions: [String!]!
+  prompts: [String!]!
   imageUri: String!
   twitter: String
   telegram: String

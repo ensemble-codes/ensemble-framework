@@ -73,17 +73,16 @@ export type AgentSocials = {
   website?: string;
 }
 
-export type AgentAttributes = {
-  trait_type: string;
-  value: string;
-}[]
-
 export type AgentMetadata = {
   name: string;
   description: string;
   imageURI: string;
   socials: AgentSocials;
-  attributes: AgentAttributes;
+  agentCategory: string;
+  attributes: string[];
+  openingGreeting: string;
+  instructions: string[];
+  prompts: string[];
 }
 
 export interface TaskConnectorContract extends BaseContract {
