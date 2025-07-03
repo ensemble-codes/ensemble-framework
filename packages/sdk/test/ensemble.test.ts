@@ -97,12 +97,12 @@ describe("Ensemble Unit Tests", () => {
         telegram: "https://t.me/agent-test",
         dexscreener: "https://dexscreener.com/agent-test",
       },
-      attributes: [
-        {
-          trait_type: "Test",
-          value: "Test",
-        },
-      ],
+      communicationType: "xmtp",
+      attributes: ["Test"],
+      agentCategory: "Test",
+      openingGreeting: "Test",
+      instructions: ["Test"],
+      prompts: ["Test"],
     };
     const agentAddress = "0x123";
     const serviceName = "Bull-Post-test";
@@ -127,12 +127,12 @@ describe("Ensemble Unit Tests", () => {
         telegram: "https://t.me/agent-test",
         dexscreener: "https://dexscreener.com/agent-test",
       },
-      attributes: [
-        {
-          trait_type: "Test",
-          value: "Test",
-        },
-      ],
+      communicationType: "xmtp",
+      attributes: ["Test"],
+      agentCategory: "Test",
+      openingGreeting: "Test",
+      instructions: ["Test"],
+      prompts: ["Test"],
     };
 
     const agentAddress = process.env.AGENT_ADDRESS!;
@@ -162,12 +162,12 @@ describe("Ensemble Unit Tests", () => {
         telegram: "https://t.me/agent-test",
         dexscreener: "https://dexscreener.com/agent-test",
       },
-      attributes: [
-        {
-          trait_type: "Test",
-          value: "Test",
-        },
-      ],
+      communicationType: "xmtp",
+      attributes: ["Test"],
+      agentCategory: "Test",
+      openingGreeting: "Test",
+      instructions: ["Test"],
+      prompts: ["Test"],
     };
 
     agentService.registerAgentWithService.mockRejectedValueOnce(

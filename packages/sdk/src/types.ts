@@ -73,16 +73,20 @@ export type AgentSocials = {
   website?: string;
 }
 
+export type AgentCommunicationType = 'xmtp' | 'websocket';
+
 export type AgentMetadata = {
   name: string;
   description: string;
   imageURI: string;
   socials: AgentSocials;
   agentCategory: string;
-  attributes: string[];
   openingGreeting: string;
+  communicationType: AgentCommunicationType;
+  attributes: string[];
   instructions: string[];
   prompts: string[];
+  communicationURL?: string;
 }
 
 export interface TaskConnectorContract extends BaseContract {
