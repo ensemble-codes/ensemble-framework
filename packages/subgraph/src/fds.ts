@@ -33,6 +33,8 @@ export function handleAgentMetadata(content: Bytes): void {
     ipfsData.imageUri = extractStringField(value, "imageURI")
     ipfsData.agentCategory = extractStringField(value, "agentCategory")
     ipfsData.openingGreeting = extractStringField(value, "openingGreeting")
+    ipfsData.communicationType = extractStringField(value, "communicationType")
+    ipfsData.communicationURL = extractStringField(value, "communicationURL")
 
     let socials = value.get("socials")
     if (!socials) {
