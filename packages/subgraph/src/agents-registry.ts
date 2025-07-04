@@ -49,6 +49,7 @@ export function handleProposalAdded(event: ProposalAdded): void {
   entity.price = event.params.price;
   entity.service = event.params.name;
   entity.isRemoved = false;
+  entity.tokenAddress = event.params.tokenAddress;
 
   entity.save()
 }

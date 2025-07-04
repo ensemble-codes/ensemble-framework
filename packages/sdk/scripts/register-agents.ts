@@ -11,13 +11,15 @@ async function main() {
       {
         name: agent.name,
         description: agent.description,
+        agentCategory: agent.agentCategory,
+        openingGreeting: agent.openingGreeting,
+        instructions: agent.instructions,
+        prompts: agent.prompts,
         imageURI: agent.imageURI,
         socials: agent.socials,
-        attributes: agent.attributes
-      }, 
-      agent.serviceName, 
-      agent.servicePrice,
-      "0x0000000000000000000000000000000000000000" // ETH address
+        attributes: agent.attributes,
+        communicationType: agent.communicationType
+      },
     );
   }
 

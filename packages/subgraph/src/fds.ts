@@ -31,12 +31,20 @@ export function handleAgentMetadata(content: Bytes): void {
     ipfsData.name = extractStringField(value, "name")
     ipfsData.description = extractStringField(value, "description")
     ipfsData.imageUri = extractStringField(value, "imageURI")
+    ipfsData.agentCategory = extractStringField(value, "agentCategory")
+    ipfsData.openingGreeting = extractStringField(value, "openingGreeting")
+    ipfsData.communicationType = extractStringField(value, "communicationType")
+    ipfsData.communicationURL = extractStringField(value, "communicationURL")
 
     let socials = value.get("socials")
     if (!socials) {
         ipfsData.save()
         return
     }
+
+    ipfsData.attributes = extractArrayField(value, "attributes")
+    ipfsData.instructions = extractArrayField(value, "instructions")
+    ipfsData.prompts = extractArrayField(value, "prompts")
 
     let socialsObj = socials.toObject()
     ipfsData.telegram = extractStringField(socialsObj, "telegram")
@@ -50,7 +58,20 @@ export function handleAgentMetadata(content: Bytes): void {
 function extractStringField(obj: TypedMap<string, JSONValue>, field: string): string {
     let value = obj.get(field)
     return value && value.kind == JSONValueKind.STRING ? value.toString() : ""
-  }
+}
+
+function extractArrayField(obj: TypedMap<string, JSONValue>, field: string): string[] {
+    let value = obj.get(field)
+    if (value && value.kind == JSONValueKind.ARRAY) {
+        let array = value.toArray()
+        let result: string[] = []
+        for (let i = 0; i < array.length; i++) {
+            result.push(array[i].toString())
+        }
+        return result
+    }
+    return []
+}
 
 function saveDefaultMetadata(ipfsData: IpfsMetadata): void {
     ipfsData.name = ""
