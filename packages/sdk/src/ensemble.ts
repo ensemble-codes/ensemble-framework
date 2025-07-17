@@ -177,6 +177,19 @@ export class Ensemble {
   }
 
   /**
+   * Updates the metadata of an existing agent.
+   * @param {string} agentAddress - The address of the agent to update.
+   * @param {AgentMetadata} metadata - The new metadata for the agent.
+   * @returns {Promise<boolean>} A promise that resolves to true if the update was successful.
+   */
+  async updateAgentMetadata(
+    agentAddress: string,
+    metadata: AgentMetadata
+  ): Promise<boolean> {
+    return this.agentService.updateAgentMetadata(agentAddress, metadata);
+  }
+
+  /**
    * Sets a listener for new tasks.
    * @param {function} listener - The listener function.
    * @returns {Promise<void>} A promise that resolves when the listener is set.

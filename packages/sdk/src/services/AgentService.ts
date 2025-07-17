@@ -214,6 +214,51 @@ export class AgentService {
   }
 
   /**
+   * Updates the metadata of an existing agent.
+   * @param {string} agentAddress - The address of the agent to update.
+   * @param {AgentMetadata} metadata - The new metadata for the agent.
+   * @returns {Promise<boolean>} A promise that resolves to true if the update was successful.
+   */
+  async updateAgentMetadata(
+    agentAddress: string,
+    metadata: AgentMetadata
+  ): Promise<boolean> {
+    try {
+      if (!this.ipfsSDK) {
+        throw new Error("IPFS SDK is not initialized");
+      }
+
+      console.log(`updating agent ${agentAddress} with metadata: ${JSON.stringify(metadata)}`);
+      
+      // Upload new metadata to IPFS
+      const uploadResponse = await this.ipfsSDK.upload.json(metadata);
+      const agentURI = `ipfs://${uploadResponse.IpfsHash}`;
+
+      // Update agent data on the blockchain
+      const tx = await this.agentRegistry.setAgentData(
+        agentAddress,
+        metadata.name,
+        agentURI
+      );
+
+      console.log(`transaction to update agent metadata was sent. tx: ${tx.hash}`);
+      
+      await tx.wait();
+
+      return true;
+    } catch (error: any) {
+      console.error("Error updating agent metadata:", error);
+      if (error.reason === "Agent not registered") {
+        throw new Error("Agent not registered");
+      } else if (error.reason === "Not the owner of the agent") {
+        throw new Error("Not the owner of the agent");
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  /**
    * The reputation of an agent.
    * @param {string} agentAddress The address of the agent
    * @returns {Promise<bigint>} A promise that resolves to the reputation of the agent.
