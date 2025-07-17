@@ -1,0 +1,25 @@
+{
+  "name": "@ensemble-ai/framework",
+  "version": "0.2.0",
+  "description": "Web3 Framework for decentralized AI discovery, monetization and use",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm run --recursive build",
+    "test": "pnpm run --recursive test",
+    "lint": "pnpm run --recursive lint",
+    "clean": "pnpm run --recursive clean",
+    "dev": "pnpm run --recursive dev",
+    "typecheck": "pnpm run --recursive typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}
