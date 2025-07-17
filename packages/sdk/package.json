@@ -14,6 +14,9 @@
     "test": "jest",
     "docs": "typedoc",
     "upload-docs": "aws s3 cp ./docs s3://$ENSEMBLE_S3_BUCKET_NAME --recursive",
+    "register-services": "ts-node ./scripts/register-services.ts",
+    "create-proposals": "ts-node ./scripts/create-proposals.ts",
+    "register-agents": "ts-node ./scripts/register-agents.ts",
     "typechain": "typechain --target ethers-v6 ./src/abi/*.json --out-dir ./typechain"
   },
   "dependencies": {
