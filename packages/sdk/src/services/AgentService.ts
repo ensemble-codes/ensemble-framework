@@ -6,13 +6,44 @@ import {
 } from "../errors";
 import { PinataSDK } from "pinata-web3";
 import { AgentsRegistry } from "../../typechain";
+import { GraphQLClient, gql } from "graphql-request";
+
+// Subgraph types
+interface SubgraphAgent {
+  id: string;
+  name: string;
+  agentUri: string;
+  owner: string;
+  reputation: string;
+  metadata?: {
+    name: string;
+    description: string;
+    imageUri: string;
+  };
+  proposals: Array<{
+    id: string;
+    service: string;
+    price: string;
+  }>;
+}
+
+interface GetAgentsByOwnerQuery {
+  agents: SubgraphAgent[];
+}
 
 export class AgentService {
+  private subgraphClient?: GraphQLClient;
+
   constructor(
     private readonly agentRegistry: AgentsRegistry,
     private readonly signer: ethers.Signer,
-    private readonly ipfsSDK?: PinataSDK
-  ) {}
+    private readonly ipfsSDK?: PinataSDK,
+    subgraphUrl?: string
+  ) {
+    if (subgraphUrl) {
+      this.subgraphClient = new GraphQLClient(subgraphUrl);
+    }
+  }
 
   /**
    * Gets the address of the agent.
@@ -255,6 +286,57 @@ export class AgentService {
       } else {
         throw error;
       }
+    }
+  }
+
+  /**
+   * Gets all agents owned by a specific address.
+   * @param {string} ownerAddress - The address of the owner.
+   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   */
+  async getAgentsByOwner(ownerAddress: string): Promise<AgentData[]> {
+    if (!this.subgraphClient) {
+      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
+    }
+
+    const query = gql`
+      query GetAgentsByOwner($owner: String!) {
+        agents(where: { owner: $owner }) {
+          id
+          name
+          agentUri
+          owner
+          reputation
+          metadata {
+            name
+            description
+            imageUri
+          }
+          proposals {
+            id
+            service
+            price
+          }
+        }
+      }
+    `;
+
+    try {
+      const result = await this.subgraphClient.request<GetAgentsByOwnerQuery>(query, {
+        owner: ownerAddress.toLowerCase()
+      });
+
+      return result.agents.map(agent => ({
+        name: agent.name,
+        agentUri: agent.agentUri,
+        owner: agent.owner,
+        agent: agent.id,
+        reputation: BigInt(agent.reputation),
+        totalRatings: BigInt(0) // Note: totalRatings would need to be added to subgraph schema
+      }));
+    } catch (error) {
+      console.error("Error fetching agents by owner:", error);
+      throw new Error(`Failed to fetch agents for owner ${ownerAddress}: ${error}`);
     }
   }
 

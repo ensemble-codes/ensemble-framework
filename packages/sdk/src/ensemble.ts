@@ -45,7 +45,7 @@ export class Ensemble {
     );
 
     const serviceRegistryService = new ServiceRegistryService(serviceRegistry);
-    const agentService = new AgentService(agentRegistry, signer, ipfsSDK);
+    const agentService = new AgentService(agentRegistry, signer, ipfsSDK, config.subgraphUrl);
     const taskService = new TaskService(taskRegistry, agentService);
 
     return new Ensemble(taskService, agentService, serviceRegistryService);
@@ -187,6 +187,15 @@ export class Ensemble {
     metadata: AgentMetadata
   ): Promise<boolean> {
     return this.agentService.updateAgentMetadata(agentAddress, metadata);
+  }
+
+  /**
+   * Gets all agents owned by a specific address.
+   * @param {string} ownerAddress - The address of the owner.
+   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   */
+  async getAgentsByOwner(ownerAddress: string): Promise<AgentData[]> {
+    return this.agentService.getAgentsByOwner(ownerAddress);
   }
 
   /**

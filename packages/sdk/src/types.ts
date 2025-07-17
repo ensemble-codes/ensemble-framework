@@ -191,6 +191,7 @@ export interface ContractConfig {
   agentRegistryAddress: string;
   serviceRegistryAddress: string;
   network: NetworkConfig;
+  subgraphUrl?: string;
 }
 
 export type LegacyRegisterAgentParams = RegisterAgentParams;
