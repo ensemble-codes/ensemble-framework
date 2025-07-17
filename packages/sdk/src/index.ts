@@ -12,5 +12,5 @@ export {
     AgentService, 
     TaskService, 
     ContractService, 
-    ServiceRegistryService 
+    ServiceRegistryService
 }
