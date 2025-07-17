@@ -3,7 +3,7 @@ import { PinataSDK } from "pinata-web3";
 import {
   AgentData,
   AgentMetadata,
-  ContractConfig,
+  EnsembleConfig,
   TaskData,
   TaskCreationParams,
   Service,
@@ -25,7 +25,7 @@ export class Ensemble {
   ) {}
 
   static create(
-    config: ContractConfig,
+    config: EnsembleConfig,
     signer: ethers.Signer,
     ipfsSDK?: PinataSDK
   ) {

@@ -186,7 +186,7 @@ export interface NetworkConfig {
   rpcUrl: string;
 }
 
-export interface ContractConfig {
+export interface EnsembleConfig {
   taskRegistryAddress: string;
   agentRegistryAddress: string;
   serviceRegistryAddress: string;
