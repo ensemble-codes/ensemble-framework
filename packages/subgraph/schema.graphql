@@ -48,6 +48,7 @@ type IpfsMetadata @entity {
   prompts: [String!]!
   communicationType: String!
   communicationURL: String!
+  communicationParams: JSON
   imageUri: String!
   twitter: String
   telegram: String
