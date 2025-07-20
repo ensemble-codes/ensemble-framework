@@ -7,9 +7,9 @@
       "temperature": 0.2
     },
     "research": {
-      "provider": "claude-code",
-      "modelId": "sonnet",
-      "maxTokens": 64000,
+      "provider": "perplexity",
+      "modelId": "sonar-pro",
+      "maxTokens": 8700,
       "temperature": 0.1
     },
     "fallback": {
