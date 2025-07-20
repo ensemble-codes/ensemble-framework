@@ -55,16 +55,87 @@
       {
         "id": 5,
         "title": "Develop REST API Layer",
-        "description": "Create HTTP-based API abstracting blockchain complexity with authentication, real-time updates, and comprehensive endpoint coverage - TOP PRIORITY for agent discovery, task management, and proposal handling",
+        "description": "Create HTTP-based API abstracting blockchain complexity with authentication, real-time updates, and comprehensive endpoint coverage - TOP PRIORITY for agent discovery and management using AgentRecord data model",
         "status": "pending",
         "dependencies": [
           3,
           4
         ],
         "priority": "high",
-        "details": "Build Fastify API server with endpoints for agent management (GET/POST/PUT/DELETE /agents), task lifecycle (/tasks), proposals (/proposals), and service registry (/services). Implement Fastify-specific features including plugins for authentication (JWT and API key management), validation using JSON Schema, hooks for request/response lifecycle management, and decorators for dependency injection. Add WebSocket support for real-time task notifications using @fastify/websocket plugin. Include rate limiting with @fastify/rate-limit, request validation with Fastify's built-in JSON Schema validation, and comprehensive error handling with custom error schemas. Utilize Fastify hooks (onRequest, preHandler, onSend) for middleware functionality and decorators for shared utilities. Deploy with Docker containers and environment-based configuration using @fastify/env. Focus on robust agent discovery mechanisms, comprehensive task management workflows, and efficient proposal handling systems leveraging Fastify's high-performance architecture.",
-        "testStrategy": "API testing with Postman/Jest for all endpoints with emphasis on agent discovery and task management flows. Load testing for concurrent requests under high agent activity leveraging Fastify's performance capabilities. WebSocket connection testing for real-time task and proposal updates using @fastify/websocket. Authentication and authorization testing with various user roles using Fastify plugins. Performance testing for agent discovery queries and task routing efficiency. Fastify-specific testing for plugin integration, hook execution order, and decorator functionality. JSON Schema validation testing for all request/response payloads.",
-        "subtasks": []
+        "details": "Build Fastify API server with agent-focused endpoints following agent-api-endpoints.md specification. Implement GET /agents (with filtering/search), GET /agents/{agentId}, POST /agents/discovery, GET /agents/owner/{ownerAddress}, GET /agents/categories, and GET /agents/skills endpoints. Use AgentRecord data model exactly as specified. Implement Fastify-specific features including plugins for authentication (JWT and API key management), validation using JSON Schema, hooks for request/response lifecycle management, and decorators for dependency injection. Include rate limiting with @fastify/rate-limit, request validation with Fastify's built-in JSON Schema validation, and comprehensive error handling with custom error schemas. Utilize Fastify hooks (onRequest, preHandler, onSend) for middleware functionality and decorators for shared utilities. Deploy with Docker containers and environment-based configuration using @fastify/env. Focus on robust agent discovery mechanisms and efficient agent data retrieval leveraging Fastify's high-performance architecture.",
+        "testStrategy": "API testing with Postman/Jest for all agent endpoints with emphasis on discovery and filtering flows. Load testing for concurrent agent queries leveraging Fastify's performance capabilities. Authentication and authorization testing with various user roles using Fastify plugins. Performance testing for agent discovery queries and search efficiency. Fastify-specific testing for plugin integration, hook execution order, and decorator functionality. JSON Schema validation testing for all request/response payloads using AgentRecord model.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set Up Fastify API Server and Agent Endpoints",
+            "description": "Initialize the Fastify server and implement REST endpoints for agent management following agent-api-endpoints.md specification, using AgentRecord data model for all responses.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Create a Fastify project structure. Define routes for GET /agents (with filtering/search), GET /agents/{agentId}, POST /agents/discovery, GET /agents/owner/{ownerAddress}, GET /agents/categories, and GET /agents/skills. Implement AgentRecord data model exactly as specified in documentation. Ensure modular route organization for scalability.",
+            "testStrategy": "Use Postman or Jest to verify all agent endpoints respond correctly with proper AgentRecord format and return expected status codes and payloads for various query parameters."
+          },
+          {
+            "id": 2,
+            "title": "Implement Authentication and Authorization",
+            "description": "Integrate JWT and API key authentication using Fastify plugins to secure all endpoints, and enforce role-based access control for agent operations.",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "details": "Configure @fastify/jwt and custom API key middleware. Protect sensitive endpoints and validate tokens/keys on each request. Store and manage credentials securely.",
+            "testStrategy": "Test authentication flows, token issuance, and access restrictions using automated tests and manual API calls with valid and invalid credentials."
+          },
+          {
+            "id": 3,
+            "title": "Add Request Validation, Error Handling, and Middleware",
+            "description": "Apply JSON Schema validation to all request bodies and query parameters for agent endpoints. Implement Fastify hooks for request/response lifecycle management and custom error schemas for consistent error responses.",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "details": "Define JSON Schemas for each agent endpoint including AgentRecord response schema. Use Fastify's built-in validation and hooks (onRequest, preHandler, onSend) for middleware logic. Create custom error handlers for unified error formatting.",
+            "testStrategy": "Send invalid and edge-case requests to agent endpoints and verify that validation errors and custom error responses are returned as expected with proper AgentRecord format."
+          },
+          {
+            "id": 4,
+            "title": "Implement Agent Discovery and Search Logic",
+            "description": "Build comprehensive agent discovery functionality with filtering, search, and categorization capabilities as specified in agent-api-endpoints.md.",
+            "status": "pending",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement GET /agents with query parameters for filtering by category, skills, status, and search terms. Build POST /agents/discovery for advanced discovery logic. Implement GET /agents/categories and GET /agents/skills for metadata endpoints. Ensure efficient querying and proper AgentRecord formatting.",
+            "testStrategy": "Test all filtering and search combinations on GET /agents. Verify discovery logic in POST /agents/discovery. Test categories and skills endpoints for proper metadata retrieval."
+          },
+          {
+            "id": 5,
+            "title": "Add Rate Limiting and Performance Optimization",
+            "description": "Implement @fastify/rate-limit to control request rates and prevent abuse, with special consideration for agent discovery queries.",
+            "status": "pending",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Configure rate limiting policies for all agent endpoints with appropriate limits for discovery vs. individual agent queries. Implement caching strategies for categories and skills endpoints. Optimize database queries for agent search and filtering.",
+            "testStrategy": "Test rate limiting by simulating high-frequency requests and observing throttling behavior. Performance test agent discovery queries under load."
+          },
+          {
+            "id": 6,
+            "title": "Containerize and Configure Environment for Deployment",
+            "description": "Prepare Docker containers for the Fastify API server and manage environment-based configuration using @fastify/env for secure and scalable deployment.",
+            "status": "pending",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "details": "Write Dockerfile and docker-compose.yml for the API service. Use @fastify/env to load configuration variables for different environments (development, staging, production). Document deployment steps for agent-focused API.",
+            "testStrategy": "Build and run containers locally and in staging. Verify environment variables are loaded correctly and the agent API operates as expected in each environment."
+          }
+        ]
       },
       {
         "id": 6,
