@@ -1,0 +1,199 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Deploy Core Smart Contracts on Base Networks",
+        "description": "Deploy the foundational smart contracts for Service Registry, Agent Registry, and Task Registry on Base mainnet and Sepolia testnet with upgradeable patterns",
+        "details": "Implement and deploy smart contracts using OpenZeppelin's upgradeable proxy patterns. Create ServiceRegistry.sol for service catalog management, AgentRegistry.sol for agent registration and reputation tracking, and TaskRegistry.sol for decentralized task mempool. Include escrow functionality for payments and multi-token support. Use Hardhat for deployment with network-specific configurations for Base and Base Sepolia. Implement gas optimization techniques and emergency pause mechanisms.",
+        "testStrategy": "Deploy to testnet first with comprehensive unit tests using Hardhat. Test upgrade mechanisms, gas consumption analysis, and integration testing with mock scenarios. Perform security audit simulation and stress testing with high-frequency operations.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Implement Payment and Escrow System",
+        "description": "Build the economic framework with multi-token payment support, escrow mechanisms, and automatic payment release upon task completion",
+        "details": "Extend smart contracts with EscrowManager.sol supporting ERC-20 tokens and native ETH. Implement createEscrow(), releasePayment(), and disputeResolution() functions. Add pricing negotiation mechanisms and reputation-based pricing modifiers. Include time-locked releases and multi-signature dispute resolution. Integrate with existing registry contracts for seamless task-payment lifecycle management.",
+        "testStrategy": "Test various payment scenarios including successful completions, disputes, and timeouts. Verify escrow security with edge cases like reentrancy attacks. Test multi-token support and gas efficiency for batch operations.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Build TypeScript SDK for Agent Integration",
+        "description": "Develop comprehensive TypeScript SDK providing APIs for agent registration, task discovery, proposal submission, and payment management",
+        "details": "Create @ensemble/sdk package with classes: EnsembleClient, AgentManager, TaskManager, PaymentManager. Implement Web3 integration using ethers.js v6 for Base network connectivity. Provide async/await APIs for registerAgent(), discoverTasks(), submitProposal(), executeTask(). Include real-time WebSocket connections for task notifications and status updates. Support wallet integration (MetaMask, WalletConnect) and environment configuration for mainnet/testnet.",
+        "testStrategy": "Unit tests for all SDK methods with mocked blockchain interactions. Integration tests against deployed testnet contracts. End-to-end testing with sample agent implementations. Performance testing for high-frequency operations.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement Security and Verification Layer",
+        "description": "Build task verification system with input validation, output verification, cryptographic proofs, and misbehavior detection",
+        "details": "Create VerificationManager.sol with pre-execution input validation using schema validation and post-execution output verification through cryptographic proofs. Implement AVS (Actively Validated Services) integration for shared security. Add reputation scoring based on task completion rates and quality metrics. Include slashing mechanisms for detected misbehavior and fraud prevention through stake requirements.",
+        "testStrategy": "Test verification logic with various input/output scenarios. Simulate misbehavior detection and slashing mechanisms. Verify cryptographic proof generation and validation. Test AVS integration with mock validators.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Develop REST API Layer",
+        "description": "Create HTTP-based API abstracting blockchain complexity with authentication, real-time updates, and comprehensive endpoint coverage - TOP PRIORITY for agent discovery, task management, and proposal handling",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4
+        ],
+        "priority": "high",
+        "details": "Build Express.js/Fastify API server with endpoints for agent management (GET/POST/PUT/DELETE /agents), task lifecycle (/tasks), proposals (/proposals), and service registry (/services). Implement JWT authentication and API key management. Add WebSocket support for real-time task notifications. Include rate limiting, request validation with Joi/Zod, and comprehensive error handling. Deploy with Docker containers and environment-based configuration. Focus on robust agent discovery mechanisms, comprehensive task management workflows, and efficient proposal handling systems.",
+        "testStrategy": "API testing with Postman/Jest for all endpoints with emphasis on agent discovery and task management flows. Load testing for concurrent requests under high agent activity. WebSocket connection testing for real-time task and proposal updates. Authentication and authorization testing with various user roles. Performance testing for agent discovery queries and task routing efficiency.",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Build Frontend Task Management Interface",
+        "description": "DEPRECATED: Frontend functionality already exists in separate agent hub dapp repository - this task is no longer needed",
+        "status": "cancelled",
+        "dependencies": [],
+        "priority": "low",
+        "details": "This task has been deprecated as the frontend functionality is already implemented in a separate repository containing the agent hub dapp. The existing frontend provides the necessary web application features for task creation, agent monitoring, and marketplace interaction. No additional frontend development is required for this project.",
+        "testStrategy": "No testing required - task deprecated due to existing implementation in separate repository",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Document existing frontend repository location",
+            "description": "Document the location and details of the existing agent hub dapp repository that provides the frontend functionality",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Verify frontend integration compatibility",
+            "description": "Ensure the existing agent hub dapp can properly integrate with the backend services being developed in this project",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Implement Reputation and Quality Assurance System",
+        "description": "Build comprehensive reputation tracking, benchmarking system, and quality assessment mechanisms for agents and tasks",
+        "details": "Extend smart contracts with ReputationManager.sol tracking completion rates, quality scores, and user feedback. Implement weighted scoring algorithms considering task complexity and historical performance. Add benchmarking system comparing agent outputs against expected results. Include feedback collection mechanisms and reputation-based task assignment priority. Create reputation decay mechanisms for inactive agents.",
+        "testStrategy": "Test reputation calculation algorithms with various scenarios. Verify benchmarking accuracy and fairness. Test feedback aggregation and spam prevention. Simulate long-term reputation evolution patterns.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Develop Python SDK for Agent Integration",
+        "description": "Create Python SDK mirroring TypeScript functionality with Pythonic design patterns and async/await support",
+        "details": "Build ensemble-python package using web3.py for blockchain interactions. Implement async/await patterns with asyncio and aiohttp. Create classes: EnsembleClient, AgentManager, TaskManager with Pythonic naming conventions. Add type hints and dataclasses for request/response models. Include integration with popular Python AI frameworks (transformers, langchain). Support environment configuration and wallet management.",
+        "testStrategy": "Unit tests with pytest and async testing. Integration tests against testnet contracts. Compatibility testing across Python versions (3.8+). Performance benchmarking against TypeScript SDK.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Build Subgraph and Analytics Infrastructure",
+        "description": "Implement blockchain data indexing with GraphQL APIs, real-time event streaming, and analytics dashboard",
+        "details": "Create subgraph using The Graph Protocol indexing smart contract events (TaskCreated, AgentRegistered, PaymentReleased). Build GraphQL schema for efficient querying of tasks, agents, and transactions. Implement real-time subscriptions for live data updates. Create analytics service calculating metrics like task completion rates, agent performance, and ecosystem growth. Deploy subgraph to The Graph Network and provide hosted service backup.",
+        "testStrategy": "Test subgraph deployment and data synchronization. Verify GraphQL query performance and accuracy. Test real-time subscription functionality. Validate analytics calculations against blockchain data.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Implement CLI Tools and Developer Experience",
+        "description": "Create command-line tools for agent deployment, local development environment, and batch operations management",
+        "details": "Build ensemble-cli using Commander.js/Click with commands: init (project setup), deploy (agent deployment), test (local testing), monitor (agent monitoring). Include local development server with mock blockchain environment. Add configuration management for different networks and deployment automation scripts. Provide agent template generation and debugging tools.",
+        "testStrategy": "Test CLI commands in various environments (Windows, macOS, Linux). Verify local development server functionality. Test deployment automation and rollback mechanisms. User experience testing with developer feedback.",
+        "priority": "low",
+        "dependencies": [
+          3,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Develop MCP Server Integration",
+        "description": "Build Model Context Protocol server enabling seamless integration with Claude and other AI models for real-time task routing",
+        "details": "Implement MCP server following the Model Context Protocol specification. Create handlers for task discovery, execution routing, and result formatting. Add integration with Claude API and other LLM providers. Include context management for multi-turn conversations and task state persistence. Provide debugging interface and monitoring capabilities for agent interactions.",
+        "testStrategy": "Test MCP protocol compliance and integration with various AI models. Verify task routing accuracy and performance. Test context management and state persistence. Integration testing with Claude and other supported models.",
+        "priority": "low",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Implement Identity Management and Authentication",
+        "description": "Build robust identity system with unique agent/user identities, authentication mechanisms, and privacy-preserving features",
+        "details": "Create IdentityManager.sol with unique identity generation using deterministic addresses. Implement authentication using EIP-712 signatures and session management. Add privacy-preserving features using zero-knowledge proofs for selective disclosure. Include identity recovery mechanisms and multi-factor authentication support. Integrate with existing registry systems for seamless identity verification.",
+        "testStrategy": "Test identity uniqueness and collision resistance. Verify authentication security and session management. Test privacy-preserving features and zero-knowledge proof generation. Security audit for identity recovery mechanisms.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Integrate REST API with CLI Tools",
+        "description": "Modify existing CLI tools to use the new REST API endpoints instead of direct blockchain/SDK calls, creating a unified interface for all CLI operations.",
+        "status": "pending",
+        "dependencies": [
+          5
+        ],
+        "priority": "high",
+        "details": "Refactor the ensemble-cli tool built in Task 10 to replace direct blockchain interactions with REST API calls. Update all CLI commands (init, deploy, test, monitor) to use HTTP requests to the REST API endpoints instead of direct smart contract calls or SDK methods. Implement API client wrapper within the CLI using axios/fetch for HTTP requests with proper error handling, authentication, and retry logic. Add configuration management for API endpoint URLs, authentication tokens, and timeout settings. Update command implementations: 'init' should call API setup endpoints, 'deploy' should use agent deployment API, 'test' should leverage API testing endpoints, and 'monitor' should consume real-time API data streams. Include offline mode detection with graceful fallback messaging when API is unavailable. Add response caching for frequently accessed data to improve CLI performance. Implement proper authentication flow using API keys or JWT tokens. Update help documentation and command examples to reflect API-based operations. Ensure backward compatibility during transition period with feature flags to toggle between direct and API-based modes.",
+        "testStrategy": "Test all CLI commands with API integration in development and staging environments. Verify proper error handling when API is unavailable or returns errors. Test authentication flow and token management. Validate response caching and performance improvements. Test offline mode detection and fallback behavior. Integration testing with the REST API to ensure all endpoints are correctly consumed. User acceptance testing to verify CLI functionality remains consistent from user perspective. Load testing CLI operations under high API latency conditions. Test configuration management across different environments and API endpoints.",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-20T10:42:18.955Z",
+      "updated": "2025-07-20T10:50:41.169Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
