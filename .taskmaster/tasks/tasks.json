@@ -18,7 +18,7 @@
         "description": "Build the economic framework with multi-token payment support, escrow mechanisms, and automatic payment release upon task completion",
         "details": "Extend smart contracts with EscrowManager.sol supporting ERC-20 tokens and native ETH. Implement createEscrow(), releasePayment(), and disputeResolution() functions. Add pricing negotiation mechanisms and reputation-based pricing modifiers. Include time-locked releases and multi-signature dispute resolution. Integrate with existing registry contracts for seamless task-payment lifecycle management.",
         "testStrategy": "Test various payment scenarios including successful completions, disputes, and timeouts. Verify escrow security with edge cases like reentrancy attacks. Test multi-token support and gas efficiency for batch operations.",
-        "priority": "high",
+        "priority": "low",
         "dependencies": [
           1
         ],
@@ -36,7 +36,7 @@
           1,
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -45,7 +45,7 @@
         "description": "Build task verification system with input validation, output verification, cryptographic proofs, and misbehavior detection",
         "details": "Create VerificationManager.sol with pre-execution input validation using schema validation and post-execution output verification through cryptographic proofs. Implement AVS (Actively Validated Services) integration for shared security. Add reputation scoring based on task completion rates and quality metrics. Include slashing mechanisms for detected misbehavior and fraud prevention through stake requirements.",
         "testStrategy": "Test verification logic with various input/output scenarios. Simulate misbehavior detection and slashing mechanisms. Verify cryptographic proof generation and validation. Test AVS integration with mock validators.",
-        "priority": "high",
+        "priority": "low",
         "dependencies": [
           1
         ],
@@ -55,23 +55,22 @@
       {
         "id": 5,
         "title": "Develop REST API Layer",
-        "description": "Create HTTP-based API abstracting blockchain complexity with authentication, real-time updates, and comprehensive endpoint coverage - TOP PRIORITY for agent discovery and management using AgentRecord data model",
-        "status": "pending",
+        "description": "This task is deferred until after core functionality is complete. The REST API layer will provide an HTTP-based API abstracting blockchain complexity, with authentication, real-time updates, and comprehensive endpoint coverage for agent discovery and management using the AgentRecord data model.",
+        "status": "in-progress",
         "dependencies": [
-          3,
-          4
+          3
         ],
-        "priority": "high",
-        "details": "Build Fastify API server with agent-focused endpoints following agent-api-endpoints.md specification. Implement GET /agents (with filtering/search), GET /agents/{agentId}, POST /agents/discovery, GET /agents/owner/{ownerAddress}, GET /agents/categories, and GET /agents/skills endpoints. Use AgentRecord data model exactly as specified. Implement Fastify-specific features including plugins for authentication (JWT and API key management), validation using JSON Schema, hooks for request/response lifecycle management, and decorators for dependency injection. Include rate limiting with @fastify/rate-limit, request validation with Fastify's built-in JSON Schema validation, and comprehensive error handling with custom error schemas. Utilize Fastify hooks (onRequest, preHandler, onSend) for middleware functionality and decorators for shared utilities. Deploy with Docker containers and environment-based configuration using @fastify/env. Focus on robust agent discovery mechanisms and efficient agent data retrieval leveraging Fastify's high-performance architecture.",
-        "testStrategy": "API testing with Postman/Jest for all agent endpoints with emphasis on discovery and filtering flows. Load testing for concurrent agent queries leveraging Fastify's performance capabilities. Authentication and authorization testing with various user roles using Fastify plugins. Performance testing for agent discovery queries and search efficiency. Fastify-specific testing for plugin integration, hook execution order, and decorator functionality. JSON Schema validation testing for all request/response payloads using AgentRecord model.",
+        "priority": "low",
+        "details": "Development of the Fastify API server and agent-focused endpoints is postponed until all core system features are delivered. When resumed, the implementation will follow the agent-api-endpoints.md specification, including endpoints for agent discovery, management, and metadata retrieval. The API will use the AgentRecord data model and incorporate Fastify-specific features such as plugins for authentication (JWT and API key management), JSON Schema validation, request/response lifecycle hooks, decorators for dependency injection, rate limiting, and comprehensive error handling. Deployment will utilize Docker containers and environment-based configuration. The focus will remain on robust agent discovery mechanisms and efficient agent data retrieval leveraging Fastify's high-performance architecture.",
+        "testStrategy": "Testing for the REST API layer will commence after core functionality is complete. Planned tests include API testing with Postman/Jest for all agent endpoints, load testing for concurrent agent queries, authentication and authorization testing with Fastify plugins, performance testing for agent discovery queries, Fastify-specific testing for plugin integration and hook execution, and JSON Schema validation for all request/response payloads using the AgentRecord model.",
         "subtasks": [
           {
             "id": 1,
             "title": "Set Up Fastify API Server and Agent Endpoints",
             "description": "Initialize the Fastify server and implement REST endpoints for agent management following agent-api-endpoints.md specification, using AgentRecord data model for all responses.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Create a Fastify project structure. Define routes for GET /agents (with filtering/search), GET /agents/{agentId}, POST /agents/discovery, GET /agents/owner/{ownerAddress}, GET /agents/categories, and GET /agents/skills. Implement AgentRecord data model exactly as specified in documentation. Ensure modular route organization for scalability.",
+            "details": "Create a Fastify project structure. Define routes for GET /agents (with filtering/search), GET /agents/{agentId}, POST /agents/discovery, GET /agents/owner/{ownerAddress}, GET /agents/categories, and GET /agents/skills. Implement AgentRecord data model exactly as specified in documentation. Ensure modular route organization for scalability.\n<info added on 2025-07-20T12:43:36.707Z>\nSuccessfully implemented Fastify API server with all required agent endpoints. Server includes: \n\n1. Complete Fastify server setup with middleware (CORS, rate limiting, JWT auth, error handling)\n2. Full AgentRecord data model matching specification \n3. Modular route structure in src/routes/agents.ts\n4. All required REST endpoints:\n   - GET /api/v1/agents (list with filtering/pagination)\n   - GET /api/v1/agents/{agentId} (agent details)\n   - POST /api/v1/agents/discovery (advanced discovery)\n   - GET /api/v1/agents/owner/{ownerAddress} (agents by owner)\n   - GET /api/v1/agents/categories (available categories)\n   - GET /api/v1/agents/skills (available skills)\n\n5. Complete TypeScript types and interfaces\n6. Mock data service layer for development\n7. Comprehensive request validation with JSON schemas\n8. Proper error handling and logging\n9. Health check endpoint at /health\n\nBuild and type checking pass successfully. Ready for testing and deployment.\n</info added on 2025-07-20T12:43:36.707Z>",
             "testStrategy": "Use Postman or Jest to verify all agent endpoints respond correctly with proper AgentRecord format and return expected status codes and payloads for various query parameters."
           },
           {
@@ -82,7 +81,7 @@
             "dependencies": [
               1
             ],
-            "details": "Configure @fastify/jwt and custom API key middleware. Protect sensitive endpoints and validate tokens/keys on each request. Store and manage credentials securely.",
+            "details": "Configure @fastify/jwt and custom API key middleware. Protect sensitive endpoints and validate tokens/keys on each request. Store and manage credentials securely.\n<info added on 2025-07-20T13:15:10.850Z>\nPriority changed to low. Authentication implementation deferred until after core functionality (Swagger docs and SDK integration) is complete.\n</info added on 2025-07-20T13:15:10.850Z>",
             "testStrategy": "Test authentication flows, token issuance, and access restrictions using automated tests and manual API calls with valid and invalid credentials."
           },
           {
@@ -259,11 +258,38 @@
         "details": "Refactor the ensemble-cli tool built in Task 10 to replace direct blockchain interactions with REST API calls. Update all CLI commands (init, deploy, test, monitor) to use HTTP requests to the REST API endpoints instead of direct smart contract calls or SDK methods. Implement API client wrapper within the CLI using axios/fetch for HTTP requests with proper error handling, authentication, and retry logic. Add configuration management for API endpoint URLs, authentication tokens, and timeout settings. Update command implementations: 'init' should call API setup endpoints, 'deploy' should use agent deployment API, 'test' should leverage API testing endpoints, and 'monitor' should consume real-time API data streams. Include offline mode detection with graceful fallback messaging when API is unavailable. Add response caching for frequently accessed data to improve CLI performance. Implement proper authentication flow using API keys or JWT tokens. Update help documentation and command examples to reflect API-based operations. Ensure backward compatibility during transition period with feature flags to toggle between direct and API-based modes.",
         "testStrategy": "Test all CLI commands with API integration in development and staging environments. Verify proper error handling when API is unavailable or returns errors. Test authentication flow and token management. Validate response caching and performance improvements. Test offline mode detection and fallback behavior. Integration testing with the REST API to ensure all endpoints are correctly consumed. User acceptance testing to verify CLI functionality remains consistent from user perspective. Load testing CLI operations under high API latency conditions. Test configuration management across different environments and API endpoints.",
         "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Add Swagger/OpenAPI Documentation for REST API Endpoints",
+        "description": "Implement comprehensive Swagger/OpenAPI documentation for all REST API endpoints with an interactive UI for testing and API exploration.",
+        "status": "in-progress",
+        "dependencies": [
+          13
+        ],
+        "priority": "high",
+        "details": "1. Select and install appropriate OpenAPI tooling based on the existing backend framework (e.g., Swagger UI, ReDoc, or Stoplight):\n   - For Node.js/Express: use swagger-jsdoc and swagger-ui-express\n   - For Python/Flask: use flask-restx or flask-swagger-ui\n   - For Java Spring: use SpringFox or SpringDoc\n\n2. Create a base OpenAPI specification document (openapi.yaml or openapi.json) with:\n   - API metadata (title, version, description, contact information)\n   - Server configurations for different environments\n   - Security scheme definitions (JWT, API keys, OAuth2)\n   - Common response schemas and error formats\n\n3. Document all existing REST API endpoints with:\n   - Detailed path descriptions and operation summaries\n   - Request parameters (path, query, header)\n   - Request body schemas with examples\n   - Response schemas with status codes and examples\n   - Authentication requirements\n\n4. Implement code annotations or decorators in the API controllers/handlers to:\n   - Generate OpenAPI specifications from code comments\n   - Ensure documentation stays in sync with implementation\n   - Include validation rules and constraints\n\n5. Set up the interactive documentation UI:\n   - Configure Swagger UI with custom themes matching application branding\n   - Enable the \"Try it out\" feature for API testing\n   - Add authorization UI components for authenticated endpoints\n   - Configure CORS settings to allow documentation access\n\n6. Implement documentation for specific API categories:\n   - Agent management endpoints\n   - Task creation and management\n   - Authentication and identity endpoints\n   - Blockchain interaction endpoints\n   - Analytics and monitoring endpoints\n\n7. Add examples and use cases for common API workflows:\n   - Create sample requests for typical user journeys\n   - Document request/response pairs for complex operations\n   - Include authentication flow examples\n\n8. Implement API versioning strategy in the documentation:\n   - Document deprecation policies and timelines\n   - Provide migration guides between API versions\n   - Support multiple API versions in the documentation UI\n\n9. Integrate the documentation into the CI/CD pipeline:\n   - Validate OpenAPI specification during builds\n   - Generate updated documentation on deployment\n   - Publish documentation to a dedicated developer portal\n\n10. Implement documentation for error handling:\n    - Document all possible error codes and messages\n    - Provide troubleshooting guidance for common errors\n    - Include rate limiting and throttling information",
+        "testStrategy": "1. Validate OpenAPI specification compliance:\n   - Use tools like Spectral or OpenAPI validator to check specification correctness\n   - Verify that the OpenAPI document adheres to the OpenAPI 3.0 or 3.1 specification\n   - Ensure all required fields are present and properly formatted\n\n2. Test documentation generation:\n   - Verify that code annotations correctly generate OpenAPI specifications\n   - Check that changes to API endpoints are automatically reflected in documentation\n   - Test the documentation build process in different environments\n\n3. Verify interactive UI functionality:\n   - Test the Swagger UI in different browsers (Chrome, Firefox, Safari, Edge)\n   - Verify that the \"Try it out\" feature works for all endpoints\n   - Test authentication flows within the documentation UI\n   - Check that request/response examples are correctly displayed\n\n4. Conduct comprehensive API testing through the documentation UI:\n   - Test all endpoints using the interactive documentation\n   - Verify that responses match the documented schemas\n   - Test error scenarios and verify error documentation accuracy\n   - Check that all parameters and request bodies work as documented\n\n5. Perform security testing on the documentation:\n   - Verify that sensitive information is not exposed in examples\n   - Test that authentication tokens are properly handled\n   - Ensure that the documentation itself doesn't introduce security vulnerabilities\n\n6. Conduct user acceptance testing:\n   - Have developers use the documentation to implement API clients\n   - Collect feedback on documentation clarity and completeness\n   - Verify that the documentation helps reduce onboarding time\n\n7. Test documentation accessibility:\n   - Verify that the documentation meets WCAG accessibility standards\n   - Test screen reader compatibility\n   - Check color contrast and text readability\n\n8. Performance testing:\n   - Measure documentation load time and rendering performance\n   - Test documentation with large API specifications\n   - Verify that the interactive UI remains responsive with complex schemas\n\n9. Integration testing:\n   - Verify that the documentation integrates properly with the main application\n   - Test that API changes trigger documentation updates\n   - Check that documentation links correctly to other developer resources\n\n10. Cross-environment testing:\n    - Verify documentation works in development, staging, and production\n    - Test that environment-specific configurations are correctly applied\n    - Ensure documentation URLs and references are environment-aware",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Refactor REST API Endpoints to Use TypeScript SDK and Blockchain Integration",
+        "description": "Update all REST API endpoints to replace mock data with real agent data sourced from smart contracts via the TypeScript SDK, ensuring full blockchain integration for agent-related operations.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          14
+        ],
+        "priority": "high",
+        "details": "1. Refactor each REST API endpoint to utilize the @ensemble/sdk TypeScript SDK for all agent, task, proposal, and payment operations, replacing any mock or static data sources.\n2. Ensure all endpoints interact with the deployed smart contracts on Base mainnet and Sepolia testnet, leveraging the SDK's async/await APIs for blockchain reads and writes.\n3. Implement robust error handling for blockchain/network failures, including retries and clear error responses for clients.\n4. Optimize endpoint performance by minimizing redundant blockchain calls and leveraging SDK features such as caching or batching where available.\n5. Ensure secure handling of wallet credentials and private keys, following best practices for server-side blockchain integrations (e.g., environment variables, secure vaults).\n6. Update API response schemas to reflect real data structures returned by the SDK and smart contracts, ensuring consistency with OpenAPI documentation.\n7. Add logging and monitoring for all blockchain interactions to aid in debugging and operational visibility.\n8. Coordinate with the OpenAPI documentation task to ensure all changes are accurately reflected in the API docs.\n\nBest practices include using dependency injection for the SDK client, isolating blockchain logic in service layers, and writing integration tests that connect to a testnet environment. Consider using middleware for authentication and request validation, and ensure all endpoints are covered by automated tests.",
+        "testStrategy": "- Write integration tests for all updated endpoints using a testnet deployment, verifying that data returned matches on-chain state and that all CRUD operations function as expected.\n- Simulate blockchain failures and network errors to confirm robust error handling and user-facing error messages.\n- Use mock wallets and test accounts to validate agent registration, task discovery, proposal submission, and payment flows end-to-end.\n- Confirm that API responses match the updated OpenAPI specification and that no mock data remains in the codebase.\n- Review logs and monitoring dashboards to ensure all blockchain interactions are traceable and errors are captured.",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-07-20T10:50:41.169Z",
+      "updated": "2025-07-20T13:16:19.458Z",
       "description": "Tasks for master context"
     }
   }
