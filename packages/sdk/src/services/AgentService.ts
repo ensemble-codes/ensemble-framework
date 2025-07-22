@@ -31,6 +31,30 @@ interface GetAgentsByOwnerQuery {
   agents: SubgraphAgent[];
 }
 
+interface GetAllAgentsQuery {
+  agents: SubgraphAgent[];
+}
+
+export interface AgentFilters {
+  category?: string;
+  owner?: string;
+  reputation_min?: number;
+  reputation_max?: number;
+  search?: string;
+  first?: number;
+  skip?: number;
+}
+
+export interface AgentFilterParams {
+  owner?: string;
+  name?: string;
+  reputation_min?: number;
+  reputation_max?: number;
+  category?: string;
+  first?: number;
+  skip?: number;
+}
+
 export class AgentService {
   private subgraphClient?: GraphQLClient;
 
@@ -299,6 +323,14 @@ export class AgentService {
       throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
     }
 
+    // Validate and normalize the Ethereum address
+    let normalizedAddress: string;
+    try {
+      normalizedAddress = ethers.getAddress(ownerAddress).toLowerCase();
+    } catch (error) {
+      throw new Error(`Invalid Ethereum address: ${ownerAddress}`);
+    }
+
     const query = gql`
       query GetAgentsByOwner($owner: String!) {
         agents(where: { owner: $owner }) {
@@ -322,10 +354,12 @@ export class AgentService {
     `;
 
     try {
+      console.log('Getting agents by owner (normalized):', normalizedAddress);
       const result = await this.subgraphClient.request<GetAgentsByOwnerQuery>(query, {
-        owner: ownerAddress.toLowerCase()
+        owner: normalizedAddress
       });
 
+      console.log('Query result:', result);
       return result.agents.map(agent => ({
         name: agent.name,
         agentUri: agent.agentUri,
@@ -337,6 +371,328 @@ export class AgentService {
     } catch (error) {
       console.error("Error fetching agents by owner:", error);
       throw new Error(`Failed to fetch agents for owner ${ownerAddress}: ${error}`);
+    }
+  }
+
+  /**
+   * Gets all agents from subgraph with optional filtering.
+   * @param {AgentFilters} filters - Optional filters for agents.
+   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   */
+  async getAllAgents(filters: AgentFilters = {}): Promise<AgentData[]> {
+    if (!this.subgraphClient) {
+      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
+    }
+
+    // Build where clause based on filters
+    const whereClause: string[] = [];
+    if (filters.owner) {
+      whereClause.push(`owner: "${filters.owner.toLowerCase()}"`);
+    }
+    if (filters.reputation_min !== undefined) {
+      whereClause.push(`reputation_gte: "${(filters.reputation_min * 1e18).toString()}"`);
+    }
+    if (filters.reputation_max !== undefined) {
+      whereClause.push(`reputation_lte: "${(filters.reputation_max * 1e18).toString()}"`);
+    }
+    if (filters.search) {
+      whereClause.push(`name_contains_nocase: "${filters.search}"`);
+    }
+
+    const whereString = whereClause.length > 0 ? `where: { ${whereClause.join(', ')} }` : '';
+    const firstString = filters.first ? `first: ${filters.first}` : 'first: 100';
+    const skipString = filters.skip ? `skip: ${filters.skip}` : '';
+    
+    const queryParams = [whereString, firstString, skipString].filter(Boolean).join(', ');
+
+    const query = gql`
+      query GetAllAgents {
+        agents(${queryParams}) {
+          id
+          name
+          agentUri
+          owner
+          reputation
+          metadata {
+            name
+            description
+            imageUri
+          }
+          proposals {
+            id
+            service
+            price
+          }
+        }
+      }
+    `;
+
+    try {
+      const result = await this.subgraphClient.request<GetAllAgentsQuery>(query, {});
+
+      return result.agents.map(agent => ({
+        name: agent.name,
+        agentUri: agent.agentUri,
+        owner: agent.owner,
+        agent: agent.id,
+        reputation: BigInt(agent.reputation),
+        totalRatings: BigInt(0) // Note: totalRatings would need to be added to subgraph schema
+      }));
+    } catch (error) {
+      console.error("Error fetching all agents:", error);
+      throw new Error(`Failed to fetch agents: ${error}`);
+    }
+  }
+
+  /**
+   * Gets agents by category from subgraph.
+   * @param {string} category - The category to filter by.
+   * @param {number} first - Number of agents to fetch (default 100).
+   * @param {number} skip - Number of agents to skip (default 0).
+   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   */
+  async getAgentsByCategory(category: string, first: number = 100, skip: number = 0): Promise<AgentData[]> {
+    if (!this.subgraphClient) {
+      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
+    }
+
+    const query = gql`
+      query GetAgentsByCategory($category: String!, $first: Int!, $skip: Int!) {
+        agents(
+          first: $first
+          skip: $skip
+        ) {
+          id
+          name
+          agentUri
+          owner
+          reputation
+          metadata {
+            name
+            description
+            imageUri
+          }
+          proposals {
+            id
+            service
+            price
+          }
+        }
+      }
+    `;
+
+    try {
+      const result = await this.subgraphClient.request<GetAllAgentsQuery>(query, {
+        category,
+        first,
+        skip
+      });
+
+      return result.agents.map(agent => ({
+        name: agent.name,
+        agentUri: agent.agentUri,
+        owner: agent.owner,
+        agent: agent.id,
+        reputation: BigInt(agent.reputation),
+        totalRatings: BigInt(0)
+      }));
+    } catch (error) {
+      console.error("Error fetching agents by category:", error);
+      throw new Error(`Failed to fetch agents for category ${category}: ${error}`);
+    }
+  }
+
+  /**
+   * Search agents by text query from subgraph.
+   * @param {string} searchTerm - The search term.
+   * @param {number} first - Number of agents to fetch (default 100).
+   * @param {number} skip - Number of agents to skip (default 0).
+   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   */
+  async searchAgents(searchTerm: string, first: number = 100, skip: number = 0): Promise<AgentData[]> {
+    if (!this.subgraphClient) {
+      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
+    }
+
+    const query = gql`
+      query SearchAgents($search: String!, $first: Int!, $skip: Int!) {
+        agents(
+          where: {
+            or: [
+              { name_contains_nocase: $search }
+              { metadata_: { description_contains_nocase: $search } }
+            ]
+          }
+          first: $first
+          skip: $skip
+          orderBy: reputation
+          orderDirection: desc
+        ) {
+          id
+          name
+          agentUri
+          owner
+          reputation
+          metadata {
+            name
+            description
+            imageUri
+          }
+          proposals {
+            id
+            service
+            price
+          }
+        }
+      }
+    `;
+
+    try {
+      const result = await this.subgraphClient.request<GetAllAgentsQuery>(query, {
+        search: searchTerm,
+        first,
+        skip
+      });
+
+      return result.agents.map(agent => ({
+        name: agent.name,
+        agentUri: agent.agentUri,
+        owner: agent.owner,
+        agent: agent.id,
+        reputation: BigInt(agent.reputation),
+        totalRatings: BigInt(0)
+      }));
+    } catch (error) {
+      console.error("Error searching agents:", error);
+      throw new Error(`Failed to search agents with term "${searchTerm}": ${error}`);
+    }
+  }
+
+  /**
+   * Gets agent count from subgraph.
+   * @returns {Promise<number>} A promise that resolves to the total number of agents.
+   */
+  async getAgentCount(): Promise<number> {
+    if (!this.subgraphClient) {
+      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
+    }
+
+    const query = gql`
+      query GetAgentCount {
+        agents(first: 1) {
+          id
+        }
+        _meta {
+          block {
+            number
+          }
+        }
+      }
+    `;
+
+    try {
+      const result = await this.subgraphClient.request(query);
+      // Note: This is a simplified approach. For accurate count, the subgraph would need to maintain a counter entity.
+      // For now, we'll use a workaround by fetching all agents and counting them
+      const allAgentsQuery = gql`
+        query CountAllAgents {
+          agents(first: 1000) {
+            id
+          }
+        }
+      `;
+      
+      const countResult = await this.subgraphClient.request<{agents: {id: string}[]}>(allAgentsQuery);
+      return countResult.agents.length;
+    } catch (error) {
+      console.error("Error getting agent count:", error);
+      throw new Error(`Failed to get agent count: ${error}`);
+    }
+  }
+
+  /**
+   * Gets agents with flexible filtering options.
+   * @param {AgentFilterParams} filters - Filter parameters for agents.
+   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   */
+  async getAgentsByFilter(filters: AgentFilterParams = {}): Promise<AgentData[]> {
+    if (!this.subgraphClient) {
+      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
+    }
+
+    // Build where clause based on filters
+    const whereClause: string[] = [];
+    
+    if (filters.owner) {
+      // Validate and normalize the Ethereum address
+      let normalizedOwner: string;
+      try {
+        normalizedOwner = ethers.getAddress(filters.owner).toLowerCase();
+      } catch (error) {
+        throw new Error(`Invalid Ethereum address for owner filter: ${filters.owner}`);
+      }
+      whereClause.push(`owner: "${normalizedOwner}"`);
+    }
+    
+    if (filters.name) {
+      whereClause.push(`name: "${filters.name}"`);
+    }
+    
+    if (filters.reputation_min !== undefined) {
+      whereClause.push(`reputation_gte: "${(filters.reputation_min * 1e18).toString()}"`);
+    }
+    
+    if (filters.reputation_max !== undefined) {
+      whereClause.push(`reputation_lte: "${(filters.reputation_max * 1e18).toString()}"`);
+    }
+    
+    // Note: category filtering not available in current subgraph schema
+    // if (filters.category) {
+    //   whereClause.push(`metadata_: { category: "${filters.category}" }`);
+    // }
+
+    const whereString = whereClause.length > 0 ? `where: { ${whereClause.join(', ')} }` : '';
+    const firstString = filters.first ? `first: ${filters.first}` : 'first: 100';
+    const skipString = filters.skip ? `skip: ${filters.skip}` : '';
+    
+    const queryParams = [whereString, firstString, skipString].filter(Boolean).join(', ');
+
+    const query = gql`
+      query GetAgentsByFilter {
+        agents(${queryParams}) {
+          id
+          name
+          agentUri
+          owner
+          reputation
+          metadata {
+            name
+            description
+            imageUri
+          }
+          proposals {
+            id
+            service
+            price
+          }
+        }
+      }
+    `;
+
+    try {
+      const result = await this.subgraphClient.request<GetAllAgentsQuery>(query, {});
+
+      return result.agents.map(agent => ({
+        name: agent.name,
+        agentUri: agent.agentUri,
+        owner: agent.owner,
+        agent: agent.id,
+        reputation: BigInt(agent.reputation),
+        totalRatings: BigInt(0) // Note: totalRatings would need to be added to subgraph schema
+      }));
+    } catch (error) {
+      console.error("Error fetching agents by filter:", error);
+      throw new Error(`Failed to fetch agents with filters: ${error}`);
     }
   }
 

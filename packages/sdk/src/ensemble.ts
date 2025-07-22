@@ -24,6 +24,13 @@ export class Ensemble {
     private readonly serviceRegistryService: ServiceRegistryService
   ) {}
 
+  /**
+   * Get the agent service instance
+   */
+  get agents(): AgentService {
+    return this.agentService;
+  }
+
   static create(
     config: EnsembleConfig,
     signer: ethers.Signer,

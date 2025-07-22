@@ -17,14 +17,10 @@ interface AgentListQuery {
   owner?: string;
   reputation_min?: number;
   reputation_max?: number;
-  search?: string;
-  tags?: string;
+  name?: string;
+  attributes?: string;
   sort_by?: 'created_at' | 'updated_at' | 'reputation' | 'name' | 'total_tasks';
   sort_order?: 'asc' | 'desc';
-  service_name?: string;
-  price_min?: string;
-  price_max?: string;
-  token_address?: string;
 }
 
 interface AgentDetailParams {
@@ -50,10 +46,11 @@ interface AgentCategoriesQuery {
 async function agentRoutes(fastify: FastifyInstance) {
   // Initialize agent service
   const agentService = new AgentService(
-    (fastify as any).config.RPC_URL,
+    (fastify as any).config.NETWORK_RPC_URL,
     (fastify as any).config.AGENT_REGISTRY_ADDRESS,
     (fastify as any).config.SERVICE_REGISTRY_ADDRESS,
-    (fastify as any).config.TASK_REGISTRY_ADDRESS
+    (fastify as any).config.TASK_REGISTRY_ADDRESS,
+    (fastify as any).config.ENSEMBLE_SUBGRAPH_URL
   );
 
   // Schema definitions for validation
@@ -67,18 +64,14 @@ async function agentRoutes(fastify: FastifyInstance) {
       owner: { type: 'string' },
       reputation_min: { type: 'number', minimum: 0, maximum: 5 },
       reputation_max: { type: 'number', minimum: 0, maximum: 5 },
-      search: { type: 'string' },
-      tags: { type: 'string' },
+      name: { type: 'string' },
+      attributes: { type: 'string' },
       sort_by: { 
         type: 'string', 
         enum: ['created_at', 'updated_at', 'reputation', 'name', 'total_tasks'],
         default: 'updated_at'
       },
-      sort_order: { type: 'string', enum: ['asc', 'desc'], default: 'desc' },
-      service_name: { type: 'string' },
-      price_min: { type: 'string' },
-      price_max: { type: 'string' },
-      token_address: { type: 'string' }
+      sort_order: { type: 'string', enum: ['asc', 'desc'], default: 'desc' }
     }
   };
 
@@ -104,14 +97,6 @@ async function agentRoutes(fastify: FastifyInstance) {
               max: { type: 'number', minimum: 0, maximum: 5 }
             }
           },
-          pricing: {
-            type: 'object',
-            properties: {
-              min: { type: 'string' },
-              max: { type: 'string' },
-              tokens: { type: 'array', items: { type: 'string' } }
-            }
-          },
           availability: {
             type: 'object',
             properties: {
@@ -134,7 +119,7 @@ async function agentRoutes(fastify: FastifyInstance) {
         items: {
           type: 'object',
           properties: {
-            field: { type: 'string', enum: ['reputation', 'price', 'responseTime', 'successRate'] },
+            field: { type: 'string', enum: ['reputation', 'responseTime', 'successRate'] },
             order: { type: 'string', enum: ['asc', 'desc'] }
           },
           required: ['field', 'order']

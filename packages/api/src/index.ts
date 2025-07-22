@@ -13,7 +13,7 @@ import { swaggerDefinitions } from './schemas/definitions';
 // Environment schema
 const envSchema = {
   type: 'object',
-  required: ['PORT'],
+  required: ['PORT', 'NETWORK_RPC_URL', 'AGENT_REGISTRY_ADDRESS', 'SERVICE_REGISTRY_ADDRESS', 'TASK_REGISTRY_ADDRESS'],
   properties: {
     PORT: {
       type: 'string',
@@ -27,21 +27,20 @@ const envSchema = {
       type: 'string',
       default: 'ensemble-jwt-secret-change-in-production'
     },
-    RPC_URL: {
-      type: 'string',
-      default: 'https://sepolia.base.org'
+    NETWORK_RPC_URL: {
+      type: 'string'
     },
     AGENT_REGISTRY_ADDRESS: {
-      type: 'string',
-      default: '0xDbF645cC23066cc364C4Db915c78135eE52f11B2'
+      type: 'string'
     },
     SERVICE_REGISTRY_ADDRESS: {
-      type: 'string',
-      default: '0x3Acbf1Ca047a18bE88E7160738A9B0bB64203244'
+      type: 'string'
     },
     TASK_REGISTRY_ADDRESS: {
-      type: 'string',
-      default: '0x847fA49b999489fD2780fe2843A7b1608106b49b'
+      type: 'string'
+    },
+    ENSEMBLE_SUBGRAPH_URL: {
+      type: 'string'
     }
   }
 };

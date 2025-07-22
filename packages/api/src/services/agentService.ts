@@ -1,45 +1,38 @@
 import { ethers } from 'ethers';
-import { Ensemble, AgentService as SDKAgentService, AgentData, AgentMetadata, EnsembleConfig } from '@ensemble-ai/sdk';
+import { Ensemble, AgentData, EnsembleConfig, AgentFilterParams } from '@ensemble-ai/sdk';
 import { AgentRecord, AgentCategory, AgentSkill, Pagination } from '../types/agent';
 
 interface AgentQueryParams {
   page?: number;
   limit?: number;
+  name?: string;
   category?: string;
   status?: 'active' | 'inactive' | 'all';
   owner?: string;
   reputation_min?: number;
   reputation_max?: number;
-  search?: string;
-  tags?: string;
+  attributes?: string;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
-  service_name?: string;
-  price_min?: string;
-  price_max?: string;
-  token_address?: string;
 }
 
 class AgentService {
   private ensemble?: Ensemble;
-  private sdkAgentService?: SDKAgentService;
-  private provider: ethers.Provider;
   private agentRegistryAddress: string;
   private serviceRegistryAddress: string;
   private taskRegistryAddress: string;
 
-  constructor(rpcUrl: string, agentRegistryAddress: string, serviceRegistryAddress: string, taskRegistryAddress?: string) {
-    this.provider = new ethers.JsonRpcProvider(rpcUrl);
+  constructor(rpcUrl: string, agentRegistryAddress: string, serviceRegistryAddress: string, taskRegistryAddress: string, subgraphUrl?: string) {
     this.agentRegistryAddress = agentRegistryAddress;
     this.serviceRegistryAddress = serviceRegistryAddress;
-    this.taskRegistryAddress = taskRegistryAddress || '0x847fA49b999489fD2780fe2843A7b1608106b49b';
+    this.taskRegistryAddress = taskRegistryAddress;
     
-    this.initializeSDK(rpcUrl).catch(error => {
+    this.initializeSDK(rpcUrl, subgraphUrl).catch(error => {
       console.warn('Failed to initialize SDK, falling back to mock data:', error.message);
     });
   }
 
-  private async initializeSDK(rpcUrl: string): Promise<void> {
+  private async initializeSDK(rpcUrl: string, subgraphUrl?: string): Promise<void> {
     try {
       // Create a read-only provider for querying data
       const readOnlyProvider = new ethers.JsonRpcProvider(rpcUrl);
@@ -54,9 +47,9 @@ class AgentService {
           name: 'Base Sepolia',
           rpcUrl
         },
-        subgraphUrl: process.env.SUBGRAPH_URL
+        subgraphUrl
       };
-      
+      console.log('Ensemble SDK config:', config);
       this.ensemble = Ensemble.create(config, dummySigner);
       console.log('✅ SDK initialized successfully');
     } catch (error: any) {
@@ -79,22 +72,24 @@ class AgentService {
         return this.getMockAgents(params);
       }
 
-      // For now, we'll primarily use owner-based queries since the SDK has that method
-      // Future enhancement: add general getAgents method to SDK
-      let agents: AgentData[] = [];
+      // Use the unified getAgentsByFilter method
+      const filters: AgentFilterParams = {
+        owner: params.owner,
+        name: params.name,
+        reputation_min: params.reputation_min,
+        reputation_max: params.reputation_max,
+        // category filtering handled client-side since not available in subgraph
+        first: params.limit || 20,
+        skip: ((params.page || 1) - 1) * (params.limit || 20)
+      };
       
-      if (params.owner) {
-        agents = await this.ensemble.getAgentsByOwner(params.owner);
-      } else {
-        // Fall back to mock data for general queries until SDK supports it
-        console.warn('General agent listing not yet supported by SDK, using mock data');
-        return this.getMockAgents(params);
-      }
+      console.log('Agent filters:', filters);
+      const agents = await this.ensemble.agents.getAgentsByFilter(filters);
       
       // Transform SDK data to API format
       const transformedAgents = agents.map(agent => this.transformAgentData(agent));
       
-      // Apply client-side filtering
+      // Apply client-side filtering for remaining parameters
       let filteredAgents = this.applyFilters(transformedAgents, params);
       
       // Apply sorting
@@ -123,7 +118,7 @@ class AgentService {
     } catch (error: any) {
       console.error('Error fetching agents from blockchain:', error);
       console.warn('Falling back to mock data due to error:', error.message);
-      return this.getMockAgents(params);
+      throw error;
     }
   }
 
@@ -156,23 +151,16 @@ class AgentService {
   async getAgentsByOwner(ownerAddress: string): Promise<AgentRecord[]> {
     try {
       if (!this.ensemble) {
-        console.warn('SDK not available, using mock data');
-        const mockAgents = this.generateMockAgents();
-        return mockAgents.filter(agent => 
-          agent.owner.toLowerCase() === ownerAddress.toLowerCase()
-        );
+        throw new Error('SDK not available - cannot fetch agents by owner');
       }
       
       const agents = await this.ensemble.getAgentsByOwner(ownerAddress);
+      console.log('Agents by owner:', agents);
       return agents.map(agent => this.transformAgentData(agent));
       
     } catch (error: any) {
       console.error(`Error fetching agents for owner ${ownerAddress}:`, error);
-      // Fall back to mock data
-      const mockAgents = this.generateMockAgents();
-      return mockAgents.filter(agent => 
-        agent.owner.toLowerCase() === ownerAddress.toLowerCase()
-      );
+      throw new Error(`Failed to fetch agents for owner ${ownerAddress}: ${error.message}`);
     }
   }
 
@@ -243,13 +231,13 @@ class AgentService {
    * Advanced agent discovery with complex filtering
    */
   async discoverAgents(discoveryParams: any): Promise<{ data: AgentRecord[], pagination: Pagination }> {
-    // TODO: Implement complex discovery logic
-    // For now, delegate to basic getAgents with converted params
+    // Convert discovery params to AgentQueryParams format
     const params: AgentQueryParams = {
       page: discoveryParams.pagination?.page || 1,
       limit: discoveryParams.pagination?.limit || 20,
-      search: discoveryParams.query?.text,
+      name: discoveryParams.query?.text,
       category: discoveryParams.query?.categories?.[0],
+      attributes: discoveryParams.query?.tags?.[0],
       reputation_min: discoveryParams.filters?.reputation?.min,
       reputation_max: discoveryParams.filters?.reputation?.max
     };
@@ -296,23 +284,25 @@ class AgentService {
 
   private applyFilters(agents: AgentRecord[], params: AgentQueryParams): AgentRecord[] {
     let filtered = agents;
+    
+    // Apply category filtering (not available in subgraph schema)
     if (params.category) {
       filtered = filtered.filter(agent => 
         agent.agentCategory.toLowerCase() === params.category?.toLowerCase());
     }
-    if (params.search) {
-      const searchTerm = params.search.toLowerCase();
+    
+    // Apply attributes filtering (not handled in SDK)
+    if (params.attributes) {
+      const searchTerm = params.attributes.toLowerCase();
       filtered = filtered.filter(agent =>
-        agent.name.toLowerCase().includes(searchTerm) ||
-        agent.description.toLowerCase().includes(searchTerm) ||
         agent.attributes.some(attr => attr.toLowerCase().includes(searchTerm)));
     }
-    if (params.reputation_min !== undefined) {
-      filtered = filtered.filter(agent => agent.reputationScore >= params.reputation_min!);
-    }
+    
+    // Apply status filtering (not handled in SDK)
     if (params.status && params.status !== 'all') {
       filtered = filtered.filter(agent => agent.status === params.status);
     }
+    
     return filtered;
   }
 

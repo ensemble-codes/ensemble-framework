@@ -10,8 +10,9 @@
   "scripts": {
     "prepublish": "npm run typechain && npm run build",
     "build": "tsc",
-    "watch-build": "tsc --watch",
+    "watch": "tsc --watch",
     "test": "jest",
+    "typecheck": "tsc --noEmit",
     "docs": "typedoc",
     "upload-docs": "aws s3 cp ./docs s3://$ENSEMBLE_S3_BUCKET_NAME --recursive",
     "typechain": "typechain --target ethers-v6 ./src/abi/*.json --out-dir ./typechain"
