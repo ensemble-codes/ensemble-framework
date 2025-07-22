@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Ensemble, AgentData, EnsembleConfig, AgentFilterParams } from '@ensemble-ai/sdk';
+import { Ensemble, AgentData, EnsembleConfig, AgentFilterParams, AgentRecord as SDKAgentRecord } from '@ensemble-ai/sdk';
 import { AgentRecord, AgentCategory, AgentSkill, Pagination } from '../types/agent';
 
 interface AgentQueryParams {
@@ -78,16 +78,16 @@ class AgentService {
         name: params.name,
         reputation_min: params.reputation_min,
         reputation_max: params.reputation_max,
-        // category filtering handled client-side since not available in subgraph
+        category: params.category,
         first: params.limit || 20,
         skip: ((params.page || 1) - 1) * (params.limit || 20)
       };
       
       console.log('Agent filters:', filters);
-      const agents = await this.ensemble.agents.getAgentsByFilter(filters);
+      const agents = await this.ensemble.agents.getAgentRecords(filters);
       
       // Transform SDK data to API format
-      const transformedAgents = agents.map(agent => this.transformAgentData(agent));
+      const transformedAgents = agents.map((agent: SDKAgentRecord) => this.transformSDKAgentRecord(agent));
       
       // Apply client-side filtering for remaining parameters
       let filteredAgents = this.applyFilters(transformedAgents, params);
@@ -128,20 +128,16 @@ class AgentService {
   async getAgentById(agentId: string): Promise<AgentRecord | null> {
     try {
       if (!this.ensemble) {
-        console.warn('SDK not available, using mock data');
-        const mockAgents = this.generateMockAgents();
-        return mockAgents.find(agent => agent.id === agentId) || null;
+        throw new Error('SDK not available - cannot fetch agent by ID');
       }
       
-      // Use agent address as ID
-      const agentData = await this.ensemble.getAgent(agentId);
-      return this.transformAgentData(agentData);
+      // Use agent address as ID - SDK returns AgentRecord, transform to API format
+      const sdkAgentRecord = await this.ensemble.getAgentRecord(agentId);
+      return this.transformSDKAgentRecord(sdkAgentRecord);
       
     } catch (error: any) {
       console.error(`Error fetching agent ${agentId}:`, error);
-      // Fall back to mock data
-      const mockAgents = this.generateMockAgents();
-      return mockAgents.find(agent => agent.id === agentId) || null;
+      throw new Error(`Failed to fetch agent ${agentId}: ${error.message}`);
     }
   }
 
@@ -156,7 +152,7 @@ class AgentService {
       
       const agents = await this.ensemble.getAgentsByOwner(ownerAddress);
       console.log('Agents by owner:', agents);
-      return agents.map(agent => this.transformAgentData(agent));
+      return agents.map(agent => this.transformSDKAgentRecord(agent));
       
     } catch (error: any) {
       console.error(`Error fetching agents for owner ${ownerAddress}:`, error);
@@ -246,6 +242,43 @@ class AgentService {
   }
 
   /**
+   * Transform SDK AgentRecord to API AgentRecord format
+   */
+  private transformSDKAgentRecord(sdkAgent: SDKAgentRecord): AgentRecord {
+    const now = new Date().toISOString();
+    const reputationScore = Number(sdkAgent.reputation) / 1e18;
+    const totalRatingsCount = Number(sdkAgent.totalRatings);
+    const id = sdkAgent.address.toLowerCase();
+    
+    return {
+      id,
+      name: sdkAgent.name,
+      agentUri: sdkAgent.agentUri,
+      owner: sdkAgent.owner,
+      agent: sdkAgent.address,
+      reputation: sdkAgent.reputation,
+      totalRatings: sdkAgent.totalRatings,
+      description: sdkAgent.description,
+      imageURI: sdkAgent.imageURI,
+      metadataURI: sdkAgent.agentUri,
+      socials: sdkAgent.socials,
+      agentCategory: sdkAgent.category,
+      communicationType: sdkAgent.communicationType,
+      attributes: sdkAgent.attributes,
+      instructions: sdkAgent.instructions,
+      prompts: sdkAgent.prompts,
+      communicationURL: sdkAgent.communicationURL || '',
+      communicationParams: sdkAgent.communicationParams || {},
+      status: 'active',
+      reputationScore,
+      totalRatingsCount,
+      createdAt: now,
+      updatedAt: now,
+      lastActiveAt: now
+    };
+  }
+
+  /**
    * Transform SDK AgentData to API AgentRecord format
    */
   private transformAgentData(sdkAgent: AgentData): AgentRecord {
@@ -284,12 +317,6 @@ class AgentService {
 
   private applyFilters(agents: AgentRecord[], params: AgentQueryParams): AgentRecord[] {
     let filtered = agents;
-    
-    // Apply category filtering (not available in subgraph schema)
-    if (params.category) {
-      filtered = filtered.filter(agent => 
-        agent.agentCategory.toLowerCase() === params.category?.toLowerCase());
-    }
     
     // Apply attributes filtering (not handled in SDK)
     if (params.attributes) {

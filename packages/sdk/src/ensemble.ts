@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { PinataSDK } from "pinata-web3";
 import {
   AgentData,
+  AgentRecord,
   AgentMetadata,
   EnsembleConfig,
   TaskData,
@@ -177,10 +178,10 @@ export class Ensemble {
   /**
    * Gets data for a specific agent.
    * @param {string} agentAddress - The address of the agent.
-   * @returns {Promise<AgentData>} A promise that resolves to the agent data.
+   * @returns {Promise<AgentRecord>} A promise that resolves to the agent record.
    */
-  async getAgent(agentId: string): Promise<AgentData> {
-    return this.agentService.getAgent(agentId);
+  async getAgentRecord(agentId: string): Promise<AgentRecord> {
+    return this.agentService.getAgentRecord(agentId);
   }
 
   /**
@@ -199,9 +200,9 @@ export class Ensemble {
   /**
    * Gets all agents owned by a specific address.
    * @param {string} ownerAddress - The address of the owner.
-   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   * @returns {Promise<AgentRecord[]>} A promise that resolves to an array of agent records.
    */
-  async getAgentsByOwner(ownerAddress: string): Promise<AgentData[]> {
+  async getAgentsByOwner(ownerAddress: string): Promise<AgentRecord[]> {
     return this.agentService.getAgentsByOwner(ownerAddress);
   }
 

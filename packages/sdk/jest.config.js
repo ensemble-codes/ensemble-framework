@@ -5,10 +5,8 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
   },
   moduleNameMapper: {
-    // Add any module name mappings if necessary
+    // Mock graphql-request to avoid ESM issues
+    'graphql-request': '<rootDir>/__mocks__/graphql-request.js'
   },
-  transformIgnorePatterns: [
-    '/node_modules/(?!graphql-request)', // Add any other modules that need to be transformed
-  ],
   testTimeout: 15000
 };

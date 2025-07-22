@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { AgentData, Proposal, AgentMetadata } from "../types";
+import { AgentData, AgentRecord, Proposal, AgentMetadata, AgentFilterParams } from "../types";
 import {
   AgentAlreadyRegisteredError,
   ServiceNotRegisteredError,
@@ -9,17 +9,33 @@ import { AgentsRegistry } from "../../typechain";
 import { GraphQLClient, gql } from "graphql-request";
 
 // Subgraph types
+interface SubgraphIpfsMetadata {
+  id: string;
+  name: string;
+  description: string;
+  agentCategory: string;
+  openingGreeting: string;
+  attributes: string[];
+  instructions: string[];
+  prompts: string[];
+  communicationType: string;
+  communicationURL: string;
+  communicationParams?: any; // JSON type
+  imageUri: string;
+  twitter?: string;
+  telegram?: string;
+  dexscreener?: string;
+  github?: string;
+  website?: string;
+}
+
 interface SubgraphAgent {
   id: string;
   name: string;
   agentUri: string;
   owner: string;
   reputation: string;
-  metadata?: {
-    name: string;
-    description: string;
-    imageUri: string;
-  };
+  metadata?: SubgraphIpfsMetadata;
   proposals: Array<{
     id: string;
     service: string;
@@ -27,36 +43,49 @@ interface SubgraphAgent {
   }>;
 }
 
-interface GetAgentsByOwnerQuery {
+interface AgentsQuery {
   agents: SubgraphAgent[];
 }
 
-interface GetAllAgentsQuery {
-  agents: SubgraphAgent[];
-}
 
-export interface AgentFilters {
-  category?: string;
-  owner?: string;
-  reputation_min?: number;
-  reputation_max?: number;
-  search?: string;
-  first?: number;
-  skip?: number;
-}
-
-export interface AgentFilterParams {
-  owner?: string;
-  name?: string;
-  reputation_min?: number;
-  reputation_max?: number;
-  category?: string;
-  first?: number;
-  skip?: number;
-}
 
 export class AgentService {
   private subgraphClient?: GraphQLClient;
+
+  /**
+   * Helper function to convert SubgraphAgent to AgentRecord
+   * @param {SubgraphAgent} agent - The subgraph agent data.
+   * @param {number} totalRatingsCount - The total ratings count (default 0).
+   * @returns {AgentRecord} The converted agent record.
+   */
+  private convertSubgraphAgentToRecord(agent: SubgraphAgent, totalRatingsCount: number = 0): AgentRecord {
+    const metadata = agent.metadata;
+    
+    return {
+      name: agent.name,
+      description: metadata?.description || `Agent ${agent.name}`,
+      address: agent.id,
+      category: metadata?.agentCategory || 'general',
+      owner: agent.owner,
+      agentUri: agent.agentUri,
+      imageURI: metadata?.imageUri || agent.agentUri,
+      attributes: metadata?.attributes || [],
+      instructions: metadata?.instructions || [],
+      prompts: metadata?.prompts || [],
+      socials: {
+        twitter: metadata?.twitter || '',
+        telegram: metadata?.telegram || '',
+        dexscreener: metadata?.dexscreener || '',
+        github: metadata?.github || '',
+        website: metadata?.website || ''
+      },
+      communicationType: (metadata?.communicationType as any) || 'websocket',
+      communicationURL: metadata?.communicationURL || '',
+      communicationParams: metadata?.communicationParams || {},
+      reputation: BigInt(agent.reputation),
+      totalRatings: BigInt(totalRatingsCount)
+    };
+  }
 
   constructor(
     private readonly agentRegistry: AgentsRegistry,
@@ -229,7 +258,7 @@ export class AgentService {
    * @param {string} agentAddress - The address of the agent.
    * @returns {Promise<AgentData>} A promise that resolves to the agent data.
    */
-  async getAgent(agentAddress: string): Promise<AgentData> {
+  async getAgentData(agentAddress: string): Promise<AgentData> {
     const { name, agentUri, owner, agent, reputation, totalRatings } =
       await this.agentRegistry.getAgentData(agentAddress);
 
@@ -241,6 +270,80 @@ export class AgentService {
       reputation,
       totalRatings,
     };
+  }
+
+  /**
+   * Gets a specific agent by address using subgraph.
+   * @param {string} agentAddress - The address of the agent.
+   * @returns {Promise<AgentRecord>} A promise that resolves to the agent record.
+   */
+  async getAgentRecord(agentAddress: string): Promise<AgentRecord> {
+    if (!this.subgraphClient) {
+      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
+    }
+
+    // Validate and normalize the Ethereum address
+    let normalizedAddress: string;
+    try {
+      normalizedAddress = ethers.getAddress(agentAddress).toLowerCase();
+    } catch (error) {
+      throw new Error(`Invalid Ethereum address: ${agentAddress}`);
+    }
+
+    const query = gql`
+      query GetAgent($id: String!) {
+        agent(id: $id) {
+          id
+          name
+          agentUri
+          owner
+          reputation
+          metadata {
+            id
+            name
+            description
+            agentCategory
+            openingGreeting
+            attributes
+            instructions
+            prompts
+            communicationType
+            communicationURL
+            communicationParams
+            imageUri
+            twitter
+            telegram
+            dexscreener
+            github
+            website
+          }
+          proposals {
+            id
+            service
+            price
+          }
+        }
+      }
+    `;
+
+    try {
+      console.log('Getting agent by address:', normalizedAddress);
+      const result = await this.subgraphClient.request<{agent: SubgraphAgent | null}>(query, {
+        id: normalizedAddress
+      });
+
+      if (!result.agent) {
+        throw new Error(`Agent not found at address: ${agentAddress}`);
+      }
+
+      const agent = result.agent;
+      const totalRatingsCount = 0; // Would need to be added to subgraph schema
+
+      return this.convertSubgraphAgentToRecord(agent, totalRatingsCount);
+    } catch (error) {
+      console.error("Error fetching agent:", error);
+      throw new Error(`Failed to fetch agent at address ${agentAddress}: ${error}`);
+    }
   }
 
   /**
@@ -316,190 +419,22 @@ export class AgentService {
   /**
    * Gets all agents owned by a specific address.
    * @param {string} ownerAddress - The address of the owner.
-   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   * @returns {Promise<AgentRecord[]>} A promise that resolves to an array of agent records.
    */
-  async getAgentsByOwner(ownerAddress: string): Promise<AgentData[]> {
-    if (!this.subgraphClient) {
-      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
-    }
-
-    // Validate and normalize the Ethereum address
-    let normalizedAddress: string;
-    try {
-      normalizedAddress = ethers.getAddress(ownerAddress).toLowerCase();
-    } catch (error) {
-      throw new Error(`Invalid Ethereum address: ${ownerAddress}`);
-    }
-
-    const query = gql`
-      query GetAgentsByOwner($owner: String!) {
-        agents(where: { owner: $owner }) {
-          id
-          name
-          agentUri
-          owner
-          reputation
-          metadata {
-            name
-            description
-            imageUri
-          }
-          proposals {
-            id
-            service
-            price
-          }
-        }
-      }
-    `;
-
-    try {
-      console.log('Getting agents by owner (normalized):', normalizedAddress);
-      const result = await this.subgraphClient.request<GetAgentsByOwnerQuery>(query, {
-        owner: normalizedAddress
-      });
-
-      console.log('Query result:', result);
-      return result.agents.map(agent => ({
-        name: agent.name,
-        agentUri: agent.agentUri,
-        owner: agent.owner,
-        agent: agent.id,
-        reputation: BigInt(agent.reputation),
-        totalRatings: BigInt(0) // Note: totalRatings would need to be added to subgraph schema
-      }));
-    } catch (error) {
-      console.error("Error fetching agents by owner:", error);
-      throw new Error(`Failed to fetch agents for owner ${ownerAddress}: ${error}`);
-    }
+  async getAgentsByOwner(ownerAddress: string): Promise<AgentRecord[]> {
+    return this.getAgentRecords({ owner: ownerAddress });
   }
 
-  /**
-   * Gets all agents from subgraph with optional filtering.
-   * @param {AgentFilters} filters - Optional filters for agents.
-   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
-   */
-  async getAllAgents(filters: AgentFilters = {}): Promise<AgentData[]> {
-    if (!this.subgraphClient) {
-      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
-    }
-
-    // Build where clause based on filters
-    const whereClause: string[] = [];
-    if (filters.owner) {
-      whereClause.push(`owner: "${filters.owner.toLowerCase()}"`);
-    }
-    if (filters.reputation_min !== undefined) {
-      whereClause.push(`reputation_gte: "${(filters.reputation_min * 1e18).toString()}"`);
-    }
-    if (filters.reputation_max !== undefined) {
-      whereClause.push(`reputation_lte: "${(filters.reputation_max * 1e18).toString()}"`);
-    }
-    if (filters.search) {
-      whereClause.push(`name_contains_nocase: "${filters.search}"`);
-    }
-
-    const whereString = whereClause.length > 0 ? `where: { ${whereClause.join(', ')} }` : '';
-    const firstString = filters.first ? `first: ${filters.first}` : 'first: 100';
-    const skipString = filters.skip ? `skip: ${filters.skip}` : '';
-    
-    const queryParams = [whereString, firstString, skipString].filter(Boolean).join(', ');
-
-    const query = gql`
-      query GetAllAgents {
-        agents(${queryParams}) {
-          id
-          name
-          agentUri
-          owner
-          reputation
-          metadata {
-            name
-            description
-            imageUri
-          }
-          proposals {
-            id
-            service
-            price
-          }
-        }
-      }
-    `;
-
-    try {
-      const result = await this.subgraphClient.request<GetAllAgentsQuery>(query, {});
-
-      return result.agents.map(agent => ({
-        name: agent.name,
-        agentUri: agent.agentUri,
-        owner: agent.owner,
-        agent: agent.id,
-        reputation: BigInt(agent.reputation),
-        totalRatings: BigInt(0) // Note: totalRatings would need to be added to subgraph schema
-      }));
-    } catch (error) {
-      console.error("Error fetching all agents:", error);
-      throw new Error(`Failed to fetch agents: ${error}`);
-    }
-  }
 
   /**
    * Gets agents by category from subgraph.
    * @param {string} category - The category to filter by.
    * @param {number} first - Number of agents to fetch (default 100).
    * @param {number} skip - Number of agents to skip (default 0).
-   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   * @returns {Promise<AgentRecord[]>} A promise that resolves to an array of agent records.
    */
-  async getAgentsByCategory(category: string, first: number = 100, skip: number = 0): Promise<AgentData[]> {
-    if (!this.subgraphClient) {
-      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
-    }
-
-    const query = gql`
-      query GetAgentsByCategory($category: String!, $first: Int!, $skip: Int!) {
-        agents(
-          first: $first
-          skip: $skip
-        ) {
-          id
-          name
-          agentUri
-          owner
-          reputation
-          metadata {
-            name
-            description
-            imageUri
-          }
-          proposals {
-            id
-            service
-            price
-          }
-        }
-      }
-    `;
-
-    try {
-      const result = await this.subgraphClient.request<GetAllAgentsQuery>(query, {
-        category,
-        first,
-        skip
-      });
-
-      return result.agents.map(agent => ({
-        name: agent.name,
-        agentUri: agent.agentUri,
-        owner: agent.owner,
-        agent: agent.id,
-        reputation: BigInt(agent.reputation),
-        totalRatings: BigInt(0)
-      }));
-    } catch (error) {
-      console.error("Error fetching agents by category:", error);
-      throw new Error(`Failed to fetch agents for category ${category}: ${error}`);
-    }
+  async getAgentsByCategory(category: string, first: number = 100, skip: number = 0): Promise<AgentRecord[]> {
+    return this.getAgentRecords({ category, first, skip });
   }
 
   /**
@@ -534,9 +469,23 @@ export class AgentService {
           owner
           reputation
           metadata {
+            id
             name
             description
+            agentCategory
+            openingGreeting
+            attributes
+            instructions
+            prompts
+            communicationType
+            communicationURL
+            communicationParams
             imageUri
+            twitter
+            telegram
+            dexscreener
+            github
+            website
           }
           proposals {
             id
@@ -548,7 +497,7 @@ export class AgentService {
     `;
 
     try {
-      const result = await this.subgraphClient.request<GetAllAgentsQuery>(query, {
+      const result = await this.subgraphClient.request<AgentsQuery>(query, {
         search: searchTerm,
         first,
         skip
@@ -613,9 +562,9 @@ export class AgentService {
   /**
    * Gets agents with flexible filtering options.
    * @param {AgentFilterParams} filters - Filter parameters for agents.
-   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   * @returns {Promise<AgentRecord[]>} A promise that resolves to an array of agent records.
    */
-  async getAgentsByFilter(filters: AgentFilterParams = {}): Promise<AgentData[]> {
+  async getAgentRecords(filters: AgentFilterParams = {}): Promise<AgentRecord[]> {
     if (!this.subgraphClient) {
       throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
     }
@@ -646,10 +595,9 @@ export class AgentService {
       whereClause.push(`reputation_lte: "${(filters.reputation_max * 1e18).toString()}"`);
     }
     
-    // Note: category filtering not available in current subgraph schema
-    // if (filters.category) {
-    //   whereClause.push(`metadata_: { category: "${filters.category}" }`);
-    // }
+    if (filters.category) {
+      whereClause.push(`metadata_: { agentCategory: "${filters.category}" }`);
+    }
 
     const whereString = whereClause.length > 0 ? `where: { ${whereClause.join(', ')} }` : '';
     const firstString = filters.first ? `first: ${filters.first}` : 'first: 100';
@@ -666,9 +614,23 @@ export class AgentService {
           owner
           reputation
           metadata {
+            id
             name
             description
+            agentCategory
+            openingGreeting
+            attributes
+            instructions
+            prompts
+            communicationType
+            communicationURL
+            communicationParams
             imageUri
+            twitter
+            telegram
+            dexscreener
+            github
+            website
           }
           proposals {
             id
@@ -680,16 +642,9 @@ export class AgentService {
     `;
 
     try {
-      const result = await this.subgraphClient.request<GetAllAgentsQuery>(query, {});
+      const result = await this.subgraphClient.request<AgentsQuery>(query, {});
 
-      return result.agents.map(agent => ({
-        name: agent.name,
-        agentUri: agent.agentUri,
-        owner: agent.owner,
-        agent: agent.id,
-        reputation: BigInt(agent.reputation),
-        totalRatings: BigInt(0) // Note: totalRatings would need to be added to subgraph schema
-      }));
+      return result.agents.map(agent => this.convertSubgraphAgentToRecord(agent));
     } catch (error) {
       console.error("Error fetching agents by filter:", error);
       throw new Error(`Failed to fetch agents with filters: ${error}`);

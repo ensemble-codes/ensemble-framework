@@ -6,7 +6,6 @@ import { ServiceRegistryService } from "./services/ServiceRegistryService"
 
 // Export all types and interfaces
 export * from "./types"
-export type { AgentFilters, AgentFilterParams } from "./services/AgentService"
 
 export { 
     Ensemble, 

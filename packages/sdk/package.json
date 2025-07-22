@@ -12,6 +12,8 @@
     "build": "tsc",
     "watch": "tsc --watch",
     "test": "jest",
+    "test:agent": "jest test/agentService.test.ts",
+    "test:integration": "npx tsx scripts/test-agent-methods.ts",
     "typecheck": "tsc --noEmit",
     "docs": "typedoc",
     "upload-docs": "aws s3 cp ./docs s3://$ENSEMBLE_S3_BUCKET_NAME --recursive",

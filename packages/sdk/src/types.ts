@@ -144,6 +144,26 @@ export interface Service {
   description: string;
 }
 
+
+export interface AgentRecord {
+  name: string; // The display name of the agent
+  description: string; // A brief description of the agent
+  address: string; // The blockchain address of the agent
+  category: string; // The category or type of the agent
+  owner: string; // The address of the agent's owner
+  agentUri: string; // URI pointing to agent metadata or resources
+  imageURI: string; // URI for the agent's image or avatar
+  attributes: string[]; // List of agent's attributes or tags
+  instructions: string[]; // List of instructions for interacting with the agent
+  prompts: string[]; // Example prompts or tasks for the agent
+  socials: AgentSocials; // Social media or contact information for the agent
+  communicationType: AgentCommunicationType; // Type of communication supported by the agent
+  communicationURL?: string; // Optional URL for communication endpoint
+  communicationParams?: object; // Optional parameters for communication setup
+  reputation: BigNumberish; // Agent's reputation score
+  totalRatings: BigNumberish; // Total number of ratings received by the agent
+}
+
 export interface AgentData {
   name: string;
   agentUri: string;
@@ -151,6 +171,17 @@ export interface AgentData {
   agent: string;
   reputation: BigNumberish;
   totalRatings: BigNumberish;
+}
+
+export interface AgentFilterParams {
+  owner?: string;
+  name?: string;
+  reputation_min?: number;
+  reputation_max?: number;
+  category?: string;
+  search?: string;
+  first?: number;
+  skip?: number;
 }
 
 export interface TaskCreationParams {
