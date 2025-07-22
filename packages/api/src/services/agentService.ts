@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { Ensemble, AgentService as SDKAgentService, AgentData, AgentMetadata, EnsembleConfig } from '@ensemble-ai/sdk';
 import { AgentRecord, AgentCategory, AgentSkill, Pagination } from '../types/agent';
 
 interface AgentQueryParams {
@@ -20,14 +21,48 @@ interface AgentQueryParams {
 }
 
 class AgentService {
+  private ensemble?: Ensemble;
+  private sdkAgentService?: SDKAgentService;
   private provider: ethers.Provider;
   private agentRegistryAddress: string;
   private serviceRegistryAddress: string;
+  private taskRegistryAddress: string;
 
-  constructor(rpcUrl: string, agentRegistryAddress: string, serviceRegistryAddress: string) {
+  constructor(rpcUrl: string, agentRegistryAddress: string, serviceRegistryAddress: string, taskRegistryAddress?: string) {
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
     this.agentRegistryAddress = agentRegistryAddress;
     this.serviceRegistryAddress = serviceRegistryAddress;
+    this.taskRegistryAddress = taskRegistryAddress || '0x847fA49b999489fD2780fe2843A7b1608106b49b';
+    
+    this.initializeSDK(rpcUrl).catch(error => {
+      console.warn('Failed to initialize SDK, falling back to mock data:', error.message);
+    });
+  }
+
+  private async initializeSDK(rpcUrl: string): Promise<void> {
+    try {
+      // Create a read-only provider for querying data
+      const readOnlyProvider = new ethers.JsonRpcProvider(rpcUrl);
+      const dummySigner = ethers.Wallet.createRandom().connect(readOnlyProvider);
+      
+      const config: EnsembleConfig = {
+        agentRegistryAddress: this.agentRegistryAddress,
+        serviceRegistryAddress: this.serviceRegistryAddress,
+        taskRegistryAddress: this.taskRegistryAddress,
+        network: {
+          chainId: 84532, // Base Sepolia
+          name: 'Base Sepolia',
+          rpcUrl
+        },
+        subgraphUrl: process.env.SUBGRAPH_URL
+      };
+      
+      this.ensemble = Ensemble.create(config, dummySigner);
+      console.log('✅ SDK initialized successfully');
+    } catch (error: any) {
+      console.error('❌ Failed to initialize SDK:', error.message);
+      throw error;
+    }
   }
 
   /**
@@ -35,112 +70,110 @@ class AgentService {
    */
   async getAgents(params: AgentQueryParams): Promise<{ data: AgentRecord[], pagination: Pagination }> {
     const page = params.page || 1;
-    const limit = Math.min(params.limit || 20, 100); // Max 100 per page
+    const limit = Math.min(params.limit || 20, 100);
     
-    // TODO: Implement actual blockchain interaction
-    // For now, return mock data that matches the AgentRecord interface
-    const mockAgents = this.generateMockAgents();
-    
-    // Apply filtering logic here
-    let filteredAgents = mockAgents;
-    
-    if (params.category) {
-      filteredAgents = filteredAgents.filter(agent => 
-        agent.agentCategory.toLowerCase() === params.category?.toLowerCase()
-      );
-    }
-    
-    if (params.search) {
-      const searchTerm = params.search.toLowerCase();
-      filteredAgents = filteredAgents.filter(agent =>
-        agent.name.toLowerCase().includes(searchTerm) ||
-        agent.description.toLowerCase().includes(searchTerm) ||
-        agent.attributes.some(attr => attr.toLowerCase().includes(searchTerm))
-      );
-    }
-    
-    if (params.reputation_min !== undefined) {
-      filteredAgents = filteredAgents.filter(agent => 
-        agent.reputationScore >= params.reputation_min!
-      );
-    }
-    
-    if (params.owner) {
-      filteredAgents = filteredAgents.filter(agent => 
-        agent.owner.toLowerCase() === params.owner?.toLowerCase()
-      );
-    }
+    try {
+      // If SDK is not available, fall back to mock data
+      if (!this.ensemble) {
+        console.warn('SDK not available, using mock data');
+        return this.getMockAgents(params);
+      }
 
-    // Apply sorting
-    if (params.sort_by) {
-      filteredAgents.sort((a, b) => {
-        let aValue: any, bValue: any;
-        
-        switch (params.sort_by) {
-          case 'reputation':
-            aValue = a.reputationScore;
-            bValue = b.reputationScore;
-            break;
-          case 'name':
-            aValue = a.name;
-            bValue = b.name;
-            break;
-          case 'created_at':
-            aValue = new Date(a.createdAt);
-            bValue = new Date(b.createdAt);
-            break;
-          default:
-            aValue = new Date(a.updatedAt);
-            bValue = new Date(b.updatedAt);
-        }
-        
-        if (params.sort_order === 'asc') {
-          return aValue > bValue ? 1 : -1;
-        } else {
-          return aValue < bValue ? 1 : -1;
-        }
-      });
+      // For now, we'll primarily use owner-based queries since the SDK has that method
+      // Future enhancement: add general getAgents method to SDK
+      let agents: AgentData[] = [];
+      
+      if (params.owner) {
+        agents = await this.ensemble.getAgentsByOwner(params.owner);
+      } else {
+        // Fall back to mock data for general queries until SDK supports it
+        console.warn('General agent listing not yet supported by SDK, using mock data');
+        return this.getMockAgents(params);
+      }
+      
+      // Transform SDK data to API format
+      const transformedAgents = agents.map(agent => this.transformAgentData(agent));
+      
+      // Apply client-side filtering
+      let filteredAgents = this.applyFilters(transformedAgents, params);
+      
+      // Apply sorting
+      filteredAgents = this.applySorting(filteredAgents, params);
+      
+      // Apply pagination
+      const total = filteredAgents.length;
+      const totalPages = Math.ceil(total / limit);
+      const offset = (page - 1) * limit;
+      const paginatedAgents = filteredAgents.slice(offset, offset + limit);
+      
+      const pagination: Pagination = {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      };
+      
+      return {
+        data: paginatedAgents,
+        pagination
+      };
+      
+    } catch (error: any) {
+      console.error('Error fetching agents from blockchain:', error);
+      console.warn('Falling back to mock data due to error:', error.message);
+      return this.getMockAgents(params);
     }
-    
-    // Pagination
-    const total = filteredAgents.length;
-    const totalPages = Math.ceil(total / limit);
-    const offset = (page - 1) * limit;
-    const paginatedAgents = filteredAgents.slice(offset, offset + limit);
-    
-    const pagination: Pagination = {
-      page,
-      limit,
-      total,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrev: page > 1
-    };
-    
-    return {
-      data: paginatedAgents,
-      pagination
-    };
   }
 
   /**
    * Get agent by ID
    */
   async getAgentById(agentId: string): Promise<AgentRecord | null> {
-    // TODO: Implement actual blockchain query
-    const mockAgents = this.generateMockAgents();
-    return mockAgents.find(agent => agent.id === agentId) || null;
+    try {
+      if (!this.ensemble) {
+        console.warn('SDK not available, using mock data');
+        const mockAgents = this.generateMockAgents();
+        return mockAgents.find(agent => agent.id === agentId) || null;
+      }
+      
+      // Use agent address as ID
+      const agentData = await this.ensemble.getAgent(agentId);
+      return this.transformAgentData(agentData);
+      
+    } catch (error: any) {
+      console.error(`Error fetching agent ${agentId}:`, error);
+      // Fall back to mock data
+      const mockAgents = this.generateMockAgents();
+      return mockAgents.find(agent => agent.id === agentId) || null;
+    }
   }
 
   /**
    * Get agents by owner address
    */
   async getAgentsByOwner(ownerAddress: string): Promise<AgentRecord[]> {
-    // TODO: Implement actual blockchain query
-    const mockAgents = this.generateMockAgents();
-    return mockAgents.filter(agent => 
-      agent.owner.toLowerCase() === ownerAddress.toLowerCase()
-    );
+    try {
+      if (!this.ensemble) {
+        console.warn('SDK not available, using mock data');
+        const mockAgents = this.generateMockAgents();
+        return mockAgents.filter(agent => 
+          agent.owner.toLowerCase() === ownerAddress.toLowerCase()
+        );
+      }
+      
+      const agents = await this.ensemble.getAgentsByOwner(ownerAddress);
+      return agents.map(agent => this.transformAgentData(agent));
+      
+    } catch (error: any) {
+      console.error(`Error fetching agents for owner ${ownerAddress}:`, error);
+      // Fall back to mock data
+      const mockAgents = this.generateMockAgents();
+      return mockAgents.filter(agent => 
+        agent.owner.toLowerCase() === ownerAddress.toLowerCase()
+      );
+    }
   }
 
   /**
@@ -222,6 +255,96 @@ class AgentService {
     };
     
     return this.getAgents(params);
+  }
+
+  /**
+   * Transform SDK AgentData to API AgentRecord format
+   */
+  private transformAgentData(sdkAgent: AgentData): AgentRecord {
+    const now = new Date().toISOString();
+    const reputationScore = Number(sdkAgent.reputation) / 1e18;
+    const totalRatingsCount = Number(sdkAgent.totalRatings);
+    const id = sdkAgent.agent.toLowerCase();
+    
+    return {
+      id,
+      name: sdkAgent.name,
+      agentUri: sdkAgent.agentUri,
+      owner: sdkAgent.owner,
+      agent: sdkAgent.agent,
+      reputation: sdkAgent.reputation,
+      totalRatings: sdkAgent.totalRatings,
+      description: `Agent ${sdkAgent.name} - Retrieved from blockchain`,
+      imageURI: sdkAgent.agentUri,
+      metadataURI: sdkAgent.agentUri,
+      socials: { twitter: '', telegram: '', dexscreener: '', github: '', website: '' },
+      agentCategory: 'general',
+      communicationType: 'websocket',
+      attributes: [],
+      instructions: [],
+      prompts: [],
+      communicationURL: '',
+      communicationParams: {},
+      status: 'active',
+      reputationScore,
+      totalRatingsCount,
+      createdAt: now,
+      updatedAt: now,
+      lastActiveAt: now
+    };
+  }
+
+  private applyFilters(agents: AgentRecord[], params: AgentQueryParams): AgentRecord[] {
+    let filtered = agents;
+    if (params.category) {
+      filtered = filtered.filter(agent => 
+        agent.agentCategory.toLowerCase() === params.category?.toLowerCase());
+    }
+    if (params.search) {
+      const searchTerm = params.search.toLowerCase();
+      filtered = filtered.filter(agent =>
+        agent.name.toLowerCase().includes(searchTerm) ||
+        agent.description.toLowerCase().includes(searchTerm) ||
+        agent.attributes.some(attr => attr.toLowerCase().includes(searchTerm)));
+    }
+    if (params.reputation_min !== undefined) {
+      filtered = filtered.filter(agent => agent.reputationScore >= params.reputation_min!);
+    }
+    if (params.status && params.status !== 'all') {
+      filtered = filtered.filter(agent => agent.status === params.status);
+    }
+    return filtered;
+  }
+
+  private applySorting(agents: AgentRecord[], params: AgentQueryParams): AgentRecord[] {
+    if (!params.sort_by) return agents;
+    return agents.sort((a, b) => {
+      let aValue: any, bValue: any;
+      switch (params.sort_by) {
+        case 'reputation': aValue = a.reputationScore; bValue = b.reputationScore; break;
+        case 'name': aValue = a.name; bValue = b.name; break;
+        case 'created_at': aValue = new Date(a.createdAt); bValue = new Date(b.createdAt); break;
+        case 'total_tasks': aValue = a.totalRatingsCount; bValue = b.totalRatingsCount; break;
+        default: aValue = new Date(a.updatedAt); bValue = new Date(b.updatedAt);
+      }
+      return params.sort_order === 'asc' ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
+    });
+  }
+
+  private getMockAgents(params: AgentQueryParams): { data: AgentRecord[], pagination: Pagination } {
+    const page = params.page || 1;
+    const limit = Math.min(params.limit || 20, 100);
+    const mockAgents = this.generateMockAgents();
+    let filteredAgents = this.applyFilters(mockAgents, params);
+    filteredAgents = this.applySorting(filteredAgents, params);
+    const total = filteredAgents.length;
+    const totalPages = Math.ceil(total / limit);
+    const offset = (page - 1) * limit;
+    const paginatedAgents = filteredAgents.slice(offset, offset + limit);
+    return {
+      data: paginatedAgents,
+      pagination: { page, limit, total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 }
+    };
   }
 
   /**

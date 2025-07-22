@@ -52,7 +52,8 @@ async function agentRoutes(fastify: FastifyInstance) {
   const agentService = new AgentService(
     (fastify as any).config.RPC_URL,
     (fastify as any).config.AGENT_REGISTRY_ADDRESS,
-    (fastify as any).config.SERVICE_REGISTRY_ADDRESS
+    (fastify as any).config.SERVICE_REGISTRY_ADDRESS,
+    (fastify as any).config.TASK_REGISTRY_ADDRESS
   );
 
   // Schema definitions for validation
