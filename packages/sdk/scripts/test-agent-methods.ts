@@ -6,7 +6,7 @@
  */
 
 import { ethers } from 'ethers';
-import Ensemble, { AgentFilterParams } from '../src';
+import { Ensemble, AgentFilterParams } from '../src';
 
 async function testAgentMethods() {
   console.log('🚀 Testing Agent Record Methods...\n');

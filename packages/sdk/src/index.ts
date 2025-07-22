@@ -14,3 +14,5 @@ export {
     ContractService, 
     ServiceRegistryService
 }
+
+export default Ensemble
