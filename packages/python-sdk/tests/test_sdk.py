@@ -4,7 +4,7 @@ import pytest
 from dotenv import load_dotenv
 from web3 import Web3
 from src.ensemble import Ensemble
-from src.types import ContractConfig, NetworkConfig, Proposal
+from src.types import EnsembleConfig, NetworkConfig, Proposal
 
 load_dotenv()
 
@@ -15,7 +15,7 @@ def setup_env(user_type='user'):
 
 def setup_sdk(user_type='user'):
     env = setup_env(user_type)
-    config = ContractConfig(
+    config = EnsembleConfig(
         network=NetworkConfig(
             rpc_url=os.getenv('RPC_URL'),
             chain_id=int(os.getenv('CHAIN_ID')),

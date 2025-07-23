@@ -5,11 +5,11 @@ from .services.agent_service import AgentService
 from .services.task_service import TaskService
 from .services.proposal_service import ProposalService
 from .services.contract_service import ContractService
-from .types import ContractConfig, Proposal
+from .types import EnsembleConfig, Proposal
 from typing import Callable, Optional
 
 class Ensemble:
-    def __init__(self, config: ContractConfig):
+    def __init__(self, config: EnsembleConfig):
         self.contract_service = ContractService(
             Web3(Web3.HTTPProvider(config.network.rpc_url)),
             None  # Account will be set in connect()

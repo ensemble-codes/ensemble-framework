@@ -3,7 +3,7 @@ import { PinataSDK } from "pinata-web3";
 import {
   AgentData,
   AgentMetadata,
-  ContractConfig,
+  EnsembleConfig,
   TaskData,
   TaskCreationParams,
   Service,
@@ -25,7 +25,7 @@ export class Ensemble {
   ) {}
 
   static create(
-    config: ContractConfig,
+    config: EnsembleConfig,
     signer: ethers.Signer,
     ipfsSDK?: PinataSDK
   ) {
@@ -45,7 +45,7 @@ export class Ensemble {
     );
 
     const serviceRegistryService = new ServiceRegistryService(serviceRegistry);
-    const agentService = new AgentService(agentRegistry, signer, ipfsSDK);
+    const agentService = new AgentService(agentRegistry, signer, ipfsSDK, config.subgraphUrl);
     const taskService = new TaskService(taskRegistry, agentService);
 
     return new Ensemble(taskService, agentService, serviceRegistryService);
@@ -174,6 +174,28 @@ export class Ensemble {
    */
   async getAgent(agentId: string): Promise<AgentData> {
     return this.agentService.getAgent(agentId);
+  }
+
+  /**
+   * Updates the metadata of an existing agent.
+   * @param {string} agentAddress - The address of the agent to update.
+   * @param {AgentMetadata} metadata - The new metadata for the agent.
+   * @returns {Promise<boolean>} A promise that resolves to true if the update was successful.
+   */
+  async updateAgentMetadata(
+    agentAddress: string,
+    metadata: AgentMetadata
+  ): Promise<boolean> {
+    return this.agentService.updateAgentMetadata(agentAddress, metadata);
+  }
+
+  /**
+   * Gets all agents owned by a specific address.
+   * @param {string} ownerAddress - The address of the owner.
+   * @returns {Promise<AgentData[]>} A promise that resolves to an array of agent data.
+   */
+  async getAgentsByOwner(ownerAddress: string): Promise<AgentData[]> {
+    return this.agentService.getAgentsByOwner(ownerAddress);
   }
 
   /**

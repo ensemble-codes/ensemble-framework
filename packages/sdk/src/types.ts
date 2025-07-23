@@ -87,6 +87,7 @@ export type AgentMetadata = {
   instructions: string[];
   prompts: string[];
   communicationURL?: string;
+  communicationParams?: object;
 }
 
 export interface TaskConnectorContract extends BaseContract {
@@ -185,11 +186,12 @@ export interface NetworkConfig {
   rpcUrl: string;
 }
 
-export interface ContractConfig {
+export interface EnsembleConfig {
   taskRegistryAddress: string;
   agentRegistryAddress: string;
   serviceRegistryAddress: string;
   network: NetworkConfig;
+  subgraphUrl?: string;
 }
 
 export type LegacyRegisterAgentParams = RegisterAgentParams;
