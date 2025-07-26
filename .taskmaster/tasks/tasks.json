@@ -300,11 +300,38 @@
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Fix failing API tests in packages/api/src/routes/agents.test.ts",
+        "description": "Debug and resolve failing test cases in the agents route test suite to ensure all API endpoints are properly tested and validated.",
+        "details": "1. Analyze the current test failures in packages/api/src/routes/agents.test.ts by running the test suite and identifying specific error messages, assertion failures, or timeout issues.\n\n2. Update test mocks and fixtures to align with the new SDK integration implemented in Task 16:\n   - Replace any hardcoded mock data with realistic test data that matches SDK response formats\n   - Update test assertions to expect actual blockchain data structures instead of mock responses\n   - Mock the @ensemble/sdk methods properly using jest.mock() or similar testing framework mocking capabilities\n\n3. Fix test setup and teardown procedures:\n   - Ensure proper test database/blockchain state initialization before each test\n   - Add cleanup procedures to reset state between tests\n   - Configure test environment variables for testnet connections if needed\n\n4. Address authentication and authorization test scenarios:\n   - Update tests to handle any new authentication requirements\n   - Mock authentication tokens or user sessions as needed\n   - Test both authenticated and unauthenticated request scenarios\n\n5. Update test assertions for error handling:\n   - Verify that API endpoints return appropriate HTTP status codes\n   - Test error response formats match the expected API contract\n   - Ensure blockchain connection failures are handled gracefully in tests\n\n6. Add missing test coverage for any new endpoints or functionality:\n   - Test all CRUD operations (GET, POST, PUT, DELETE) for agent routes\n   - Add edge case testing for invalid inputs, malformed requests, and boundary conditions\n   - Test rate limiting, pagination, and query parameter handling if applicable",
+        "testStrategy": "1. Run the failing test suite to establish baseline failure count and specific error messages: `npm test packages/api/src/routes/agents.test.ts --verbose`\n\n2. Fix tests incrementally and verify each fix:\n   - Run individual test cases to isolate and resolve specific failures\n   - Use `--watch` mode during development for rapid feedback\n   - Ensure each test passes consistently across multiple runs\n\n3. Validate test coverage and quality:\n   - Run coverage reports to ensure all code paths in agents routes are tested\n   - Verify that tests cover both success and failure scenarios\n   - Check that mocked SDK methods are called with expected parameters\n\n4. Integration testing validation:\n   - Run tests against a test environment with actual SDK integration\n   - Verify that tests work with both mocked and real SDK responses\n   - Test with different network conditions and error scenarios\n\n5. Regression testing:\n   - Run the full API test suite to ensure fixes don't break other tests\n   - Verify that all agent-related API endpoints still function correctly\n   - Test the API manually using tools like Postman or curl to confirm test accuracy",
+        "status": "done",
+        "dependencies": [
+          16
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Implement remaining REST API endpoints for the agent service including update, delete, and bulk operations",
+        "description": "Extend the existing REST API with comprehensive CRUD operations for agent management, including update, delete, and bulk operations endpoints with proper SDK integration and error handling.",
+        "details": "1. Implement missing CRUD endpoints building on the existing SDK integration:\n   - PUT /agents/:id - Full agent update using sdk.updateAgent() with complete agent object replacement\n   - PATCH /agents/:id - Partial agent update for specific fields (name, description, capabilities, etc.)\n   - DELETE /agents/:id - Agent deregistration using sdk.deregisterAgent() with proper cleanup\n   - GET /agents/search - Advanced search with filters (capabilities, reputation, status, tags)\n   - POST /agents/validate - Agent configuration validation before registration\n\n2. Implement bulk operations for efficient management:\n   - POST /agents/bulk - Bulk agent registration with transaction batching\n   - PUT /agents/bulk - Bulk agent updates with rollback on partial failures\n   - DELETE /agents/bulk - Bulk agent deregistration with confirmation requirements\n   - GET /agents/export - Export agent data in various formats (JSON, CSV)\n\n3. Add advanced query capabilities:\n   - Implement pagination with cursor-based navigation for large datasets\n   - Add sorting options (by reputation, registration date, last activity)\n   - Include filtering by agent status, capabilities, and performance metrics\n   - Support for complex queries with multiple filter combinations\n\n4. Enhance error handling and validation:\n   - Implement comprehensive input validation using Joi or similar schema validation\n   - Add specific error codes for different failure scenarios (agent not found, insufficient permissions, blockchain errors)\n   - Include retry mechanisms for transient blockchain connectivity issues\n   - Add request rate limiting and authentication middleware\n\n5. Implement response optimization:\n   - Add response caching for frequently accessed agent data\n   - Implement conditional requests using ETags for bandwidth optimization\n   - Include response compression for large datasets\n   - Add response time monitoring and performance metrics",
+        "testStrategy": "1. Unit testing for each new endpoint:\n   - Test all CRUD operations with valid and invalid inputs\n   - Verify proper SDK method integration and parameter passing\n   - Test error handling scenarios including network failures and invalid agent IDs\n   - Validate request/response data transformation and schema compliance\n\n2. Integration testing with blockchain:\n   - Test bulk operations against testnet with various batch sizes\n   - Verify transaction batching and rollback mechanisms work correctly\n   - Test search and filtering functionality with diverse agent datasets\n   - Validate pagination and sorting across large agent collections\n\n3. Performance and load testing:\n   - Benchmark bulk operations with increasing batch sizes (10, 100, 1000+ agents)\n   - Test API response times under concurrent request loads\n   - Verify caching effectiveness and cache invalidation strategies\n   - Test rate limiting and throttling mechanisms\n\n4. End-to-end workflow testing:\n   - Test complete agent lifecycle: registration → updates → search → deletion\n   - Verify bulk operations maintain data consistency and integrity\n   - Test export/import workflows with various data formats\n   - Validate error recovery and retry mechanisms in failure scenarios\n\n5. Security and validation testing:\n   - Test input validation with malformed and malicious payloads\n   - Verify authentication and authorization for sensitive operations\n   - Test SQL injection and other common API vulnerabilities\n   - Validate proper error message sanitization to prevent information leakage",
+        "status": "pending",
+        "dependencies": [
+          1,
+          16
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-07-20T14:05:20.035Z",
+      "updated": "2025-07-26T19:59:01.089Z",
       "description": "Tasks for master context"
     }
   }

@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "Ensemble API - Agents",
+    "description": "Collection for testing Ensemble Agent API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List Agents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/agents?page=1&limit=10&status=active",
+          "host": ["{{baseUrl}}"],
+          "path": ["agents"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" },
+            { "key": "status", "value": "active" },
+            { "key": "category", "value": "ai-assistant", "disabled": true },
+            { "key": "sort_by", "value": "reputation", "disabled": true },
+            { "key": "sort_order", "value": "desc", "disabled": true }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Agent by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/agents/{{agentId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["agents", "{{agentId}}"]
+        }
+      }
+    },
+    {
+      "name": "Discover Agents",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": {\n    \"text\": \"data analysis AI\",\n    \"categories\": [\"ai-assistant\", \"data-analysis\"]\n  },\n  \"filters\": {\n    \"reputation\": {\n      \"min\": 3.5,\n      \"max\": 5\n    }\n  },\n  \"pagination\": {\n    \"page\": 1,\n    \"limit\": 20\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/agents/discovery",
+          "host": ["{{baseUrl}}"],
+          "path": ["agents", "discovery"]
+        }
+      }
+    },
+    {
+      "name": "Get Agents by Owner",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/agents/owner/{{ownerAddress}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["agents", "owner", "{{ownerAddress}}"]
+        }
+      }
+    },
+    {
+      "name": "Get Categories",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/agents/categories?include_empty=false&include_counts=true",
+          "host": ["{{baseUrl}}"],
+          "path": ["agents", "categories"],
+          "query": [
+            { "key": "include_empty", "value": "false" },
+            { "key": "include_counts", "value": "true" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Skills",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/agents/skills?limit=50",
+          "host": ["{{baseUrl}}"],
+          "path": ["agents", "skills"],
+          "query": [
+            { "key": "limit", "value": "50" },
+            { "key": "category", "value": "ai-assistant", "disabled": true },
+            { "key": "min_usage", "value": "5", "disabled": true }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "agentId",
+      "value": "0xYourAgentAddress",
+      "type": "string"
+    },
+    {
+      "key": "ownerAddress",
+      "value": "0xYourOwnerAddress",
+      "type": "string"
+    }
+  ]
+}
