@@ -13,13 +13,13 @@ COPY ../../package.json ../../pnpm-lock.yaml ../../pnpm-workspace.yaml ./
 # Copy SDK package (dependency of API)
 COPY ../../packages/sdk ./packages/sdk/
 
-# Copy API package (current source directory)
+# Copy API package (current source directory)  
 COPY . ./packages/api/
 
 # Install dependencies from root
 RUN pnpm install --frozen-lockfile
 
-# Build SDK first
+# Build SDK first (required dependency)
 WORKDIR /app/packages/sdk
 RUN pnpm build
 
@@ -27,8 +27,18 @@ RUN pnpm build
 WORKDIR /app/packages/api
 RUN pnpm build
 
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S ensemble -u 1001
+
 # Set production environment
 ENV NODE_ENV=production
+
+# Change ownership of the app directory
+RUN chown -R ensemble:nodejs /app
+
+# Switch to non-root user
+USER ensemble
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

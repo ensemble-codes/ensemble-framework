@@ -3,17 +3,22 @@ runtime: nodejs18
 build:
   commands:
     pre-build:
-      # Install pnpm
+      # Install pnpm globally
       - npm install -g pnpm
-      # Go to repository root to handle workspace
-      - cd ../..
-      # Install all dependencies from root
+      # Get to repository root using absolute path resolution
+      - export REPO_ROOT=$(pwd)/../../
+      - cd $REPO_ROOT
+      # Install all workspace dependencies
       - pnpm install --frozen-lockfile
     build:
-      # Build SDK first (dependency)
-      - cd ../../packages/sdk && pnpm build
-      # Build API
-      - cd ../api && pnpm build
+      # Set repository root path
+      - export REPO_ROOT=$(pwd)/../../
+      # Build SDK package first (required dependency)
+      - cd $REPO_ROOT/packages/sdk
+      - pnpm build
+      # Build API package
+      - cd $REPO_ROOT/packages/api  
+      - pnpm build
 run:
   runtime-version: 18
   command: node dist/index.js
