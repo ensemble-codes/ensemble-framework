@@ -295,27 +295,99 @@ curl https://your-api-url/health
 
 ### Common Issues
 
-1. **Build Failures**
+1. **AppRunner Build Failures**
+   
+   **Symptom**: `Failed to build your application source code. Reason: Failed to execute 'build' command.`
+   
+   **Solutions**:
    ```bash
-   # Check Docker build locally
-   docker build -t ensemble-api .
+   # Test the build commands locally from packages/api directory
+   cd packages/api
+   
+   # Test the exact AppRunner build sequence
+   cd ../..  # Go to repo root
+   npm install -g pnpm
+   pnpm install --frozen-lockfile
+   cd packages/sdk && pnpm build
+   cd ../api && pnpm build
+   
+   # Test the application starts
+   cd packages/api
+   node dist/index.js
+   ```
+   
+   **Common fixes**:
+   - Ensure `pnpm-workspace.yaml` exists in repository root
+   - Verify all dependencies are listed in package.json files
+   - Check that TypeScript builds without errors
+   - Ensure AppRunner source directory is set to `/packages/api`
+
+2. **Monorepo Dependencies Issues**
+   
+   **Symptom**: SDK package not found or import errors
+   
+   **Solution**: Use the nodejs18 runtime in `apprunner.yaml` instead of docker runtime for better monorepo support
+
+3. **Docker Build Failures**
+   ```bash
+   # Check Docker build locally from repository root
+   docker build -f packages/api/Dockerfile -t ensemble-api .
    
    # Check logs
    docker run ensemble-api
+   
+   # Test AppRunner-specific Dockerfile
+   cd packages/api
+   docker build -f Dockerfile.apprunner -t ensemble-api-apprunner .
    ```
 
-2. **Environment Variable Issues**
+4. **Environment Variable Issues**
    ```bash
    # Verify variables are set
    curl https://your-api-url/health
+   
+   # Check AppRunner environment variables in AWS Console
+   # Ensure JWT_SECRET and NETWORK_RPC_URL are set
    ```
 
-3. **Network Connectivity**
+5. **Network Connectivity**
    ```bash
    # Test RPC connection
    curl -X POST your-rpc-url \
      -H "Content-Type: application/json" \
      -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
+   ```
+
+### AppRunner Debugging Steps
+
+1. **Check AppRunner Logs**:
+   - Go to AWS AppRunner Console
+   - Select your service
+   - Click "Logs" tab
+   - Look for detailed build errors
+
+2. **Verify Configuration**:
+   ```bash
+   # Ensure apprunner.yaml is in packages/api/
+   # Check source directory setting: /packages/api
+   # Verify branch name matches your deployment branch
+   ```
+
+3. **Test Build Locally**:
+   ```bash
+   # Simulate AppRunner build environment
+   cd your-repo-root
+   mkdir -p /tmp/apprunner-test
+   cp -r . /tmp/apprunner-test/
+   cd /tmp/apprunner-test/packages/api
+   
+   # Run AppRunner commands
+   npm install -g pnpm
+   cd ../..
+   pnpm install --frozen-lockfile
+   cd packages/sdk && pnpm build
+   cd ../api && pnpm build
+   node dist/index.js
    ```
 
 ### Logs Access

@@ -1,10 +1,19 @@
 version: 1.0
-runtime: docker
+runtime: nodejs18
 build:
   commands:
+    pre-build:
+      # Install pnpm
+      - npm install -g pnpm
+      # Go to repository root to handle workspace
+      - cd ../..
+      # Install all dependencies from root
+      - pnpm install --frozen-lockfile
     build:
-      # Build is handled by Dockerfile
-      - echo "Building in Dockerfile"
+      # Build SDK first (dependency)
+      - cd ../../packages/sdk && pnpm build
+      # Build API
+      - cd ../api && pnpm build
 run:
   runtime-version: 18
   command: node dist/index.js
