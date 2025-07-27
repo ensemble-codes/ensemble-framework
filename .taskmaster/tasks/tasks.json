@@ -56,7 +56,7 @@
         "id": 5,
         "title": "Develop REST API Layer",
         "description": "This task is deferred until after core functionality is complete. The REST API layer will provide an HTTP-based API abstracting blockchain complexity, with authentication, real-time updates, and comprehensive endpoint coverage for agent discovery and management using the AgentRecord data model.",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           3
         ],
@@ -74,65 +74,15 @@
             "testStrategy": "Use Postman or Jest to verify all agent endpoints respond correctly with proper AgentRecord format and return expected status codes and payloads for various query parameters."
           },
           {
-            "id": 2,
-            "title": "Implement Authentication and Authorization",
-            "description": "Integrate JWT and API key authentication using Fastify plugins to secure all endpoints, and enforce role-based access control for agent operations.",
-            "status": "pending",
-            "dependencies": [
-              1
-            ],
-            "details": "Configure @fastify/jwt and custom API key middleware. Protect sensitive endpoints and validate tokens/keys on each request. Store and manage credentials securely.\n<info added on 2025-07-20T13:15:10.850Z>\nPriority changed to low. Authentication implementation deferred until after core functionality (Swagger docs and SDK integration) is complete.\n</info added on 2025-07-20T13:15:10.850Z>",
-            "testStrategy": "Test authentication flows, token issuance, and access restrictions using automated tests and manual API calls with valid and invalid credentials."
-          },
-          {
             "id": 3,
             "title": "Add Request Validation, Error Handling, and Middleware",
             "description": "Apply JSON Schema validation to all request bodies and query parameters for agent endpoints. Implement Fastify hooks for request/response lifecycle management and custom error schemas for consistent error responses.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               1
             ],
             "details": "Define JSON Schemas for each agent endpoint including AgentRecord response schema. Use Fastify's built-in validation and hooks (onRequest, preHandler, onSend) for middleware logic. Create custom error handlers for unified error formatting.",
             "testStrategy": "Send invalid and edge-case requests to agent endpoints and verify that validation errors and custom error responses are returned as expected with proper AgentRecord format."
-          },
-          {
-            "id": 4,
-            "title": "Implement Agent Discovery and Search Logic",
-            "description": "Build comprehensive agent discovery functionality with filtering, search, and categorization capabilities as specified in agent-api-endpoints.md.",
-            "status": "pending",
-            "dependencies": [
-              1,
-              2
-            ],
-            "details": "Implement GET /agents with query parameters for filtering by category, skills, status, and search terms. Build POST /agents/discovery for advanced discovery logic. Implement GET /agents/categories and GET /agents/skills for metadata endpoints. Ensure efficient querying and proper AgentRecord formatting.",
-            "testStrategy": "Test all filtering and search combinations on GET /agents. Verify discovery logic in POST /agents/discovery. Test categories and skills endpoints for proper metadata retrieval."
-          },
-          {
-            "id": 5,
-            "title": "Add Rate Limiting and Performance Optimization",
-            "description": "Implement @fastify/rate-limit to control request rates and prevent abuse, with special consideration for agent discovery queries.",
-            "status": "pending",
-            "dependencies": [
-              1,
-              2
-            ],
-            "details": "Configure rate limiting policies for all agent endpoints with appropriate limits for discovery vs. individual agent queries. Implement caching strategies for categories and skills endpoints. Optimize database queries for agent search and filtering.",
-            "testStrategy": "Test rate limiting by simulating high-frequency requests and observing throttling behavior. Performance test agent discovery queries under load."
-          },
-          {
-            "id": 6,
-            "title": "Containerize and Configure Environment for Deployment",
-            "description": "Prepare Docker containers for the Fastify API server and manage environment-based configuration using @fastify/env for secure and scalable deployment.",
-            "status": "pending",
-            "dependencies": [
-              1,
-              2,
-              3,
-              4,
-              5
-            ],
-            "details": "Write Dockerfile and docker-compose.yml for the API service. Use @fastify/env to load configuration variables for different environments (development, staging, production). Document deployment steps for agent-focused API.",
-            "testStrategy": "Build and run containers locally and in staging. Verify environment variables are loaded correctly and the agent API operates as expected in each environment."
           }
         ]
       },
@@ -263,7 +213,7 @@
         "id": 14,
         "title": "Add Swagger/OpenAPI Documentation for REST API Endpoints",
         "description": "Implement comprehensive Swagger/OpenAPI documentation for all REST API endpoints with an interactive UI for testing and API exploration.",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           13
         ],
@@ -327,11 +277,96 @@
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Implement and Refactor AgentRecord update methods in the SDK to support updating agent metadata, status, and other properties through the SDK's AgentService",
+        "description": "Enhance the Ensemble SDK's AgentService with comprehensive update methods for modifying agent metadata, status, capabilities, and other properties, providing a clean interface for agent record management.",
+        "details": "1. Extend the AgentService class in the SDK with new update methods:\n   - updateAgentMetadata(agentId, metadata) - Update agent name, description, tags, and other metadata fields\n   - updateAgentStatus(agentId, status) - Change agent status (active, inactive, maintenance, etc.)\n   - updateAgentCapabilities(agentId, capabilities) - Modify agent's capability list and skill set\n   - updateAgentConfiguration(agentId, config) - Update agent configuration parameters and settings\n   - bulkUpdateAgents(updates) - Batch update multiple agents efficiently\n\n2. Implement proper data validation and transformation:\n   - Add input validation for all update parameters using schema validation\n   - Implement data sanitization to prevent malicious inputs\n   - Add type checking and format validation for metadata fields\n   - Ensure backward compatibility with existing agent record structures\n\n3. Add transaction management and error handling:\n   - Implement proper gas estimation for update transactions\n   - Add retry mechanisms for failed blockchain transactions\n   - Provide detailed error messages for validation failures\n   - Include transaction receipt handling and confirmation waiting\n\n4. Optimize for gas efficiency:\n   - Implement selective field updates to minimize gas costs\n   - Add batch update capabilities for multiple agents\n   - Use efficient encoding for metadata updates\n   - Implement diff-based updates to only change modified fields\n\n5. Add event emission and logging:\n   - Emit appropriate events for each type of update operation\n   - Add comprehensive logging for debugging and monitoring\n   - Include before/after state tracking for audit purposes",
+        "testStrategy": "1. Unit testing for all update methods:\n   - Test each update method with valid and invalid inputs\n   - Verify proper validation and error handling for malformed data\n   - Test gas estimation accuracy and transaction success rates\n   - Validate that updates are properly reflected in blockchain state\n\n2. Integration testing with smart contracts:\n   - Deploy test contracts on testnet and verify update operations\n   - Test update methods against real blockchain state\n   - Verify event emission and proper state transitions\n   - Test batch operations with multiple agents\n\n3. Performance and gas optimization testing:\n   - Measure gas costs for different types of updates\n   - Test batch update efficiency compared to individual updates\n   - Verify that selective updates use less gas than full updates\n   - Load test with high-frequency update operations\n\n4. Backward compatibility testing:\n   - Ensure existing agent records remain functional after updates\n   - Test migration scenarios for agents with old data formats\n   - Verify that new update methods don't break existing functionality",
+        "status": "pending",
+        "dependencies": [
+          1,
+          16
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Implement updateAgentRecord and updateAgentRecordProperty methods in TypeScript SDK AgentService",
+        "description": "Add updateAgentRecord and updateAgentRecordProperty methods to the TypeScript SDK's AgentService class to enable programmatic updating of agent metadata and individual properties.",
+        "details": "1. Extend the AgentService class in the TypeScript SDK with two new methods:\n\n   - `updateAgentRecord(agentId: string, agentData: Partial<AgentRecord>): Promise<TransactionResult>` - Updates multiple agent properties in a single transaction\n   - `updateAgentRecordProperty(agentId: string, property: string, value: any): Promise<TransactionResult>` - Updates a single agent property efficiently\n\n2. Implementation considerations:\n   - Validate agentId format and existence before attempting updates\n   - Implement proper type checking for agentData parameter using TypeScript interfaces\n   - Add support for updating common properties: name, description, capabilities, metadata, tags, status\n   - Include gas estimation and transaction optimization for batch updates\n   - Implement proper error handling for failed transactions and invalid property updates\n   - Add event emission for successful updates to enable real-time monitoring\n\n3. Smart contract integration:\n   - Call the appropriate smart contract methods (updateAgent, updateAgentProperty) \n   - Handle transaction signing and broadcasting through the configured provider\n   - Implement retry logic for failed transactions with exponential backoff\n   - Add transaction receipt validation and confirmation waiting\n\n4. Type definitions:\n   ```typescript\n   interface AgentRecord {\n     name?: string;\n     description?: string;\n     capabilities?: string[];\n     metadata?: Record<string, any>;\n     tags?: string[];\n     status?: AgentStatus;\n   }\n   \n   interface TransactionResult {\n     transactionHash: string;\n     blockNumber: number;\n     gasUsed: bigint;\n     success: boolean;\n   }\n   ```\n\n5. Add comprehensive JSDoc documentation with usage examples and parameter descriptions.",
+        "testStrategy": "1. Unit testing for method functionality:\n   - Test updateAgentRecord with valid partial agent data and verify correct smart contract calls\n   - Test updateAgentRecordProperty with various property types (string, array, object)\n   - Verify proper TypeScript type checking and parameter validation\n   - Test error handling for invalid agent IDs, non-existent agents, and malformed data\n\n2. Integration testing with smart contracts:\n   - Deploy test agents and verify updates are reflected on-chain\n   - Test transaction confirmation and receipt validation\n   - Verify gas estimation accuracy and transaction optimization\n   - Test retry logic with simulated network failures\n\n3. Edge case testing:\n   - Test updating non-existent agents (should throw appropriate errors)\n   - Test updating with empty or null values\n   - Test concurrent updates to the same agent\n   - Test updates with insufficient permissions or gas\n\n4. Performance testing:\n   - Benchmark gas costs for single vs batch property updates\n   - Test method performance with large metadata objects\n   - Verify transaction throughput under load\n\n5. End-to-end testing:\n   - Test integration with existing REST API endpoints that use these methods\n   - Verify event emission and real-time update notifications\n   - Test with different network configurations (mainnet, testnet)",
+        "status": "pending",
+        "dependencies": [
+          1,
+          16
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define TypeScript interfaces and type definitions for agent updates",
+            "description": "Create comprehensive TypeScript interfaces for AgentRecord, TransactionResult, and related types to support the update methods with proper type safety and validation.",
+            "dependencies": [],
+            "details": "Define the AgentRecord interface with optional properties (name, description, capabilities, metadata, tags, status). Create TransactionResult interface with transactionHash, blockNumber, gasUsed, and success fields. Add AgentStatus enum and validation helper types. Include JSDoc comments for all interfaces with usage examples and property descriptions.",
+            "status": "pending",
+            "testStrategy": "Unit tests for type validation, interface completeness checks, and TypeScript compilation verification"
+          },
+          {
+            "id": 2,
+            "title": "Implement agent validation and existence checking utilities",
+            "description": "Create utility functions to validate agent ID format and verify agent existence before attempting updates, including proper error handling for invalid or non-existent agents.",
+            "dependencies": [
+              "20.1"
+            ],
+            "details": "Implement validateAgentId() function to check ID format using regex patterns. Create checkAgentExists() function that queries the smart contract to verify agent existence. Add comprehensive error classes for different validation failures (InvalidAgentIdError, AgentNotFoundError). Include caching mechanism for recently validated agents to optimize performance.",
+            "status": "pending",
+            "testStrategy": "Test validation with various ID formats, verify existence checking against mock contract, test error handling for edge cases"
+          },
+          {
+            "id": 3,
+            "title": "Implement updateAgentRecord method with batch update functionality",
+            "description": "Create the updateAgentRecord method that accepts partial agent data and updates multiple properties in a single transaction with proper validation and gas optimization.",
+            "dependencies": [
+              "20.1",
+              "20.2"
+            ],
+            "details": "Implement updateAgentRecord(agentId: string, agentData: Partial<AgentRecord>): Promise<TransactionResult>. Add input validation for agentData properties using TypeScript type guards. Implement gas estimation for batch updates and transaction optimization. Include proper error handling for failed transactions with detailed error messages. Add event emission for successful updates with before/after state tracking.",
+            "status": "pending",
+            "testStrategy": "Test with various combinations of agent properties, verify gas optimization, test transaction failure scenarios and rollback behavior"
+          },
+          {
+            "id": 4,
+            "title": "Implement updateAgentRecordProperty method for single property updates",
+            "description": "Create the updateAgentRecordProperty method for efficient single property updates with type-specific validation and optimized gas usage.",
+            "dependencies": [
+              "20.1",
+              "20.2"
+            ],
+            "details": "Implement updateAgentRecordProperty(agentId: string, property: string, value: any): Promise<TransactionResult>. Add property-specific validation based on the property name (string for name/description, array for capabilities/tags, object for metadata). Implement gas-optimized single property update calls to smart contract. Include type coercion and sanitization for different value types. Add comprehensive error handling for invalid property names or values.",
+            "status": "pending",
+            "testStrategy": "Test each supported property type individually, verify type validation and coercion, test invalid property scenarios"
+          },
+          {
+            "id": 5,
+            "title": "Integrate smart contract calls with transaction handling and retry logic",
+            "description": "Implement smart contract integration with proper transaction signing, broadcasting, confirmation waiting, and retry logic with exponential backoff for failed transactions.",
+            "dependencies": [
+              "20.3",
+              "20.4"
+            ],
+            "details": "Integrate with smart contract updateAgent and updateAgentProperty methods through configured provider. Implement transaction signing and broadcasting with proper nonce management. Add transaction receipt validation and confirmation waiting with configurable block confirmations. Implement retry logic with exponential backoff for failed transactions (network issues, gas estimation failures). Include comprehensive logging and monitoring for transaction lifecycle events.",
+            "status": "pending",
+            "testStrategy": "Test transaction signing and broadcasting, verify retry logic with simulated network failures, test confirmation waiting with various block times"
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-07-26T19:59:01.089Z",
+      "updated": "2025-07-27T07:01:43.390Z",
       "description": "Tasks for master context"
     }
   }

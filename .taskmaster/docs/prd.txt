@@ -80,6 +80,50 @@ Transform AI agents from passive tools into active economic participants capable
 
 #### TypeScript SDK
 - **REQ-4.1**: Provide comprehensive agent integration APIs
+  - **AgentService.getAgentData(agentAddress)**: Get basic agent data from blockchain
+    - Returns: name, agentUri, owner, agent address, reputation, totalRatings
+    - Direct blockchain query for minimal agent information
+  
+  - **AgentService.getAgentRecord(agentAddress)**: Get complete agent record with metadata
+    - Returns: Full AgentRecord with description, category, attributes, instructions, prompts, socials
+    - Uses subgraph for enriched data including IPFS metadata
+  
+  - **AgentService.getAgentRecords(filters)**: Query multiple agents with filtering
+    - Filter parameters: owner, name, category, reputation_min/max, first, skip
+    - Returns: Array of AgentRecord objects matching criteria
+    - Supports pagination with first/skip parameters
+  
+  - **AgentService.getAgentsByOwner(ownerAddress)**: Get all agents for a specific owner
+    - Returns: Array of AgentRecord objects owned by the address
+    - Useful for portfolio management and owner dashboards
+  
+  - **AgentService.getAgentsByCategory(category, first, skip)**: Filter agents by category
+    - Returns: Paginated array of AgentRecord objects in the category
+    - Supports pagination for large result sets
+  
+  - **AgentService.searchAgents(searchTerm, first, skip)**: Text search across agents
+    - Searches: agent names and descriptions (case-insensitive)
+    - Returns: Array of AgentData objects ordered by reputation
+    - Supports pagination for search results
+  
+  - **AgentService.getAgentCount()**: Get total number of registered agents
+    - Returns: Total count of agents in the system
+    - Useful for analytics and system monitoring
+  
+  - **AgentService.updateAgentRecord(agentAddress, agentRecord)**: Update complete agent record (NOT IMPLEMENTED)
+    - Parameters: agentAddress (string), agentRecord (Partial<AgentRecord>)
+    - Updates: All provided fields in the agent record (name, description, category, attributes, etc.)
+    - Returns: Promise<boolean> indicating success
+    - Features: Validates ownership, uploads metadata to IPFS, updates blockchain state
+    - Use case: Bulk updates when multiple properties need to change
+  
+  - **AgentService.updateAgentRecordProperty(agentAddress, property, value)**: Update single agent property (NOT IMPLEMENTED)
+    - Parameters: agentAddress (string), property (keyof AgentRecord), value (any)
+    - Updates: Specific property of the agent record
+    - Returns: Promise<boolean> indicating success
+    - Features: Gas-efficient for single property updates, maintains data integrity
+    - Use case: Targeted updates like status changes, adding attributes, or updating social links
+
 - **REQ-4.2**: Support task discovery and proposal submission
 - **REQ-4.3**: Enable real-time task notifications
 - **REQ-4.4**: Provide payment and reputation management tools
@@ -127,7 +171,32 @@ Transform AI agents from passive tools into active economic participants capable
 - **REQ-6.5**: Implement comprehensive error handling and validation
 
 #### API Endpoints
+
+##### Agent Management Endpoints
 - **REQ-6.6**: Agent management endpoints (CRUD operations)
+  - **GET /api/v1/agents**: List all agents with advanced filtering and pagination
+    - Query parameters: page, limit, category, status, owner, reputation_min/max, name, attributes, sort_by, sort_order
+    - Returns: Paginated list of AgentRecord objects with metadata
+    - Features: Real-time filtering, sorting, and search capabilities
+  
+  - **GET /api/v1/agents/{agentId}**: Retrieve detailed information about a specific agent
+    - Returns: Complete AgentRecord with all metadata, capabilities, and communication details
+    - Includes: Status, reputation score, social links, instructions, and prompts
+  
+  - **POST /api/v1/agents/discovery**: Advanced agent discovery with complex filtering
+    - Request body: Query object with text search, categories, tags, reputation filters, availability, and experience requirements
+    - Returns: Relevance-scored list of matching agents
+    - Features: Natural language search, multi-criteria filtering, custom sorting
+  
+  - **GET /api/v1/agents/owner/{ownerAddress}**: Get all agents owned by a specific wallet
+    - Returns: List of AgentRecord objects for the specified owner
+    - Use case: Portfolio management and owner-specific dashboards
+  
+  - **GET /api/v1/agents/categories**: Retrieve available agent categories
+    - Query parameters: include_empty, include_counts
+    - Returns: List of categories with agent counts and descriptions
+    - Features: Dynamic category discovery and filtering
+
 - **REQ-6.7**: Proposal management and discovery endpoints
 - **REQ-6.8**: Task lifecycle management endpoints
 - **REQ-6.9**: Service registry access endpoints
