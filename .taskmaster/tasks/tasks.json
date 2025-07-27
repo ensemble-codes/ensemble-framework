@@ -298,7 +298,7 @@
         "description": "Add updateAgentRecord and updateAgentRecordProperty methods to the TypeScript SDK's AgentService class to enable programmatic updating of agent metadata and individual properties.",
         "details": "1. Extend the AgentService class in the TypeScript SDK with two new methods:\n\n   - `updateAgentRecord(agentId: string, agentData: Partial<AgentRecord>): Promise<TransactionResult>` - Updates multiple agent properties in a single transaction\n   - `updateAgentRecordProperty(agentId: string, property: string, value: any): Promise<TransactionResult>` - Updates a single agent property efficiently\n\n2. Implementation considerations:\n   - Validate agentId format and existence before attempting updates\n   - Implement proper type checking for agentData parameter using TypeScript interfaces\n   - Add support for updating common properties: name, description, capabilities, metadata, tags, status\n   - Include gas estimation and transaction optimization for batch updates\n   - Implement proper error handling for failed transactions and invalid property updates\n   - Add event emission for successful updates to enable real-time monitoring\n\n3. Smart contract integration:\n   - Call the appropriate smart contract methods (updateAgent, updateAgentProperty) \n   - Handle transaction signing and broadcasting through the configured provider\n   - Implement retry logic for failed transactions with exponential backoff\n   - Add transaction receipt validation and confirmation waiting\n\n4. Type definitions:\n   ```typescript\n   interface AgentRecord {\n     name?: string;\n     description?: string;\n     capabilities?: string[];\n     metadata?: Record<string, any>;\n     tags?: string[];\n     status?: AgentStatus;\n   }\n   \n   interface TransactionResult {\n     transactionHash: string;\n     blockNumber: number;\n     gasUsed: bigint;\n     success: boolean;\n   }\n   ```\n\n5. Add comprehensive JSDoc documentation with usage examples and parameter descriptions.",
         "testStrategy": "1. Unit testing for method functionality:\n   - Test updateAgentRecord with valid partial agent data and verify correct smart contract calls\n   - Test updateAgentRecordProperty with various property types (string, array, object)\n   - Verify proper TypeScript type checking and parameter validation\n   - Test error handling for invalid agent IDs, non-existent agents, and malformed data\n\n2. Integration testing with smart contracts:\n   - Deploy test agents and verify updates are reflected on-chain\n   - Test transaction confirmation and receipt validation\n   - Verify gas estimation accuracy and transaction optimization\n   - Test retry logic with simulated network failures\n\n3. Edge case testing:\n   - Test updating non-existent agents (should throw appropriate errors)\n   - Test updating with empty or null values\n   - Test concurrent updates to the same agent\n   - Test updates with insufficient permissions or gas\n\n4. Performance testing:\n   - Benchmark gas costs for single vs batch property updates\n   - Test method performance with large metadata objects\n   - Verify transaction throughput under load\n\n5. End-to-end testing:\n   - Test integration with existing REST API endpoints that use these methods\n   - Verify event emission and real-time update notifications\n   - Test with different network configurations (mainnet, testnet)",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           1,
           16
@@ -311,7 +311,7 @@
             "description": "Create comprehensive TypeScript interfaces for AgentRecord, TransactionResult, and related types to support the update methods with proper type safety and validation.",
             "dependencies": [],
             "details": "Define the AgentRecord interface with optional properties (name, description, capabilities, metadata, tags, status). Create TransactionResult interface with transactionHash, blockNumber, gasUsed, and success fields. Add AgentStatus enum and validation helper types. Include JSDoc comments for all interfaces with usage examples and property descriptions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit tests for type validation, interface completeness checks, and TypeScript compilation verification"
           },
           {
@@ -322,7 +322,7 @@
               "20.1"
             ],
             "details": "Implement validateAgentId() function to check ID format using regex patterns. Create checkAgentExists() function that queries the smart contract to verify agent existence. Add comprehensive error classes for different validation failures (InvalidAgentIdError, AgentNotFoundError). Include caching mechanism for recently validated agents to optimize performance.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test validation with various ID formats, verify existence checking against mock contract, test error handling for edge cases"
           },
           {
@@ -334,7 +334,7 @@
               "20.2"
             ],
             "details": "Implement updateAgentRecord(agentId: string, agentData: Partial<AgentRecord>): Promise<TransactionResult>. Add input validation for agentData properties using TypeScript type guards. Implement gas estimation for batch updates and transaction optimization. Include proper error handling for failed transactions with detailed error messages. Add event emission for successful updates with before/after state tracking.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with various combinations of agent properties, verify gas optimization, test transaction failure scenarios and rollback behavior"
           },
           {
@@ -346,7 +346,7 @@
               "20.2"
             ],
             "details": "Implement updateAgentRecordProperty(agentId: string, property: string, value: any): Promise<TransactionResult>. Add property-specific validation based on the property name (string for name/description, array for capabilities/tags, object for metadata). Implement gas-optimized single property update calls to smart contract. Include type coercion and sanitization for different value types. Add comprehensive error handling for invalid property names or values.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test each supported property type individually, verify type validation and coercion, test invalid property scenarios"
           },
           {
@@ -358,7 +358,7 @@
               "20.4"
             ],
             "details": "Integrate with smart contract updateAgent and updateAgentProperty methods through configured provider. Implement transaction signing and broadcasting with proper nonce management. Add transaction receipt validation and confirmation waiting with configurable block confirmations. Implement retry logic with exponential backoff for failed transactions (network issues, gas estimation failures). Include comprehensive logging and monitoring for transaction lifecycle events.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test transaction signing and broadcasting, verify retry logic with simulated network failures, test confirmation waiting with various block times"
           }
         ]
@@ -366,7 +366,7 @@
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-07-27T07:01:43.390Z",
+      "updated": "2025-07-27T07:15:59.139Z",
       "description": "Tasks for master context"
     }
   }

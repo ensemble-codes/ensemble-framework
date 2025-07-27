@@ -11,7 +11,7 @@
     "prepublish": "npm run typechain && npm run build",
     "build": "tsc",
     "watch": "tsc --watch",
-    "test": "jest",
+    "test": "jest --verbose",
     "test:agent": "jest test/agentService.test.ts",
     "test:integration": "npx tsx scripts/test-agent-methods.ts",
     "typecheck": "tsc --noEmit",

@@ -228,3 +228,57 @@ export interface EnsembleConfig {
 export type LegacyRegisterAgentParams = RegisterAgentParams;
 
 export type LegacyAddProposalParams = Omit<AddProposalParams, 'tokenAddress'>;
+
+// Agent Update Types
+export interface TransactionResult {
+  transactionHash: string;
+  blockNumber: number;
+  gasUsed: bigint;
+  success: boolean;
+  events?: any[];
+}
+
+export enum AgentStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  MAINTENANCE = 'maintenance',
+  SUSPENDED = 'suspended'
+}
+
+export interface UpdateableAgentRecord {
+  name?: string;
+  description?: string;
+  category?: string;
+  imageURI?: string;
+  attributes?: string[];
+  instructions?: string[];
+  prompts?: string[];
+  socials?: Partial<AgentSocials>;
+  communicationType?: AgentCommunicationType;
+  communicationURL?: string;
+  communicationParams?: object;
+  status?: AgentStatus;
+}
+
+export type AgentRecordProperty = keyof UpdateableAgentRecord;
+
+export class InvalidAgentIdError extends Error {
+  constructor(agentId: string) {
+    super(`Invalid agent ID format: ${agentId}`);
+    this.name = 'InvalidAgentIdError';
+  }
+}
+
+export class AgentNotFoundError extends Error {
+  constructor(agentId: string) {
+    super(`Agent not found: ${agentId}`);
+    this.name = 'AgentNotFoundError';
+  }
+}
+
+export class AgentUpdateError extends Error {
+  constructor(message: string, public readonly cause?: any) {
+    super(message);
+    this.name = 'AgentUpdateError';
+  }
+}

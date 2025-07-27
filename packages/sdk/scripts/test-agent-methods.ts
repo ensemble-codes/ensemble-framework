@@ -127,6 +127,73 @@ async function testAgentMethods() {
       console.error('❌ Error:', error);
     }
 
+    // Test 8: Test new update methods (if you have write access)
+    console.log('\n8️⃣ Testing Agent Update Methods (updateAgentRecord & updateAgentRecordProperty)');
+    if (process.env.TEST_AGENT_ADDRESS && process.env.PRIVATE_KEY) {
+      try {
+        // Create a signer with write access
+        const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+        const ensembleWithSigner = Ensemble.create(config, wallet);
+        
+        console.log('⚠️  WARNING: About to test update methods on real blockchain!');
+        console.log('📝 Agent to update:', process.env.TEST_AGENT_ADDRESS);
+        
+        // Test updateAgentRecordProperty - update name
+        console.log('\n🔄 Testing updateAgentRecordProperty - updating name...');
+        const propertyResult = await ensembleWithSigner.agents.updateAgentRecordProperty(
+          process.env.TEST_AGENT_ADDRESS,
+          'name',
+          'Test Agent (Updated via SDK)'
+        );
+        console.log('✅ Property update successful:', {
+          transactionHash: propertyResult.transactionHash,
+          blockNumber: propertyResult.blockNumber,
+          gasUsed: propertyResult.gasUsed.toString(),
+          success: propertyResult.success
+        });
+
+        // Wait a moment before next update
+        console.log('⏳ Waiting 5 seconds before next update...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        // Test updateAgentRecord - update multiple properties
+        console.log('\n🔄 Testing updateAgentRecord - updating multiple properties...');
+        const recordResult = await ensembleWithSigner.agents.updateAgentRecord(
+          process.env.TEST_AGENT_ADDRESS,
+          {
+            description: 'Updated via SDK integration test',
+            attributes: ['sdk-tested', 'integration-test', 'updated']
+          }
+        );
+        console.log('✅ Record update successful:', {
+          transactionHash: recordResult.transactionHash,
+          blockNumber: recordResult.blockNumber,
+          gasUsed: recordResult.gasUsed.toString(),
+          success: recordResult.success
+        });
+
+        console.log('\n🔍 Fetching updated agent to verify changes...');
+        const updatedAgent = await ensemble.agents.getAgentRecord(process.env.TEST_AGENT_ADDRESS);
+        console.log('📊 Updated agent data:', {
+          name: updatedAgent.name,
+          description: updatedAgent.description,
+          attributes: updatedAgent.attributes
+        });
+
+      } catch (error) {
+        console.error('❌ Update test error:', error);
+        console.log('💡 To test update methods, set:');
+        console.log('   - TEST_AGENT_ADDRESS: Address of agent you own');
+        console.log('   - PRIVATE_KEY: Private key of agent owner');
+      }
+    } else {
+      console.log('⏭️ Skipping update tests (set TEST_AGENT_ADDRESS and PRIVATE_KEY env vars)');
+      console.log('💡 To test update methods:');
+      console.log('   export TEST_AGENT_ADDRESS="0x..."  # Agent address you own');
+      console.log('   export PRIVATE_KEY="0x..."         # Your private key');
+      console.log('   ⚠️  Only use test networks and test private keys!');
+    }
+
     console.log('\n🎉 All tests completed!');
 
   } catch (error) {
