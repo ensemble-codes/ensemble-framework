@@ -144,10 +144,252 @@ Transform AI agents from passive tools into active economic participants capable
 ### 5. Developer Tools & Infrastructure
 
 #### CLI Tools
-- **REQ-5.1**: Provide command-line tools for agent deployment
+- **REQ-5.1**: Provide comprehensive command-line tools for agent registration and management
 - **REQ-5.2**: Support local development and testing environments
 - **REQ-5.3**: Enable batch operations for task and agent management
-- **REQ-5.4**: Support configuration and deployment automation
+- **REQ-5.4**: Support configuration and automation for agent operations
+- **REQ-5.5**: Leverage existing TypeScript SDK and REST API endpoints for all blockchain and data operations
+- **REQ-5.6**: Minimize direct blockchain interactions by utilizing SDK abstractions and API layers
+
+##### Technical Implementation Requirements
+- **CLI Architecture**: The CLI tool must be built as a thin wrapper around existing infrastructure:
+  - **Primary Data Source**: Use TypeScript SDK (AgentService) for all blockchain data retrieval and transaction operations
+  - **Secondary Data Source**: Leverage REST API endpoints when SDK is insufficient or for enhanced functionality
+  - **No Direct Blockchain Access**: Avoid direct smart contract calls or ethers.js usage in CLI code
+  - **Configuration Management**: Utilize SDK configuration patterns for network and provider setup
+  - **Error Handling**: Leverage SDK error types and error handling mechanisms
+  - **Transaction Management**: Use SDK transaction methods with CLI-specific confirmations and output formatting
+
+##### Core CLI Commands
+
+###### Agent Discovery & Retrieval Commands
+- **ensemble get agents**: List and discover agents with advanced filtering
+  - Usage: `ensemble get agents [options]`
+  - Options:
+    - `--category <category>`: Filter by agent category
+    - `--owner <address>`: Filter by owner address
+    - `--status <status>`: Filter by agent status (active, inactive, maintenance)
+    - `--reputation-min <score>`: Filter by minimum reputation score
+    - `--reputation-max <score>`: Filter by maximum reputation score
+    - `--name <name>`: Search by agent name (case-insensitive)
+    - `--attributes <tags>`: Filter by attributes/tags (comma-separated)
+    - `--first <number>`: Limit number of results (default: 10)
+    - `--skip <number>`: Skip number of results for pagination (default: 0)
+    - `--sort-by <field>`: Sort by field (reputation, name, created, updated)
+    - `--sort-order <order>`: Sort order (asc, desc) (default: desc)
+    - `--format <format>`: Output format (table, json, csv) (default: table)
+    - `--include-metadata`: Include full metadata in output
+    - `--save-records <directory>`: Save each agent as agent-record.yaml file in specified directory
+    - `--save-records-prefix <prefix>`: Prefix for saved agent-record files (default: agent-record)
+  - Examples:
+    - `ensemble get agents --category ai-assistant --reputation-min 4.0`
+    - `ensemble get agents --owner 0x123...abc --format json`
+    - `ensemble get agents --attributes "chatbot,customer-service" --first 20`
+    - `ensemble get agents --category ai-assistant --save-records ./agent-backups`
+    - `ensemble get agents --owner 0x123...abc --save-records ./my-agents --save-records-prefix my-agent`
+
+- **ensemble get agent**: Get detailed information about a specific agent
+  - Usage: `ensemble get agent <agent-address> [options]`
+  - Options:
+    - `--format <format>`: Output format (table, json, yaml) (default: table)
+    - `--include-proposals`: Include agent's service proposals
+    - `--include-history`: Include recent task history
+    - `--include-ratings`: Include reputation breakdown
+    - `--save-record <file>`: Save agent data as agent-record.yaml file
+  - Examples:
+    - `ensemble get agent 0x456...def --format json`
+    - `ensemble get agent 0x456...def --include-proposals --include-history`
+    - `ensemble get agent 0x456...def --save-record ./backup-agent-record.yaml`
+    - `ensemble get agent 0x456...def --save-record ./template.yaml --save-record-template`
+
+###### Agent Registration Commands
+- **ensemble register agent**: Register a new agent on the blockchain using an agent-record.yaml file
+  - Usage: `ensemble register agent --config <agent-record-file> [options]`
+  - Primary Options:
+    - `--config <file>`: Path to agent-record.yaml file (required)
+    - `--private-key <key>`: Private key for signing (or use env ENSEMBLE_PRIVATE_KEY)
+    - `--network <network>`: Network (mainnet, sepolia) (default: sepolia)
+    - `--gas-limit <limit>`: Custom gas limit
+    - `--dry-run`: Validate configuration without submitting transaction
+    - `--confirm`: Skip confirmation prompt
+  - Examples:
+    - `ensemble register agent --config ./agent-record.yaml`
+    - `ensemble register agent --config ./my-agent-record.yaml --network mainnet --dry-run`
+    - `ensemble register agent --config ./agent-record.yaml --confirm`
+
+- **ensemble init agent-record**: Generate a template agent-record.yaml file
+  - Usage: `ensemble init agent-record [template-type] [options]`
+  - Template Types:
+    - `basic`: Minimal agent configuration
+    - `chatbot`: Configuration for chatbot agents
+    - `assistant`: Configuration for AI assistant agents
+    - `service`: Configuration for service-oriented agents
+  - Options:
+    - `--output <file>`: Output file path (default: agent-record.yaml)
+    - `--interactive`: Fill out template interactively
+  - Examples:
+    - `ensemble init agent-record basic --output my-agent-record.yaml`
+    - `ensemble init agent-record chatbot --interactive`
+    - `ensemble init agent-record assistant --output assistant-record.yaml`
+
+- **Agent Record YAML Schema (agent-record.yaml)**:
+  ```yaml
+  # Agent Basic Information
+  name: "My AI Assistant"                    # Required: Agent display name
+  description: "A helpful AI assistant"      # Required: Agent description
+  category: "ai-assistant"                   # Required: Agent category
+  
+  # Agent Capabilities & Metadata
+  attributes:                                # Optional: Agent tags/attributes
+    - "chatbot"
+    - "customer-service"
+    - "multilingual"
+  
+  instructions:                              # Optional: How to interact with agent
+    - "Ask clear and specific questions"
+    - "Provide context for better responses"
+    - "Use simple language for best results"
+  
+  prompts:                                   # Optional: Example prompts
+    - "Help me write a professional email"
+    - "Explain this concept in simple terms"
+    - "Generate a creative story about..."
+  
+  # Visual & Identity
+  imageURI: "https://example.com/avatar.png" # Optional: Agent avatar
+  
+  # Communication Settings
+  communication:
+    type: "websocket"                        # Required: websocket | xmtp
+    url: "wss://my-agent.com/ws"            # Optional: Communication endpoint
+    params:                                  # Optional: Communication parameters
+      timeout: 30000
+      maxConnections: 100
+  
+  # Social Media & Links
+  socials:
+    twitter: "@my_agent"                     # Optional: Twitter handle
+    telegram: "@my_agent_bot"               # Optional: Telegram handle
+    github: "myusername"                    # Optional: GitHub username
+    website: "https://my-agent.com"         # Optional: Website URL
+    dexscreener: "my-agent"                 # Optional: DexScreener handle
+  
+  # Agent Status
+  status: "active"                          # Optional: active | inactive | maintenance
+  ```
+
+- **ensemble validate agent-record**: Validate agent-record.yaml file
+  - Usage: `ensemble validate agent-record <agent-record-file> [options]`
+  - Options:
+    - `--schema-only`: Only validate YAML schema, skip external validations
+    - `--check-urls`: Validate that URLs are accessible
+    - `--verbose`: Show detailed validation results
+  - Examples:
+    - `ensemble validate agent-record ./agent-record.yaml`
+    - `ensemble validate agent-record ./my-agent-record.yaml --check-urls --verbose`
+
+###### Agent Update Commands
+- **ensemble update agent**: Update agent record with multiple properties
+  - Usage: `ensemble update agent <agent-address> [options]`
+  - Options:
+    - `--name <name>`: Update agent name
+    - `--description <description>`: Update agent description
+    - `--category <category>`: Update agent category
+    - `--attributes <tags>`: Update attributes (comma-separated)
+    - `--instructions <file>`: Update instructions from file
+    - `--prompts <file>`: Update prompts from file
+    - `--image-uri <uri>`: Update agent image URI
+    - `--status <status>`: Update agent status
+    - `--communication-type <type>`: Update communication type
+    - `--communication-url <url>`: Update communication URL
+    - `--twitter <handle>`: Update Twitter handle
+    - `--telegram <handle>`: Update Telegram handle
+    - `--github <username>`: Update GitHub username
+    - `--website <url>`: Update website URL
+    - `--config <file>`: Update from configuration file
+    - `--private-key <key>`: Private key for signing (or use env PRIVATE_KEY)
+    - `--network <network>`: Network (mainnet, sepolia) (default: sepolia)
+    - `--gas-limit <limit>`: Custom gas limit
+    - `--dry-run`: Preview changes without submitting transaction
+    - `--confirm`: Skip confirmation prompt
+  - Examples:
+    - `ensemble update agent 0x456...def --name "Updated Name" --status maintenance`
+    - `ensemble update agent 0x456...def --config ./updated-config.json --dry-run`
+    - `ensemble update agent 0x456...def --attributes "ai,chatbot,updated" --confirm`
+
+- **ensemble update agent-property**: Update a single agent property efficiently
+  - Usage: `ensemble update agent-property <agent-address> <property> <value> [options]`
+  - Supported Properties:
+    - name, description, category, imageURI, status
+    - attributes (JSON array or comma-separated string)
+    - instructions (JSON array or file path)
+    - prompts (JSON array or file path)
+    - socials (JSON object or key=value pairs)
+    - communicationType, communicationURL, communicationParams
+  - Options:
+    - `--private-key <key>`: Private key for signing (or use env PRIVATE_KEY)
+    - `--network <network>`: Network (mainnet, sepolia) (default: sepolia)
+    - `--gas-limit <limit>`: Custom gas limit
+    - `--confirm`: Skip confirmation prompt
+    - `--format <format>`: Input format for complex values (json, csv)
+  - Examples:
+    - `ensemble update agent-property 0x456...def name "New Agent Name"`
+    - `ensemble update agent-property 0x456...def status maintenance`
+    - `ensemble update agent-property 0x456...def attributes "ai,chatbot,helper" --format csv`
+    - `ensemble update agent-property 0x456...def socials '{"twitter":"@newhandle","github":"newuser"}'`
+
+###### Configuration & Environment Commands
+- **ensemble config**: Manage CLI configuration and network settings
+  - Usage: `ensemble config <command> [options]`
+  - Subcommands:
+    - `set-network <network>`: Set default network (mainnet, sepolia)
+    - `set-rpc <url>`: Set custom RPC endpoint
+    - `set-private-key <key>`: Set default private key (stored securely)
+    - `set-gas-price <price>`: Set default gas price (gwei)
+    - `show`: Display current configuration
+    - `reset`: Reset to default configuration
+  - Examples:
+    - `ensemble config set-network mainnet`
+    - `ensemble config set-rpc https://base-mainnet.g.alchemy.com/v2/api-key`
+    - `ensemble config show`
+
+- **ensemble validate**: Validate agent configurations and blockchain connectivity
+  - Usage: `ensemble validate <target> [options]`
+  - Targets:
+    - `config`: Validate CLI configuration
+    - `network`: Test blockchain connectivity
+    - `agent <address>`: Validate agent exists and is accessible
+    - `agent-config <file>`: Validate agent configuration file
+  - Options:
+    - `--network <network>`: Target network for validation
+    - `--verbose`: Show detailed validation results
+  - Examples:
+    - `ensemble validate config --verbose`
+    - `ensemble validate agent 0x456...def --network mainnet`
+    - `ensemble validate agent-config ./my-agent.json`
+
+###### Output & Formatting Options
+- **Global Options** (available for all commands):
+  - `--verbose`: Enable verbose output with debug information
+  - `--quiet`: Suppress non-essential output
+  - `--no-colors`: Disable colored output for CI/CD environments
+  - `--output-file <file>`: Save output to file
+  - `--timeout <seconds>`: Set operation timeout (default: 30s)
+  - `--help`: Show command-specific help
+
+###### Environment Variables
+- `ENSEMBLE_PRIVATE_KEY`: Default private key for transactions
+- `ENSEMBLE_NETWORK`: Default network (mainnet, sepolia)
+- `ENSEMBLE_RPC_URL`: Custom RPC endpoint URL
+- `ENSEMBLE_GAS_PRICE`: Default gas price in gwei
+- `ENSEMBLE_CONFIG_DIR`: Custom configuration directory path
+- `ENSEMBLE_OUTPUT_FORMAT`: Default output format (table, json, csv)
+
+###### Configuration Files
+- Support for JSON and YAML configuration files for agent registration and updates
+- Schema validation for configuration files
+- Environment variable substitution in configuration files
+- Template generation for common agent types
 
 #### MCP Server Integration
 - **REQ-5.5**: Provide Model Context Protocol server for agent interactions
