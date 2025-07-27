@@ -229,7 +229,7 @@
               "21.1"
             ],
             "details": "Implement commands: 'ensemble agents list', 'ensemble agents get <id>', 'ensemble agents categories', 'ensemble agents register <yaml-file>', 'ensemble agents update <id> <yaml-file>', 'ensemble agents export <id> <output-file>', 'ensemble config set/get', and 'ensemble validate <yaml-file>'. Use SDK methods for all blockchain operations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test each command for correct argument parsing, SDK method invocation, and expected output for valid and invalid inputs."
           },
           {
@@ -280,11 +280,24 @@
             "testStrategy": "Test error scenarios, help output, progress indicators, and verbose logging across all commands. Validate input handling and user guidance."
           }
         ]
+      },
+      {
+        "id": 22,
+        "title": "Implement CLI Wallet Management",
+        "description": "Add wallet functionality to the CLI for managing private keys, signing transactions, and interacting with agents securely.",
+        "details": "1. Wallet Creation and Import Infrastructure:\n   - Implement wallet creation from mnemonic phrases using BIP39 standard with entropy validation\n   - Add private key import functionality supporting hex format, WIF format, and keystore files (JSON)\n   - Create secure mnemonic generation with proper entropy sources and word list validation\n   - Support wallet recovery from 12/24 word mnemonic phrases with checksum verification\n\n2. Secure Storage and Encryption:\n   - Implement AES-256-GCM encryption for private key storage with PBKDF2 key derivation\n   - Create encrypted wallet files stored in user's home directory (~/.ensemble/wallets/)\n   - Add password-based encryption with configurable iteration counts for key stretching\n   - Implement secure memory handling to prevent private key exposure in memory dumps\n\n3. CLI Command Implementation:\n   - `ensemble wallet create [name]` - Generate new wallet with mnemonic backup\n   - `ensemble wallet import [name] --mnemonic|--private-key|--keystore` - Import existing wallet\n   - `ensemble wallet list` - Display all available wallets with addresses and metadata\n   - `ensemble wallet export [name] --format=mnemonic|private-key|keystore` - Export wallet data\n   - `ensemble wallet balance [name]` - Check ETH and token balances for wallet address\n   - `ensemble wallet history [name]` - Display transaction history for wallet\n\n4. Transaction Signing Integration:\n   - Integrate ethers.js Wallet class for transaction signing capabilities\n   - Add support for signing agent registration transactions with wallet credentials\n   - Implement transaction fee estimation and gas price optimization\n   - Create secure transaction broadcasting with confirmation tracking\n\n5. Agent Command Integration:\n   - Modify existing `ensemble agents register` command to accept --wallet parameter\n   - Update `ensemble agents update` command to use wallet for transaction signing\n   - Add wallet selection prompts when multiple wallets are available\n   - Implement automatic wallet detection for agent ownership verification\n\n6. Security and Validation:\n   - Add comprehensive input validation for all wallet operations\n   - Implement secure password prompting with hidden input and confirmation\n   - Add wallet backup verification during creation process\n   - Create secure deletion methods for removing wallet files",
+        "testStrategy": "1. Unit Testing:\n   - Test wallet creation with various mnemonic lengths and validate generated addresses\n   - Verify private key encryption/decryption with different password strengths\n   - Test wallet import functionality with valid and invalid mnemonic phrases, private keys, and keystore files\n   - Validate transaction signing produces correct signatures for test transactions\n   - Test secure storage mechanisms and file permissions on wallet directories\n\n2. Integration Testing:\n   - Test wallet integration with agent registration commands using testnet\n   - Verify transaction signing and broadcasting with real blockchain interactions\n   - Test wallet balance checking against live testnet addresses\n   - Validate transaction history retrieval from blockchain explorers or RPC nodes\n\n3. Security Testing:\n   - Perform memory analysis to ensure private keys are not exposed in process memory\n   - Test password strength requirements and brute force resistance\n   - Verify encrypted wallet files cannot be decrypted without correct passwords\n   - Test secure deletion of temporary files and memory cleanup\n\n4. User Experience Testing:\n   - Test CLI prompts and user interactions for wallet creation and import flows\n   - Verify error messages are clear and actionable for common failure scenarios\n   - Test wallet selection mechanisms when multiple wallets exist\n   - Validate backup and recovery workflows with real mnemonic phrases\n\n5. Cross-Platform Testing:\n   - Test wallet file storage and permissions on Windows, macOS, and Linux\n   - Verify CLI commands work correctly across different terminal environments\n   - Test wallet portability between different operating systems",
+        "status": "in-progress",
+        "dependencies": [
+          21
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-07-27T09:27:56.810Z",
+      "updated": "2025-07-27T10:45:46.103Z",
       "description": "Tasks for master context"
     }
   }

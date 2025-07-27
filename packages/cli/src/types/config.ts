@@ -4,6 +4,7 @@ export interface CLIConfig {
   privateKey?: string;
   gasPrice: string;
   outputFormat: 'table' | 'json' | 'csv' | 'yaml';
+  activeWallet?: string;
   contracts: {
     agentRegistry: string;
     taskRegistry: string;

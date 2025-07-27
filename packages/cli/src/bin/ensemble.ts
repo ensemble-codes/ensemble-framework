@@ -5,7 +5,10 @@ import chalk from 'chalk';
 import { config } from 'dotenv';
 import { createSDKInstance } from '../utils/sdk';
 import { formatOutput } from '../utils/formatters';
-import { getConfig } from '../config/manager';
+import { getConfig, getActiveWallet } from '../config/manager';
+import { walletCommand } from '../commands/wallet';
+import { WalletService } from '../services/WalletService';
+import { getEffectiveWallet } from '../utils/wallet';
 
 // Load environment variables
 config();
@@ -20,13 +23,14 @@ program
 // Global options
 program
   .option('--verbose', 'Enable verbose output')
-  .option('--format <format>', 'Output format (table, json, csv, yaml)', 'yaml');
+  .option('--format <format>', 'Output format (table, json, csv, yaml)', 'yaml')
+  .option('--wallet <name>', 'Override active wallet for this command');
 
 // Main agents command - fetch agent by address
 program
   .command('agent <address>')
   .description('Get agent details by address')
-  .action(async (address: string, options, command) => {
+  .action(async (address: string, _options, command) => {
     try {
       const globalOptions = command.parent.opts();
       const sdk = await createSDKInstance();
@@ -62,22 +66,47 @@ agentsCommand
   .option('--first <number>', 'Number of agents to fetch (default: 10)', parseInt, 10)
   .option('--skip <number>', 'Number of agents to skip (default: 0)', parseInt, 0)
   .option('--owner <address>', 'Filter agents by owner address')
+  .option('--mine', 'Filter agents owned by the connected wallet')
   .action(async (options, command) => {
     try {
       const globalOptions = command.parent.parent.opts();
       const sdk = await createSDKInstance();
       const agentService = sdk.agents;
 
-      // Validate owner address if provided
-      if (options.owner) {
-        if (!/^0x[a-fA-F0-9]{40}$/.test(options.owner)) {
+      // Handle --mine flag
+      let ownerAddress = options.owner;
+      
+      if (options.mine) {
+        if (options.owner) {
+          console.error(chalk.red('❌ Cannot use both --mine and --owner flags together'));
+          process.exit(1);
+        }
+        
+        // Get the effective wallet
+        const effectiveWallet = await getEffectiveWallet(globalOptions.wallet);
+        if (!effectiveWallet) {
+          console.error(chalk.red('❌ No wallet specified and no active wallet set'));
+          console.error(chalk.yellow('💡 Use --wallet <name>, set an active wallet with "ensemble wallet use <name>", or use --owner <address>'));
+          process.exit(1);
+        }
+        
+        // Get wallet address
+        const config = await getConfig();
+        const walletService = new WalletService(config.rpcUrl);
+        try {
+          ownerAddress = await walletService.getWalletAddress(effectiveWallet);
+          console.log(chalk.blue(`🔍 Fetching agents for wallet '${effectiveWallet}' (${ownerAddress})...`));
+        } catch (error) {
+          console.error(chalk.red(`❌ Wallet '${effectiveWallet}' not found`));
+          process.exit(1);
+        }
+      } else if (ownerAddress) {
+        // Validate owner address if provided
+        if (!/^0x[a-fA-F0-9]{40}$/.test(ownerAddress)) {
           console.error(chalk.red('❌ Invalid owner address format. Must be a valid Ethereum address.'));
           process.exit(1);
         }
-      }
-
-      if (options.owner) {
-        console.log(chalk.blue(`🔍 Fetching agents for owner ${options.owner}...`));
+        console.log(chalk.blue(`🔍 Fetching agents for owner ${ownerAddress}...`));
       } else {
         console.log(chalk.blue('🔍 Fetching agents...'));
       }
@@ -87,8 +116,8 @@ agentsCommand
         skip: options.skip
       };
 
-      if (options.owner) {
-        filterParams.owner = options.owner;
+      if (ownerAddress) {
+        filterParams.owner = ownerAddress;
       }
 
       const agents = await agentService.getAgentRecords(filterParams);
@@ -117,7 +146,7 @@ agentsCommand
 program
   .command('config')
   .description('Show CLI configuration')
-  .action(async (options, command) => {
+  .action(async (_options, command) => {
     try {
       const globalOptions = command.parent.opts();
       const config = await getConfig();
@@ -139,6 +168,9 @@ program
       process.exit(1);
     }
   });
+
+// Add wallet command
+program.addCommand(walletCommand);
 
 // Error handling
 program.on('command:*', () => {

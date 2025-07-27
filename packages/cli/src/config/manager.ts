@@ -63,6 +63,27 @@ export async function resetConfig(): Promise<CLIConfig> {
   return DEFAULT_CONFIG;
 }
 
+// Active wallet management
+export async function setActiveWallet(walletName: string): Promise<CLIConfig> {
+  const currentConfig = await getConfig();
+  const newConfig = { ...currentConfig, activeWallet: walletName };
+  await saveConfig(newConfig);
+  return newConfig;
+}
+
+export async function getActiveWallet(): Promise<string | undefined> {
+  const config = await getConfig();
+  return config.activeWallet;
+}
+
+export async function clearActiveWallet(): Promise<CLIConfig> {
+  const currentConfig = await getConfig();
+  const newConfig = { ...currentConfig };
+  delete newConfig.activeWallet;
+  await saveConfig(newConfig);
+  return newConfig;
+}
+
 // Environment variable overrides
 export function getConfigWithEnvOverrides(): Promise<CLIConfig> {
   return getConfig().then(config => ({
@@ -71,6 +92,7 @@ export function getConfigWithEnvOverrides(): Promise<CLIConfig> {
     rpcUrl: process.env.ENSEMBLE_RPC_URL || config.rpcUrl,
     privateKey: process.env.ENSEMBLE_PRIVATE_KEY || config.privateKey,
     gasPrice: process.env.ENSEMBLE_GAS_PRICE || config.gasPrice,
-    outputFormat: (process.env.ENSEMBLE_OUTPUT_FORMAT as 'table' | 'json' | 'csv' | 'yaml') || config.outputFormat
+    outputFormat: (process.env.ENSEMBLE_OUTPUT_FORMAT as 'table' | 'json' | 'csv' | 'yaml') || config.outputFormat,
+    activeWallet: process.env.ENSEMBLE_ACTIVE_WALLET || config.activeWallet
   }));
 }
