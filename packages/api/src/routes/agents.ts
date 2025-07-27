@@ -53,6 +53,80 @@ async function agentRoutes(fastify: FastifyInstance) {
     (fastify as any).config.ENSEMBLE_SUBGRAPH_URL
   );
 
+  // Shared schema definition for AgentRecord
+  const agentRecordSchema = {
+    type: 'object',
+    properties: {
+      id: { type: 'string' },
+      name: { type: 'string' },
+      description: { type: 'string' },
+      owner: { type: 'string' },
+      agent: { type: 'string' },
+      status: { type: 'string', enum: ['active', 'inactive'] },
+      reputationScore: { type: 'number' },
+      totalRatingsCount: { type: 'integer' },
+      agentCategory: { type: 'string' },
+      communicationType: { type: 'string' },
+      attributes: { type: 'array', items: { type: 'string' } },
+      instructions: { type: 'array', items: { type: 'string' } },
+      prompts: { type: 'array', items: { type: 'string' } },
+      imageURI: { type: 'string' },
+      metadataURI: { type: 'string' },
+      socials: {
+        type: 'object',
+        properties: {
+          twitter: { type: 'string' },
+          telegram: { type: 'string' },
+          dexscreener: { type: 'string' },
+          github: { type: 'string' },
+          website: { type: 'string' }
+        }
+      },
+      communicationURL: { type: 'string' },
+      communicationParams: { type: 'object' },
+      createdAt: { type: 'string' },
+      updatedAt: { type: 'string' },
+      lastActiveAt: { type: 'string' }
+    }
+  };
+
+  // Shared pagination schema
+  const paginationSchema = {
+    type: 'object',
+    properties: {
+      page: { type: 'integer' },
+      limit: { type: 'integer' },
+      total: { type: 'integer' },
+      totalPages: { type: 'integer' },
+      hasNext: { type: 'boolean' },
+      hasPrev: { type: 'boolean' }
+    }
+  };
+
+  // Shared filters schema
+  const filtersSchema = {
+    type: 'object',
+    properties: {
+      applied: { type: 'object' },
+      available: { type: 'object' }
+    }
+  };
+
+  // Shared error response schema
+  const errorResponseSchema = {
+    type: 'object',
+    properties: {
+      error: {
+        type: 'object',
+        properties: {
+          code: { type: 'string' },
+          message: { type: 'string' },
+          timestamp: { type: 'string' }
+        }
+      }
+    }
+  };
+
   // Schema definitions for validation
   const agentListQuerySchema = {
     type: 'object',
@@ -154,47 +228,10 @@ async function agentRoutes(fastify: FastifyInstance) {
               data: { 
                 type: 'array',
                 description: 'Array of agent records',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string' },
-                    name: { type: 'string' },
-                    description: { type: 'string' },
-                    owner: { type: 'string' },
-                    agent: { type: 'string' },
-                    status: { type: 'string', enum: ['active', 'inactive'] },
-                    reputationScore: { type: 'number' },
-                    totalRatingsCount: { type: 'integer' },
-                    agentCategory: { type: 'string' },
-                    communicationType: { type: 'string' },
-                    attributes: { type: 'array', items: { type: 'string' } },
-                    instructions: { type: 'array', items: { type: 'string' } },
-                    prompts: { type: 'array', items: { type: 'string' } },
-                    imageURI: { type: 'string' },
-                    socials: { type: 'object' },
-                    createdAt: { type: 'string' },
-                    updatedAt: { type: 'string' }
-                  }
-                }
+                items: agentRecordSchema
               },
-              pagination: { 
-                type: 'object',
-                properties: {
-                  page: { type: 'integer' },
-                  limit: { type: 'integer' },
-                  total: { type: 'integer' },
-                  totalPages: { type: 'integer' },
-                  hasNext: { type: 'boolean' },
-                  hasPrev: { type: 'boolean' }
-                }
-              },
-              filters: { 
-                type: 'object',
-                properties: {
-                  applied: { type: 'object' },
-                  available: { type: 'object' }
-                }
-              }
+              pagination: paginationSchema,
+              filters: filtersSchema
             },
             example: {
               data: [{
@@ -237,32 +274,8 @@ async function agentRoutes(fastify: FastifyInstance) {
               }
             }
           },
-          400: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                  timestamp: { type: 'string' }
-                }
-              }
-            }
-          },
-          500: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                  timestamp: { type: 'string' }
-                }
-              }
-            }
-          }
+          400: errorResponseSchema,
+          500: errorResponseSchema
         }
       }
     },
@@ -316,41 +329,7 @@ async function agentRoutes(fastify: FastifyInstance) {
             type: 'object',
             description: 'Successful response with agent details',
             properties: {
-              data: { 
-                type: 'object',
-                properties: {
-                  id: { type: 'string' },
-                  name: { type: 'string' },
-                  description: { type: 'string' },
-                  owner: { type: 'string' },
-                  agent: { type: 'string' },
-                  status: { type: 'string' },
-                  reputationScore: { type: 'number' },
-                  totalRatingsCount: { type: 'integer' },
-                  agentCategory: { type: 'string' },
-                  communicationType: { type: 'string' },
-                  attributes: { type: 'array', items: { type: 'string' } },
-                  instructions: { type: 'array', items: { type: 'string' } },
-                  prompts: { type: 'array', items: { type: 'string' } },
-                  imageURI: { type: 'string' },
-                  metadataURI: { type: 'string' },
-                  socials: {
-                    type: 'object',
-                    properties: {
-                      twitter: { type: 'string' },
-                      telegram: { type: 'string' },
-                      dexscreener: { type: 'string' },
-                      github: { type: 'string' },
-                      website: { type: 'string' }
-                    }
-                  },
-                  communicationURL: { type: 'string' },
-                  communicationParams: { type: 'object' },
-                  createdAt: { type: 'string' },
-                  updatedAt: { type: 'string' },
-                  lastActiveAt: { type: 'string' }
-                }
-              }
+              data: agentRecordSchema
             },
             example: {
               data: {
@@ -396,32 +375,8 @@ async function agentRoutes(fastify: FastifyInstance) {
               }
             }
           },
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                  timestamp: { type: 'string' }
-                }
-              }
-            }
-          },
-          500: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                  timestamp: { type: 'string' }
-                }
-              }
-            }
-          }
+          404: errorResponseSchema,
+          500: errorResponseSchema
         }
       }
     },
@@ -465,34 +420,13 @@ async function agentRoutes(fastify: FastifyInstance) {
               data: { 
                 type: 'array',
                 description: 'Array of agents matching discovery criteria',
-                items: {
-                  type: 'object',
-                  description: 'Agent record with relevance scoring'
-                }
+                items: agentRecordSchema
               },
-              pagination: { 
-                type: 'object',
-                description: 'Pagination metadata for discovery results'
-              },
-              filters: { 
-                type: 'object',
-                description: 'Applied discovery criteria and available refinements'
-              }
+              pagination: paginationSchema,
+              filters: filtersSchema
             }
           },
-          400: {
-            type: 'object',
-            description: 'Invalid discovery request',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' }
-                }
-              }
-            }
-          }
+          400: errorResponseSchema
         }
       }
     },
@@ -533,7 +467,7 @@ async function agentRoutes(fastify: FastifyInstance) {
         params: {
           type: 'object',
           properties: {
-            ownerAddress: { 
+            ownerAddress: {
               type: 'string',
               description: 'Ethereum wallet address of the agent owner'
             }
@@ -543,16 +477,59 @@ async function agentRoutes(fastify: FastifyInstance) {
         response: {
           200: {
             type: 'object',
-            description: 'Successful response with owner\'s agents',
+            description: 'Successful response with agent list',
             properties: {
               data: { 
                 type: 'array',
-                description: 'Array of agents owned by the specified address'
+                description: 'Array of agent records',
+                items: agentRecordSchema
               },
-              pagination: { type: 'object', description: 'Pagination metadata' },
-              filters: { type: 'object', description: 'Applied filters' }
+              pagination: paginationSchema,
+              filters: filtersSchema
+            },
+            example: {
+              data: [{
+                id: "agent-001",
+                name: "DataAnalyst Pro",
+                description: "Advanced data analysis and visualization agent",
+                owner: "0x742d35Cc6560C02C69E27...1234",
+                agent: "0x847fA49b999489fD2780...5678",
+                status: "active",
+                reputationScore: 4.8,
+                totalRatingsCount: 156,
+                agentCategory: "data-analysis",
+                communicationType: "websocket",
+                attributes: ["data-analysis", "visualization", "python", "sql"],
+                instructions: ["Send your dataset", "Specify analysis requirements"],
+                prompts: ["Analyze this sales data for trends", "Create a visualization of user engagement"],
+                imageURI: "https://ipfs.io/ipfs/Qm...",
+                socials: {
+                  twitter: "@dataanalyst_pro",
+                  telegram: "@dataanalyst_channel",
+                  dexscreener: "https://dexscreener.com/..."
+                },
+                createdAt: "2024-01-15T10:30:00Z",
+                updatedAt: "2024-07-20T14:22:00Z"
+              }],
+              pagination: {
+                page: 1,
+                limit: 20,
+                total: 156,
+                totalPages: 8,
+                hasNext: true,
+                hasPrev: false
+              },
+              filters: {
+                applied: { category: "data-analysis", status: "active" },
+                available: {
+                  categories: ["data-analysis", "content-creation", "trading"],
+                  statuses: ["active", "inactive"]
+                }
+              }
             }
-          }
+          },
+          400: errorResponseSchema,
+          500: errorResponseSchema
         }
       }
     },
