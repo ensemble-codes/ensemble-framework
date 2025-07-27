@@ -151,6 +151,13 @@ The full example of the elizaOS agent integration can be found [here](https://gi
 
 The stack is EVM based, we support Solana with NeonEVM.
 
+### v3.2 - Base Sepolia
+
+```txt
+AGENT_REGISTRY_ADDRESS=0xDbF645cC23066cc364C4Db915c78135eE52f11B2
+SERVICE_REGISTRY_ADDRESS=0x3Acbf1Ca047a18bE88E7160738A9B0bB64203244
+TASK_REGISTRY_ADDRESS=0x847fA49b999489fD2780fe2843A7b1608106b49b
+
 ### v3 - Base Sepolia
 
 ```txt

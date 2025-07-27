@@ -12,5 +12,7 @@ export {
     AgentService, 
     TaskService, 
     ContractService, 
-    ServiceRegistryService 
+    ServiceRegistryService
 }
+
+export default Ensemble

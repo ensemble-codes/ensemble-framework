@@ -1,0 +1,304 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Deploy Core Smart Contracts on Base Networks",
+        "description": "Deploy the foundational smart contracts for Service Registry, Agent Registry, and Task Registry on Base mainnet and Sepolia testnet with upgradeable patterns",
+        "details": "Implement and deploy smart contracts using OpenZeppelin's upgradeable proxy patterns. Create ServiceRegistry.sol for service catalog management, AgentRegistry.sol for agent registration and reputation tracking, and TaskRegistry.sol for decentralized task mempool. Include escrow functionality for payments and multi-token support. Use Hardhat for deployment with network-specific configurations for Base and Base Sepolia. Implement gas optimization techniques and emergency pause mechanisms.",
+        "testStrategy": "Deploy to testnet first with comprehensive unit tests using Hardhat. Test upgrade mechanisms, gas consumption analysis, and integration testing with mock scenarios. Perform security audit simulation and stress testing with high-frequency operations.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Build TypeScript SDK for Agent Integration",
+        "description": "Develop comprehensive TypeScript SDK providing APIs for agent registration, task discovery, proposal submission, and payment management",
+        "details": "Create @ensemble/sdk package with classes: EnsembleClient, AgentManager, TaskManager, PaymentManager. Implement Web3 integration using ethers.js v6 for Base network connectivity. Provide async/await APIs for registerAgent(), discoverTasks(), submitProposal(), executeTask(). Include real-time WebSocket connections for task notifications and status updates. Support wallet integration (MetaMask, WalletConnect) and environment configuration for mainnet/testnet.",
+        "testStrategy": "Unit tests for all SDK methods with mocked blockchain interactions. Integration tests against deployed testnet contracts. End-to-end testing with sample agent implementations. Performance testing for high-frequency operations.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Develop REST API Layer",
+        "description": "This task is deferred until after core functionality is complete. The REST API layer will provide an HTTP-based API abstracting blockchain complexity, with authentication, real-time updates, and comprehensive endpoint coverage for agent discovery and management using the AgentRecord data model.",
+        "status": "done",
+        "dependencies": [
+          3
+        ],
+        "priority": "low",
+        "details": "Development of the Fastify API server and agent-focused endpoints is postponed until all core system features are delivered. When resumed, the implementation will follow the agent-api-endpoints.md specification, including endpoints for agent discovery, management, and metadata retrieval. The API will use the AgentRecord data model and incorporate Fastify-specific features such as plugins for authentication (JWT and API key management), JSON Schema validation, request/response lifecycle hooks, decorators for dependency injection, rate limiting, and comprehensive error handling. Deployment will utilize Docker containers and environment-based configuration. The focus will remain on robust agent discovery mechanisms and efficient agent data retrieval leveraging Fastify's high-performance architecture.",
+        "testStrategy": "Testing for the REST API layer will commence after core functionality is complete. Planned tests include API testing with Postman/Jest for all agent endpoints, load testing for concurrent agent queries, authentication and authorization testing with Fastify plugins, performance testing for agent discovery queries, Fastify-specific testing for plugin integration and hook execution, and JSON Schema validation for all request/response payloads using the AgentRecord model.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set Up Fastify API Server and Agent Endpoints",
+            "description": "Initialize the Fastify server and implement REST endpoints for agent management following agent-api-endpoints.md specification, using AgentRecord data model for all responses.",
+            "status": "done",
+            "dependencies": [],
+            "details": "Create a Fastify project structure. Define routes for GET /agents (with filtering/search), GET /agents/{agentId}, POST /agents/discovery, GET /agents/owner/{ownerAddress}, GET /agents/categories, and GET /agents/skills. Implement AgentRecord data model exactly as specified in documentation. Ensure modular route organization for scalability.\n<info added on 2025-07-20T12:43:36.707Z>\nSuccessfully implemented Fastify API server with all required agent endpoints. Server includes: \n\n1. Complete Fastify server setup with middleware (CORS, rate limiting, JWT auth, error handling)\n2. Full AgentRecord data model matching specification \n3. Modular route structure in src/routes/agents.ts\n4. All required REST endpoints:\n   - GET /api/v1/agents (list with filtering/pagination)\n   - GET /api/v1/agents/{agentId} (agent details)\n   - POST /api/v1/agents/discovery (advanced discovery)\n   - GET /api/v1/agents/owner/{ownerAddress} (agents by owner)\n   - GET /api/v1/agents/categories (available categories)\n   - GET /api/v1/agents/skills (available skills)\n\n5. Complete TypeScript types and interfaces\n6. Mock data service layer for development\n7. Comprehensive request validation with JSON schemas\n8. Proper error handling and logging\n9. Health check endpoint at /health\n\nBuild and type checking pass successfully. Ready for testing and deployment.\n</info added on 2025-07-20T12:43:36.707Z>",
+            "testStrategy": "Use Postman or Jest to verify all agent endpoints respond correctly with proper AgentRecord format and return expected status codes and payloads for various query parameters."
+          },
+          {
+            "id": 3,
+            "title": "Add Request Validation, Error Handling, and Middleware",
+            "description": "Apply JSON Schema validation to all request bodies and query parameters for agent endpoints. Implement Fastify hooks for request/response lifecycle management and custom error schemas for consistent error responses.",
+            "status": "done",
+            "dependencies": [
+              1
+            ],
+            "details": "Define JSON Schemas for each agent endpoint including AgentRecord response schema. Use Fastify's built-in validation and hooks (onRequest, preHandler, onSend) for middleware logic. Create custom error handlers for unified error formatting.",
+            "testStrategy": "Send invalid and edge-case requests to agent endpoints and verify that validation errors and custom error responses are returned as expected with proper AgentRecord format."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Build Frontend Task Management Interface",
+        "description": "DEPRECATED: Frontend functionality already exists in separate agent hub dapp repository - this task is no longer needed",
+        "status": "cancelled",
+        "dependencies": [],
+        "priority": "low",
+        "details": "This task has been deprecated as the frontend functionality is already implemented in a separate repository containing the agent hub dapp. The existing frontend provides the necessary web application features for task creation, agent monitoring, and marketplace interaction. No additional frontend development is required for this project.",
+        "testStrategy": "No testing required - task deprecated due to existing implementation in separate repository",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Document existing frontend repository location",
+            "description": "Document the location and details of the existing agent hub dapp repository that provides the frontend functionality",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Verify frontend integration compatibility",
+            "description": "Ensure the existing agent hub dapp can properly integrate with the backend services being developed in this project",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Add Swagger/OpenAPI Documentation for REST API Endpoints",
+        "description": "Implement comprehensive Swagger/OpenAPI documentation for all REST API endpoints with an interactive UI for testing and API exploration.",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "details": "1. Select and install appropriate OpenAPI tooling based on the existing backend framework (e.g., Swagger UI, ReDoc, or Stoplight):\n   - For Node.js/Express: use swagger-jsdoc and swagger-ui-express\n   - For Python/Flask: use flask-restx or flask-swagger-ui\n   - For Java Spring: use SpringFox or SpringDoc\n\n2. Create a base OpenAPI specification document (openapi.yaml or openapi.json) with:\n   - API metadata (title, version, description, contact information)\n   - Server configurations for different environments\n   - Security scheme definitions (JWT, API keys, OAuth2)\n   - Common response schemas and error formats\n\n3. Document all existing REST API endpoints with:\n   - Detailed path descriptions and operation summaries\n   - Request parameters (path, query, header)\n   - Request body schemas with examples\n   - Response schemas with status codes and examples\n   - Authentication requirements\n\n4. Implement code annotations or decorators in the API controllers/handlers to:\n   - Generate OpenAPI specifications from code comments\n   - Ensure documentation stays in sync with implementation\n   - Include validation rules and constraints\n\n5. Set up the interactive documentation UI:\n   - Configure Swagger UI with custom themes matching application branding\n   - Enable the \"Try it out\" feature for API testing\n   - Add authorization UI components for authenticated endpoints\n   - Configure CORS settings to allow documentation access\n\n6. Implement documentation for specific API categories:\n   - Agent management endpoints\n   - Task creation and management\n   - Authentication and identity endpoints\n   - Blockchain interaction endpoints\n   - Analytics and monitoring endpoints\n\n7. Add examples and use cases for common API workflows:\n   - Create sample requests for typical user journeys\n   - Document request/response pairs for complex operations\n   - Include authentication flow examples\n\n8. Implement API versioning strategy in the documentation:\n   - Document deprecation policies and timelines\n   - Provide migration guides between API versions\n   - Support multiple API versions in the documentation UI\n\n9. Integrate the documentation into the CI/CD pipeline:\n   - Validate OpenAPI specification during builds\n   - Generate updated documentation on deployment\n   - Publish documentation to a dedicated developer portal\n\n10. Implement documentation for error handling:\n    - Document all possible error codes and messages\n    - Provide troubleshooting guidance for common errors\n    - Include rate limiting and throttling information",
+        "testStrategy": "1. Validate OpenAPI specification compliance:\n   - Use tools like Spectral or OpenAPI validator to check specification correctness\n   - Verify that the OpenAPI document adheres to the OpenAPI 3.0 or 3.1 specification\n   - Ensure all required fields are present and properly formatted\n\n2. Test documentation generation:\n   - Verify that code annotations correctly generate OpenAPI specifications\n   - Check that changes to API endpoints are automatically reflected in documentation\n   - Test the documentation build process in different environments\n\n3. Verify interactive UI functionality:\n   - Test the Swagger UI in different browsers (Chrome, Firefox, Safari, Edge)\n   - Verify that the \"Try it out\" feature works for all endpoints\n   - Test authentication flows within the documentation UI\n   - Check that request/response examples are correctly displayed\n\n4. Conduct comprehensive API testing through the documentation UI:\n   - Test all endpoints using the interactive documentation\n   - Verify that responses match the documented schemas\n   - Test error scenarios and verify error documentation accuracy\n   - Check that all parameters and request bodies work as documented\n\n5. Perform security testing on the documentation:\n   - Verify that sensitive information is not exposed in examples\n   - Test that authentication tokens are properly handled\n   - Ensure that the documentation itself doesn't introduce security vulnerabilities\n\n6. Conduct user acceptance testing:\n   - Have developers use the documentation to implement API clients\n   - Collect feedback on documentation clarity and completeness\n   - Verify that the documentation helps reduce onboarding time\n\n7. Test documentation accessibility:\n   - Verify that the documentation meets WCAG accessibility standards\n   - Test screen reader compatibility\n   - Check color contrast and text readability\n\n8. Performance testing:\n   - Measure documentation load time and rendering performance\n   - Test documentation with large API specifications\n   - Verify that the interactive UI remains responsive with complex schemas\n\n9. Integration testing:\n   - Verify that the documentation integrates properly with the main application\n   - Test that API changes trigger documentation updates\n   - Check that documentation links correctly to other developer resources\n\n10. Cross-environment testing:\n    - Verify documentation works in development, staging, and production\n    - Test that environment-specific configurations are correctly applied\n    - Ensure documentation URLs and references are environment-aware",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Implement REST API endpoints by integrating with the Ensemble SDK",
+        "description": "Connect agent routes to actual SDK methods for fetching agent data from blockchain, handle error cases, and ensure proper data transformation between SDK responses and API response formats.",
+        "details": "1. Install and configure the @ensemble/sdk package in the REST API project, ensuring proper initialization with Base mainnet and Sepolia testnet configurations.\n\n2. Replace all mock agent data endpoints with real SDK integration:\n   - Update GET /agents endpoint to use sdk.getAgents() method\n   - Modify GET /agents/:id to use sdk.getAgent(id) for individual agent retrieval\n   - Connect POST /agents to sdk.registerAgent() for new agent registration\n   - Update PUT/PATCH /agents/:id to use sdk.updateAgent() methods\n   - Implement DELETE /agents/:id using sdk.deregisterAgent()\n\n3. Implement comprehensive error handling:\n   - Catch blockchain network errors and return appropriate HTTP status codes (503 for network issues, 404 for not found, 400 for invalid parameters)\n   - Add retry logic for transient network failures with exponential backoff\n   - Create standardized error response format with error codes and user-friendly messages\n   - Handle gas estimation failures and transaction timeout scenarios\n\n4. Implement data transformation layer:\n   - Create mapping functions to convert SDK response objects to API response format\n   - Ensure consistent field naming and data types across API responses\n   - Add data validation for incoming requests before passing to SDK methods\n   - Implement response caching for frequently accessed agent data to reduce blockchain calls\n\n5. Add proper async/await handling throughout all endpoints with appropriate error propagation and logging for debugging blockchain interactions.",
+        "testStrategy": "1. Integration testing with testnet deployment:\n   - Test all CRUD operations against deployed smart contracts on Base Sepolia\n   - Verify that API responses match actual on-chain agent data\n   - Test agent registration, updates, and deregistration workflows end-to-end\n\n2. Error handling validation:\n   - Simulate network failures by disconnecting from blockchain nodes\n   - Test timeout scenarios with long-running transactions\n   - Verify proper HTTP status codes and error messages for various failure modes\n   - Test retry logic with intermittent network issues\n\n3. Data transformation verification:\n   - Compare SDK response objects with API response format to ensure proper mapping\n   - Test edge cases like missing optional fields and null values\n   - Validate response schema compliance with OpenAPI documentation\n\n4. Performance testing:\n   - Measure response times for blockchain data fetching vs previous mock data\n   - Test concurrent request handling and rate limiting\n   - Verify caching effectiveness for repeated agent data requests\n\n5. End-to-end workflow testing:\n   - Test complete agent lifecycle from registration through task execution\n   - Verify integration with existing authentication and authorization systems\n   - Test API functionality with real blockchain transactions and gas costs",
+        "status": "done",
+        "dependencies": [
+          1,
+          3
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Fix failing API tests in packages/api/src/routes/agents.test.ts",
+        "description": "Debug and resolve failing test cases in the agents route test suite to ensure all API endpoints are properly tested and validated.",
+        "details": "1. Analyze the current test failures in packages/api/src/routes/agents.test.ts by running the test suite and identifying specific error messages, assertion failures, or timeout issues.\n\n2. Update test mocks and fixtures to align with the new SDK integration implemented in Task 16:\n   - Replace any hardcoded mock data with realistic test data that matches SDK response formats\n   - Update test assertions to expect actual blockchain data structures instead of mock responses\n   - Mock the @ensemble/sdk methods properly using jest.mock() or similar testing framework mocking capabilities\n\n3. Fix test setup and teardown procedures:\n   - Ensure proper test database/blockchain state initialization before each test\n   - Add cleanup procedures to reset state between tests\n   - Configure test environment variables for testnet connections if needed\n\n4. Address authentication and authorization test scenarios:\n   - Update tests to handle any new authentication requirements\n   - Mock authentication tokens or user sessions as needed\n   - Test both authenticated and unauthenticated request scenarios\n\n5. Update test assertions for error handling:\n   - Verify that API endpoints return appropriate HTTP status codes\n   - Test error response formats match the expected API contract\n   - Ensure blockchain connection failures are handled gracefully in tests\n\n6. Add missing test coverage for any new endpoints or functionality:\n   - Test all CRUD operations (GET, POST, PUT, DELETE) for agent routes\n   - Add edge case testing for invalid inputs, malformed requests, and boundary conditions\n   - Test rate limiting, pagination, and query parameter handling if applicable",
+        "testStrategy": "1. Run the failing test suite to establish baseline failure count and specific error messages: `npm test packages/api/src/routes/agents.test.ts --verbose`\n\n2. Fix tests incrementally and verify each fix:\n   - Run individual test cases to isolate and resolve specific failures\n   - Use `--watch` mode during development for rapid feedback\n   - Ensure each test passes consistently across multiple runs\n\n3. Validate test coverage and quality:\n   - Run coverage reports to ensure all code paths in agents routes are tested\n   - Verify that tests cover both success and failure scenarios\n   - Check that mocked SDK methods are called with expected parameters\n\n4. Integration testing validation:\n   - Run tests against a test environment with actual SDK integration\n   - Verify that tests work with both mocked and real SDK responses\n   - Test with different network conditions and error scenarios\n\n5. Regression testing:\n   - Run the full API test suite to ensure fixes don't break other tests\n   - Verify that all agent-related API endpoints still function correctly\n   - Test the API manually using tools like Postman or curl to confirm test accuracy",
+        "status": "done",
+        "dependencies": [
+          16
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Implement updateAgentRecord and updateAgentRecordProperty methods in TypeScript SDK AgentService",
+        "description": "Add updateAgentRecord and updateAgentRecordProperty methods to the TypeScript SDK's AgentService class to enable programmatic updating of agent metadata and individual properties.",
+        "details": "1. Extend the AgentService class in the TypeScript SDK with two new methods:\n\n   - `updateAgentRecord(agentId: string, agentData: Partial<AgentRecord>): Promise<TransactionResult>` - Updates multiple agent properties in a single transaction\n   - `updateAgentRecordProperty(agentId: string, property: string, value: any): Promise<TransactionResult>` - Updates a single agent property efficiently\n\n2. Implementation considerations:\n   - Validate agentId format and existence before attempting updates\n   - Implement proper type checking for agentData parameter using TypeScript interfaces\n   - Add support for updating common properties: name, description, capabilities, metadata, tags, status\n   - Include gas estimation and transaction optimization for batch updates\n   - Implement proper error handling for failed transactions and invalid property updates\n   - Add event emission for successful updates to enable real-time monitoring\n\n3. Smart contract integration:\n   - Call the appropriate smart contract methods (updateAgent, updateAgentProperty) \n   - Handle transaction signing and broadcasting through the configured provider\n   - Implement retry logic for failed transactions with exponential backoff\n   - Add transaction receipt validation and confirmation waiting\n\n4. Type definitions:\n   ```typescript\n   interface AgentRecord {\n     name?: string;\n     description?: string;\n     capabilities?: string[];\n     metadata?: Record<string, any>;\n     tags?: string[];\n     status?: AgentStatus;\n   }\n   \n   interface TransactionResult {\n     transactionHash: string;\n     blockNumber: number;\n     gasUsed: bigint;\n     success: boolean;\n   }\n   ```\n\n5. Add comprehensive JSDoc documentation with usage examples and parameter descriptions.",
+        "testStrategy": "1. Unit testing for method functionality:\n   - Test updateAgentRecord with valid partial agent data and verify correct smart contract calls\n   - Test updateAgentRecordProperty with various property types (string, array, object)\n   - Verify proper TypeScript type checking and parameter validation\n   - Test error handling for invalid agent IDs, non-existent agents, and malformed data\n\n2. Integration testing with smart contracts:\n   - Deploy test agents and verify updates are reflected on-chain\n   - Test transaction confirmation and receipt validation\n   - Verify gas estimation accuracy and transaction optimization\n   - Test retry logic with simulated network failures\n\n3. Edge case testing:\n   - Test updating non-existent agents (should throw appropriate errors)\n   - Test updating with empty or null values\n   - Test concurrent updates to the same agent\n   - Test updates with insufficient permissions or gas\n\n4. Performance testing:\n   - Benchmark gas costs for single vs batch property updates\n   - Test method performance with large metadata objects\n   - Verify transaction throughput under load\n\n5. End-to-end testing:\n   - Test integration with existing REST API endpoints that use these methods\n   - Verify event emission and real-time update notifications\n   - Test with different network configurations (mainnet, testnet)",
+        "status": "done",
+        "dependencies": [
+          1,
+          16
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define TypeScript interfaces and type definitions for agent updates",
+            "description": "Create comprehensive TypeScript interfaces for AgentRecord, TransactionResult, and related types to support the update methods with proper type safety and validation.",
+            "dependencies": [],
+            "details": "Define the AgentRecord interface with optional properties (name, description, capabilities, metadata, tags, status). Create TransactionResult interface with transactionHash, blockNumber, gasUsed, and success fields. Add AgentStatus enum and validation helper types. Include JSDoc comments for all interfaces with usage examples and property descriptions.",
+            "status": "done",
+            "testStrategy": "Unit tests for type validation, interface completeness checks, and TypeScript compilation verification"
+          },
+          {
+            "id": 2,
+            "title": "Implement agent validation and existence checking utilities",
+            "description": "Create utility functions to validate agent ID format and verify agent existence before attempting updates, including proper error handling for invalid or non-existent agents.",
+            "dependencies": [
+              "20.1"
+            ],
+            "details": "Implement validateAgentId() function to check ID format using regex patterns. Create checkAgentExists() function that queries the smart contract to verify agent existence. Add comprehensive error classes for different validation failures (InvalidAgentIdError, AgentNotFoundError). Include caching mechanism for recently validated agents to optimize performance.",
+            "status": "done",
+            "testStrategy": "Test validation with various ID formats, verify existence checking against mock contract, test error handling for edge cases"
+          },
+          {
+            "id": 3,
+            "title": "Implement updateAgentRecord method with batch update functionality",
+            "description": "Create the updateAgentRecord method that accepts partial agent data and updates multiple properties in a single transaction with proper validation and gas optimization.",
+            "dependencies": [
+              "20.1",
+              "20.2"
+            ],
+            "details": "Implement updateAgentRecord(agentId: string, agentData: Partial<AgentRecord>): Promise<TransactionResult>. Add input validation for agentData properties using TypeScript type guards. Implement gas estimation for batch updates and transaction optimization. Include proper error handling for failed transactions with detailed error messages. Add event emission for successful updates with before/after state tracking.",
+            "status": "done",
+            "testStrategy": "Test with various combinations of agent properties, verify gas optimization, test transaction failure scenarios and rollback behavior"
+          },
+          {
+            "id": 4,
+            "title": "Implement updateAgentRecordProperty method for single property updates",
+            "description": "Create the updateAgentRecordProperty method for efficient single property updates with type-specific validation and optimized gas usage.",
+            "dependencies": [
+              "20.1",
+              "20.2"
+            ],
+            "details": "Implement updateAgentRecordProperty(agentId: string, property: string, value: any): Promise<TransactionResult>. Add property-specific validation based on the property name (string for name/description, array for capabilities/tags, object for metadata). Implement gas-optimized single property update calls to smart contract. Include type coercion and sanitization for different value types. Add comprehensive error handling for invalid property names or values.",
+            "status": "done",
+            "testStrategy": "Test each supported property type individually, verify type validation and coercion, test invalid property scenarios"
+          },
+          {
+            "id": 5,
+            "title": "Integrate smart contract calls with transaction handling and retry logic",
+            "description": "Implement smart contract integration with proper transaction signing, broadcasting, confirmation waiting, and retry logic with exponential backoff for failed transactions.",
+            "dependencies": [
+              "20.3",
+              "20.4"
+            ],
+            "details": "Integrate with smart contract updateAgent and updateAgentProperty methods through configured provider. Implement transaction signing and broadcasting with proper nonce management. Add transaction receipt validation and confirmation waiting with configurable block confirmations. Implement retry logic with exponential backoff for failed transactions (network issues, gas estimation failures). Include comprehensive logging and monitoring for transaction lifecycle events.",
+            "status": "done",
+            "testStrategy": "Test transaction signing and broadcasting, verify retry logic with simulated network failures, test confirmation waiting with various block times"
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "title": "Build Ensemble CLI Tool",
+        "description": "Create a comprehensive command-line interface for agent management that leverages the existing TypeScript SDK and REST API, providing commands for agent discovery, registration, updates, configuration management, and validation.",
+        "details": "1. Project Setup and Architecture:\n   - Create a new CLI package using TypeScript with commander.js or yargs for command parsing\n   - Set up proper project structure with src/, bin/, and config/ directories\n   - Configure TypeScript compilation and create executable entry point\n   - Install and configure @ensemble/sdk as primary dependency for blockchain interactions\n\n2. Core CLI Commands Implementation:\n   - `ensemble agents list` - List all agents using SDK's getAgents() method\n   - `ensemble agents get <id>` - Get specific agent details using SDK's getAgent(id)\n   - `ensemble agents categories` - List agent categories using SDK's getAgentCategories()\n   - `ensemble agents register <yaml-file>` - Register agent from agent-record.yaml file\n   - `ensemble agents update <id> <yaml-file>` - Update agent using updateAgentRecord() from SDK\n   - `ensemble agents export <id> <output-file>` - Export agent data to agent-record.yaml format\n   - `ensemble config set <key> <value>` - Manage CLI configuration (network, API endpoints)\n   - `ensemble config get <key>` - Retrieve configuration values\n   - `ensemble validate <yaml-file>` - Validate agent-record.yaml file structure\n\n3. Agent Record YAML Processing:\n   - Implement YAML parser/serializer for agent-record.yaml files\n   - Create TypeScript interfaces matching AgentRecord schema\n   - Add validation logic for required fields, data types, and business rules\n   - Support both import (YAML to SDK format) and export (SDK format to YAML) transformations\n\n4. Output Format Support:\n   - Implement multiple output formats: JSON, YAML, table, and CSV\n   - Add --format flag to all data retrieval commands\n   - Create formatters for each output type with proper data transformation\n   - Support --quiet flag for script-friendly output\n\n5. Configuration Management:\n   - Create ~/.ensemble/config.json for persistent CLI configuration\n   - Support environment-specific settings (mainnet, testnet, local)\n   - Allow configuration of SDK connection parameters, API endpoints, and default output formats\n   - Implement configuration validation and migration logic\n\n6. Error Handling and User Experience:\n   - Implement comprehensive error handling with user-friendly messages\n   - Add progress indicators for long-running operations\n   - Provide detailed help text and examples for each command\n   - Include input validation with clear error messages for invalid parameters\n   - Add --verbose flag for detailed operation logging\n\n7. SDK Integration Strategy:\n   - Use TypeScript SDK as primary data source for all blockchain operations\n   - Fall back to REST API only when SDK methods are unavailable\n   - Implement proper error handling for network connectivity issues\n   - Cache frequently accessed data to improve performance",
+        "testStrategy": "1. Unit Testing:\n   - Test all command parsers and argument validation logic\n   - Mock SDK methods and verify correct parameter passing\n   - Test YAML parsing/serialization with various agent-record.yaml formats\n   - Validate output formatters with sample data in all supported formats\n   - Test configuration management operations (set, get, validate)\n\n2. Integration Testing:\n   - Test CLI commands against live testnet using actual SDK connections\n   - Verify agent registration workflow from YAML file to blockchain\n   - Test agent update operations and validate changes are persisted\n   - Validate export functionality produces valid agent-record.yaml files\n   - Test error scenarios with invalid agent IDs, malformed YAML, and network failures\n\n3. End-to-End Testing:\n   - Create complete agent lifecycle test: register → list → get → update → export\n   - Test CLI in different environments (mainnet, testnet, local development)\n   - Verify configuration persistence across CLI sessions\n   - Test all output formats produce correct and parseable results\n   - Validate help text and command documentation accuracy\n\n4. User Acceptance Testing:\n   - Test CLI usability with real agent-record.yaml files\n   - Verify error messages are clear and actionable\n   - Test CLI performance with large agent datasets\n   - Validate cross-platform compatibility (Windows, macOS, Linux)\n   - Test CLI integration in CI/CD pipelines and automation scripts",
+        "status": "pending",
+        "dependencies": [
+          3,
+          16,
+          20
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Project Setup and Architecture",
+            "description": "Initialize the CLI project using TypeScript, set up the directory structure (src/, bin/, config/), configure TypeScript compilation, and establish the executable entry point. Install and configure @ensemble/sdk and a command parser library (commander.js or yargs).",
+            "dependencies": [],
+            "details": "Create a new CLI package, configure tsconfig.json, and ensure the CLI can be executed from the command line. Integrate @ensemble/sdk for blockchain interactions and set up the foundational project structure.",
+            "status": "done",
+            "testStrategy": "Verify CLI bootstraps correctly, TypeScript compiles without errors, and the executable entry point runs a basic command."
+          },
+          {
+            "id": 2,
+            "title": "Implement Core CLI Commands",
+            "description": "Develop the main CLI commands for agent management, including listing, retrieving, registering, updating, exporting agents, managing configuration, and validating agent records.",
+            "dependencies": [
+              "21.1"
+            ],
+            "details": "Implement commands: 'ensemble agents list', 'ensemble agents get <id>', 'ensemble agents categories', 'ensemble agents register <yaml-file>', 'ensemble agents update <id> <yaml-file>', 'ensemble agents export <id> <output-file>', 'ensemble config set/get', and 'ensemble validate <yaml-file>'. Use SDK methods for all blockchain operations.",
+            "status": "done",
+            "testStrategy": "Unit test each command for correct argument parsing, SDK method invocation, and expected output for valid and invalid inputs."
+          },
+          {
+            "id": 3,
+            "title": "Agent Record YAML Processing",
+            "description": "Implement YAML parsing and serialization for agent-record.yaml files, define TypeScript interfaces for AgentRecord schema, and add validation logic for required fields and business rules.",
+            "dependencies": [
+              "21.2"
+            ],
+            "details": "Support import (YAML to SDK format) and export (SDK format to YAML) transformations. Ensure robust validation for agent records and seamless integration with CLI commands.",
+            "status": "pending",
+            "testStrategy": "Test YAML parsing/serialization with various agent-record.yaml formats, validate schema enforcement, and check error handling for malformed files."
+          },
+          {
+            "id": 4,
+            "title": "Output Format Support",
+            "description": "Add support for multiple output formats (JSON, YAML, table, CSV) to all data retrieval commands, including --format and --quiet flags, and implement formatters for each type.",
+            "dependencies": [
+              "21.2"
+            ],
+            "details": "Develop output formatters and integrate them with CLI commands. Ensure script-friendly output with --quiet and consistent formatting across all commands.",
+            "status": "pending",
+            "testStrategy": "Validate output for each format with sample data, test --format and --quiet flags, and ensure compatibility with downstream tools."
+          },
+          {
+            "id": 5,
+            "title": "Configuration Management",
+            "description": "Implement persistent CLI configuration using a config file (e.g., ~/.ensemble/config.json), support environment-specific settings, and allow configuration of SDK parameters, API endpoints, and default output formats.",
+            "dependencies": [
+              "21.1"
+            ],
+            "details": "Enable configuration validation, migration logic, and support for environment-specific overrides. Ensure secure and user-friendly management of configuration data.",
+            "status": "pending",
+            "testStrategy": "Test reading/writing config values, environment switching, validation logic, and migration scenarios."
+          },
+          {
+            "id": 6,
+            "title": "Error Handling and User Experience Enhancements",
+            "description": "Implement comprehensive error handling, user-friendly messages, progress indicators, detailed help text, input validation, and a --verbose flag for detailed logging.",
+            "dependencies": [
+              "21.2",
+              "21.3",
+              "21.4",
+              "21.5"
+            ],
+            "details": "Ensure all commands provide clear feedback, handle errors gracefully, and offer actionable help. Add progress indicators for long-running operations and verbose logging for troubleshooting.",
+            "status": "pending",
+            "testStrategy": "Test error scenarios, help output, progress indicators, and verbose logging across all commands. Validate input handling and user guidance."
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "title": "Implement CLI Wallet Management",
+        "description": "Add wallet functionality to the CLI for managing private keys, signing transactions, and interacting with agents securely.",
+        "details": "1. Wallet Creation and Import Infrastructure:\n   - Implement wallet creation from mnemonic phrases using BIP39 standard with entropy validation\n   - Add private key import functionality supporting hex format, WIF format, and keystore files (JSON)\n   - Create secure mnemonic generation with proper entropy sources and word list validation\n   - Support wallet recovery from 12/24 word mnemonic phrases with checksum verification\n\n2. Secure Storage and Encryption:\n   - Implement AES-256-GCM encryption for private key storage with PBKDF2 key derivation\n   - Create encrypted wallet files stored in user's home directory (~/.ensemble/wallets/)\n   - Add password-based encryption with configurable iteration counts for key stretching\n   - Implement secure memory handling to prevent private key exposure in memory dumps\n\n3. CLI Command Implementation:\n   - `ensemble wallet create [name]` - Generate new wallet with mnemonic backup\n   - `ensemble wallet import [name] --mnemonic|--private-key|--keystore` - Import existing wallet\n   - `ensemble wallet list` - Display all available wallets with addresses and metadata\n   - `ensemble wallet export [name] --format=mnemonic|private-key|keystore` - Export wallet data\n   - `ensemble wallet balance [name]` - Check ETH and token balances for wallet address\n   - `ensemble wallet history [name]` - Display transaction history for wallet\n\n4. Transaction Signing Integration:\n   - Integrate ethers.js Wallet class for transaction signing capabilities\n   - Add support for signing agent registration transactions with wallet credentials\n   - Implement transaction fee estimation and gas price optimization\n   - Create secure transaction broadcasting with confirmation tracking\n\n5. Agent Command Integration:\n   - Modify existing `ensemble agents register` command to accept --wallet parameter\n   - Update `ensemble agents update` command to use wallet for transaction signing\n   - Add wallet selection prompts when multiple wallets are available\n   - Implement automatic wallet detection for agent ownership verification\n\n6. Security and Validation:\n   - Add comprehensive input validation for all wallet operations\n   - Implement secure password prompting with hidden input and confirmation\n   - Add wallet backup verification during creation process\n   - Create secure deletion methods for removing wallet files",
+        "testStrategy": "1. Unit Testing:\n   - Test wallet creation with various mnemonic lengths and validate generated addresses\n   - Verify private key encryption/decryption with different password strengths\n   - Test wallet import functionality with valid and invalid mnemonic phrases, private keys, and keystore files\n   - Validate transaction signing produces correct signatures for test transactions\n   - Test secure storage mechanisms and file permissions on wallet directories\n\n2. Integration Testing:\n   - Test wallet integration with agent registration commands using testnet\n   - Verify transaction signing and broadcasting with real blockchain interactions\n   - Test wallet balance checking against live testnet addresses\n   - Validate transaction history retrieval from blockchain explorers or RPC nodes\n\n3. Security Testing:\n   - Perform memory analysis to ensure private keys are not exposed in process memory\n   - Test password strength requirements and brute force resistance\n   - Verify encrypted wallet files cannot be decrypted without correct passwords\n   - Test secure deletion of temporary files and memory cleanup\n\n4. User Experience Testing:\n   - Test CLI prompts and user interactions for wallet creation and import flows\n   - Verify error messages are clear and actionable for common failure scenarios\n   - Test wallet selection mechanisms when multiple wallets exist\n   - Validate backup and recovery workflows with real mnemonic phrases\n\n5. Cross-Platform Testing:\n   - Test wallet file storage and permissions on Windows, macOS, and Linux\n   - Verify CLI commands work correctly across different terminal environments\n   - Test wallet portability between different operating systems",
+        "status": "in-progress",
+        "dependencies": [
+          21
+        ],
+        "priority": "medium",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-20T10:42:18.955Z",
+      "updated": "2025-07-27T10:45:46.103Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

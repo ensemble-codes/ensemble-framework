@@ -61,7 +61,7 @@ class NetworkConfig:
     rpc_url: str
 
 @dataclass
-class ContractConfig:
+class EnsembleConfig:
     task_registry_address: str
     agent_registry_address: str
     network: NetworkConfig
