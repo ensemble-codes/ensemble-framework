@@ -58,21 +58,40 @@ const agentsCommand = program
 
 agentsCommand
   .command('list')
-  .description('List all agents with pagination')
+  .description('List all agents with pagination and filtering')
   .option('--first <number>', 'Number of agents to fetch (default: 10)', parseInt, 10)
   .option('--skip <number>', 'Number of agents to skip (default: 0)', parseInt, 0)
+  .option('--owner <address>', 'Filter agents by owner address')
   .action(async (options, command) => {
     try {
       const globalOptions = command.parent.parent.opts();
       const sdk = await createSDKInstance();
       const agentService = sdk.agents;
 
-      console.log(chalk.blue('🔍 Fetching agents...'));
+      // Validate owner address if provided
+      if (options.owner) {
+        if (!/^0x[a-fA-F0-9]{40}$/.test(options.owner)) {
+          console.error(chalk.red('❌ Invalid owner address format. Must be a valid Ethereum address.'));
+          process.exit(1);
+        }
+      }
 
-      const agents = await agentService.getAgentRecords({
+      if (options.owner) {
+        console.log(chalk.blue(`🔍 Fetching agents for owner ${options.owner}...`));
+      } else {
+        console.log(chalk.blue('🔍 Fetching agents...'));
+      }
+
+      const filterParams: any = {
         first: options.first,
         skip: options.skip
-      });
+      };
+
+      if (options.owner) {
+        filterParams.owner = options.owner;
+      }
+
+      const agents = await agentService.getAgentRecords(filterParams);
 
       if (agents.length === 0) {
         console.log(chalk.yellow('No agents found.'));
