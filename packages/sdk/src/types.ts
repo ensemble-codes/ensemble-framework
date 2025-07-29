@@ -87,6 +87,7 @@ export type AgentMetadata = {
   instructions: string[];
   prompts: string[];
   communicationURL?: string;
+  communicationParams?: object;
 }
 
 export interface TaskConnectorContract extends BaseContract {
@@ -143,6 +144,26 @@ export interface Service {
   description: string;
 }
 
+
+export interface AgentRecord {
+  name: string; // The display name of the agent
+  description: string; // A brief description of the agent
+  address: string; // The blockchain address of the agent
+  category: string; // The category or type of the agent
+  owner: string; // The address of the agent's owner
+  agentUri: string; // URI pointing to agent metadata or resources
+  imageURI: string; // URI for the agent's image or avatar
+  attributes: string[]; // List of agent's attributes or tags
+  instructions: string[]; // List of instructions for interacting with the agent
+  prompts: string[]; // Example prompts or tasks for the agent
+  socials: AgentSocials; // Social media or contact information for the agent
+  communicationType: AgentCommunicationType; // Type of communication supported by the agent
+  communicationURL?: string; // Optional URL for communication endpoint
+  communicationParams?: object; // Optional parameters for communication setup
+  reputation: BigNumberish; // Agent's reputation score
+  totalRatings: BigNumberish; // Total number of ratings received by the agent
+}
+
 export interface AgentData {
   name: string;
   agentUri: string;
@@ -150,6 +171,17 @@ export interface AgentData {
   agent: string;
   reputation: BigNumberish;
   totalRatings: BigNumberish;
+}
+
+export interface AgentFilterParams {
+  owner?: string;
+  name?: string;
+  reputation_min?: number;
+  reputation_max?: number;
+  category?: string;
+  search?: string;
+  first?: number;
+  skip?: number;
 }
 
 export interface TaskCreationParams {
@@ -185,13 +217,68 @@ export interface NetworkConfig {
   rpcUrl: string;
 }
 
-export interface ContractConfig {
+export interface EnsembleConfig {
   taskRegistryAddress: string;
   agentRegistryAddress: string;
   serviceRegistryAddress: string;
   network: NetworkConfig;
+  subgraphUrl?: string;
 }
 
 export type LegacyRegisterAgentParams = RegisterAgentParams;
 
 export type LegacyAddProposalParams = Omit<AddProposalParams, 'tokenAddress'>;
+
+// Agent Update Types
+export interface TransactionResult {
+  transactionHash: string;
+  blockNumber: number;
+  gasUsed: bigint;
+  success: boolean;
+  events?: any[];
+}
+
+export enum AgentStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  MAINTENANCE = 'maintenance',
+  SUSPENDED = 'suspended'
+}
+
+export interface UpdateableAgentRecord {
+  name?: string;
+  description?: string;
+  category?: string;
+  imageURI?: string;
+  attributes?: string[];
+  instructions?: string[];
+  prompts?: string[];
+  socials?: Partial<AgentSocials>;
+  communicationType?: AgentCommunicationType;
+  communicationURL?: string;
+  communicationParams?: object;
+  status?: AgentStatus;
+}
+
+export type AgentRecordProperty = keyof UpdateableAgentRecord;
+
+export class InvalidAgentIdError extends Error {
+  constructor(agentId: string) {
+    super(`Invalid agent ID format: ${agentId}`);
+    this.name = 'InvalidAgentIdError';
+  }
+}
+
+export class AgentNotFoundError extends Error {
+  constructor(agentId: string) {
+    super(`Agent not found: ${agentId}`);
+    this.name = 'AgentNotFoundError';
+  }
+}
+
+export class AgentUpdateError extends Error {
+  constructor(message: string, public readonly cause?: any) {
+    super(message);
+    this.name = 'AgentUpdateError';
+  }
+}
