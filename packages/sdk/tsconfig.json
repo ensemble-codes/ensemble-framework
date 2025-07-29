@@ -14,6 +14,6 @@
     "resolveJsonModule": true,
     "moduleResolution": "node"
   },
-  "include": ["src/**/*", "typechain/**/*"],
+  "include": ["index.ts", "src/**/*", "typechain/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
