@@ -1,30 +1,25 @@
-# AppRunner-specific Dockerfile that works with source directory: packages/api
-FROM node:18-alpine
+# Simple Dockerfile for API service with npm SDK dependency
+FROM node:23-alpine
 
-# Set working directory to the repository root (AppRunner mounts the source)
+# Set working directory
 WORKDIR /app
 
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy workspace configuration files from repository root
-COPY ../../package.json ../../pnpm-lock.yaml ../../pnpm-workspace.yaml ./
+# Copy pnpm-lock.yaml from repository root
+# cp ../../pnpm-lock.yaml ./
 
-# Copy SDK package (dependency of API)
-COPY ../../packages/sdk ./packages/sdk/
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
 
-# Copy API package (current source directory)  
-COPY . ./packages/api/
-
-# Install dependencies from root
+# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Build SDK first (required dependency)
-WORKDIR /app/packages/sdk
-RUN pnpm build
+# Copy source code
+COPY . .
 
-# Build API
-WORKDIR /app/packages/api
+# Build the application
 RUN pnpm build
 
 # Create non-root user
@@ -43,7 +38,7 @@ USER ensemble
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "const http = require('http'); \
-    const options = { hostname: 'localhost', port: process.env.PORT || 3000, path: '/health', method: 'GET' }; \
+    const options = { hostname: 'localhost', port: process.env.PORT || 8080, path: '/health', method: 'GET' }; \
     const req = http.request(options, (res) => { \
       if (res.statusCode === 200) { process.exit(0); } else { process.exit(1); } \
     }); \
@@ -51,7 +46,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     req.end();"
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8080
 
 # Start the application
 CMD ["node", "dist/index.js"]

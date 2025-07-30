@@ -1,5 +1,8 @@
 # Task Master AI - Claude Code Integration Guide
 
+## IMPORTANT: Project Structure Note
+**This is a monorepo WITHOUT a root package.json file.** The workspace is managed by pnpm-workspace.yaml only. Individual packages have their own package.json files in their respective directories (e.g., packages/api/package.json, packages/sdk/package.json).
+
 ## Essential Commands
 
 ### Core Workflow Commands

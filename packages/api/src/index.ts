@@ -79,7 +79,7 @@ async function build() {
             url: 'https://opensource.org/licenses/MIT'
           }
         },
-        host: process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'api.ensemble.ai',
+        host: process.env.NODE_ENV === 'development' ? `localhost:${process.env.PORT}` : process.env.PRODUCTION_DOMAIN,
         schemes: process.env.NODE_ENV === 'development' ? ['http'] : ['https'],
         consumes: ['application/json'],
         produces: ['application/json'],

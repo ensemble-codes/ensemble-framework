@@ -19,7 +19,7 @@
     "blockchain"
   ],
   "dependencies": {
-    "@ensemble-ai/sdk": "workspace:*",
+    "@ensemble-ai/sdk": "^0.5.4",
     "@fastify/cors": "^8.4.2",
     "@fastify/env": "^4.3.0",
     "@fastify/jwt": "^7.2.4",
