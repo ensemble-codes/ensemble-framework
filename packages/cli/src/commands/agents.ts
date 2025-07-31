@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { getAgentsCommand } from './agents/get';
+import { listAgentsCommand } from './agents/list';
 import { registerAgentCommand } from './agents/register';
 import { updateAgentCommand } from './agents/update';
 
@@ -10,6 +11,7 @@ export const agentsCommand = new Command('agents')
 
 // Sub-commands
 agentsCommand.addCommand(getAgentsCommand);
+agentsCommand.addCommand(listAgentsCommand);
 agentsCommand.addCommand(registerAgentCommand);
 agentsCommand.addCommand(updateAgentCommand);
 
