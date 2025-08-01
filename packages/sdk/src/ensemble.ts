@@ -234,6 +234,23 @@ export class Ensemble {
   async getService(name: string): Promise<Service> {
     return this.serviceRegistryService.getService(name);
   }
+
+  /**
+   * Add a proposal for an agent.
+   * @param {string} agentAddress The address of the agent.
+   * @param {string} serviceName The name of the service.
+   * @param {number} servicePrice The price of the service.
+   * @param {string} tokenAddress The token address for payment.
+   * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if the proposal was added.
+   */
+  async addProposal(
+    agentAddress: string,
+    serviceName: string,
+    servicePrice: number,
+    tokenAddress: string
+  ): Promise<boolean> {
+    return this.agentService.addProposal(agentAddress, serviceName, servicePrice, tokenAddress);
+  }
 }
 
 export default Ensemble;
