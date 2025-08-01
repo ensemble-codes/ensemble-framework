@@ -10,12 +10,17 @@ import { getConfig } from '../../config/manager';
 import { AgentRecordYAML } from '../../types/config';
 
 export const updateAgentCommand = new Command('update')
-  .description('Update agent record with multiple properties or from a config file');
+  .description('Update agent record with multiple properties or from a config file')
+  .option('-h, --help', 'Display help information')
+  .action(() => {
+    updateAgentCommand.outputHelp();
+  });
 
 // Update agent with config file
 updateAgentCommand
   .command('agent <agent-address>')
   .description('Update agent record with multiple properties')
+  .option('-h, --help', 'Display help information')
   .option('--name <name>', 'Update agent name')
   .option('--description <description>', 'Update agent description')
   .option('--category <category>', 'Update agent category')
@@ -37,6 +42,11 @@ updateAgentCommand
   .option('--dry-run', 'Preview changes without submitting transaction')
   .option('--confirm', 'Skip confirmation prompt')
   .action(async (agentAddress: string, options) => {
+    if (options.help) {
+      updateAgentCommand.command('agent').outputHelp();
+      return;
+    }
+    
     try {
       const spinner = ora(`Fetching current agent data for ${agentAddress}...`).start();
 
@@ -206,12 +216,18 @@ updateAgentCommand
 updateAgentCommand
   .command('agent-property <agent-address> <property> <value>')
   .description('Update a single agent property efficiently')
+  .option('-h, --help', 'Display help information')
   .option('--private-key <key>', 'Private key for signing (or use env PRIVATE_KEY)')
   .option('--network <network>', 'Network (mainnet, sepolia) (default: sepolia)')
   .option('--gas-limit <limit>', 'Custom gas limit')
   .option('--confirm', 'Skip confirmation prompt')
   .option('--format <format>', 'Input format for complex values (json, csv)')
   .action(async (agentAddress: string, property: string, value: string, options) => {
+    if (options.help) {
+      updateAgentCommand.command('agent-property').outputHelp();
+      return;
+    }
+    
     try {
       // Validate property name
       const validProperties = [

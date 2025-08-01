@@ -12,6 +12,7 @@ import { AgentRecordYAML } from '../../types/config';
 
 export const registerAgentCommand = new Command('register')
   .description('Register a new agent on the blockchain using an agent-record.yaml file')
+  .option('-h, --help', 'Display help information')
   .requiredOption('--config <file>', 'Path to agent-record.yaml file')
   .option('--private-key <key>', 'Private key for signing (or use env ENSEMBLE_PRIVATE_KEY)')
   .option('--network <network>', 'Network (mainnet, sepolia) (default: sepolia)')
@@ -19,6 +20,11 @@ export const registerAgentCommand = new Command('register')
   .option('--dry-run', 'Validate configuration without submitting transaction')
   .option('--confirm', 'Skip confirmation prompt')
   .action(async (options) => {
+    if (options.help) {
+      registerAgentCommand.outputHelp();
+      return;
+    }
+    
     try {
       const spinner = ora('Validating agent record...').start();
 

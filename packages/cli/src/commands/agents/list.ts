@@ -7,6 +7,7 @@ import { AgentFilterParams } from '@ensemble-ai/sdk';
 
 export const listAgentsCommand = new Command('list')
   .description('List and discover agents with advanced filtering')
+  .option('-h, --help', 'Display help information')
   .option('--category <category>', 'Filter by agent category')
   .option('--owner <address>', 'Filter by owner address')
   .option('--status <status>', 'Filter by agent status (active, inactive, maintenance)')
@@ -23,6 +24,11 @@ export const listAgentsCommand = new Command('list')
   .option('--save-records <directory>', 'Save each agent as agent-record.yaml file in specified directory')
   .option('--save-records-prefix <prefix>', 'Prefix for saved agent-record files (default: agent-record)', 'agent-record')
   .action(async (options) => {
+    if (options.help) {
+      listAgentsCommand.outputHelp();
+      return;
+    }
+    
     try {
       const sdk = await createSDKInstance();
       const agentService = sdk.agents;

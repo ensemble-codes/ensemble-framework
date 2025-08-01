@@ -7,7 +7,6 @@ import { updateAgentCommand } from './agents/update';
 
 export const agentsCommand = new Command('agents')
   .description('Agent management commands')
-  .alias('agent');
 
 // Sub-commands
 agentsCommand.addCommand(getAgentsCommand);

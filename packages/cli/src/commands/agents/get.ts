@@ -7,12 +7,17 @@ import { saveAgentRecords } from '../../utils/file-operations';
 import { AgentFilterParams } from '@ensemble-ai/sdk';
 
 export const getAgentsCommand = new Command('get')
-  .description('Get agents with filtering and output options');
+  .description('Get agents with filtering and output options')
+  .option('-h, --help', 'Display help information')
+  .action(() => {
+    getAgentsCommand.outputHelp();
+  });
 
 // Get multiple agents command
 getAgentsCommand
   .command('agents')
   .description('List and discover agents with advanced filtering')
+  .option('-h, --help', 'Display help information')
   .option('--category <category>', 'Filter by agent category')
   .option('--owner <address>', 'Filter by owner address')
   .option('--status <status>', 'Filter by agent status (active, inactive, maintenance)')
@@ -29,6 +34,11 @@ getAgentsCommand
   .option('--save-records <directory>', 'Save each agent as agent-record.yaml file in specified directory')
   .option('--save-records-prefix <prefix>', 'Prefix for saved agent-record files (default: agent-record)', 'agent-record')
   .action(async (options) => {
+    if (options.help) {
+      getAgentsCommand.command('agents').outputHelp();
+      return;
+    }
+    
     try {
       const sdk = await createSDKInstance();
       const agentService = sdk.agents;
@@ -80,12 +90,18 @@ getAgentsCommand
 getAgentsCommand
   .command('agent <agent-address>')
   .description('Get detailed information about a specific agent')
+  .option('-h, --help', 'Display help information')
   .option('--format <format>', 'Output format (table, json, yaml)', 'table')
   .option('--include-proposals', 'Include agent\'s service proposals')
   .option('--include-history', 'Include recent task history')
   .option('--include-ratings', 'Include reputation breakdown')
   .option('--save-record <file>', 'Save agent data as agent-record.yaml file')
   .action(async (agentAddress: string, options) => {
+    if (options.help) {
+      getAgentsCommand.command('agent').outputHelp();
+      return;
+    }
+    
     try {
       const sdk = await createSDKInstance();
       const agentService = sdk.agents;
@@ -120,8 +136,14 @@ getAgentsCommand
 getAgentsCommand
   .command('categories')
   .description('Retrieve available agent categories')
+  .option('-h, --help', 'Display help information')
   .option('--format <format>', 'Output format (table, json, csv)', 'table')
   .action(async (options) => {
+    if (options.help) {
+      getAgentsCommand.command('categories').outputHelp();
+      return;
+    }
+    
     try {
       // For now, return common categories. This could be extended to query from subgraph
       const categories = [
