@@ -3,8 +3,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { config } from 'dotenv';
-import { createSDKInstance } from '../utils/sdk';
-import { formatOutput } from '../utils/formatters';
 import { getConfig } from '../config/manager';
 import { walletCommand } from '../commands/wallet';
 import { agentsCommand } from '../commands/agents';
@@ -25,35 +23,6 @@ program
   .option('--format <format>', 'Output format (table, json, csv, yaml)', 'yaml')
   .option('--wallet <name>', 'Override active wallet for this command');
 
-// Main agents command - fetch agent by address
-program
-  .command('agent <address>')
-  .description('Get agent details by address')
-  .action(async (address: string, _options, command) => {
-    try {
-      const globalOptions = command.parent.opts();
-      const sdk = await createSDKInstance();
-      const agentService = sdk.agents;
-
-      console.log(chalk.blue(`🔍 Fetching agent ${address}...`));
-
-      const agent = await agentService.getAgentRecord(address);
-
-      console.log(chalk.green('✅ Agent found'));
-
-      const output = formatOutput([agent], globalOptions.format, true);
-      console.log(output);
-
-    } catch (error: any) {
-      console.error(chalk.red('❌ Error fetching agent:'));
-      console.error(chalk.red(error.message));
-      if (command.parent.opts().verbose) {
-        console.error(error.stack);
-      }
-      process.exit(1);
-    }
-  });
-
 // Add agents command
 program.addCommand(agentsCommand);
 
@@ -65,6 +34,7 @@ program
     try {
       const globalOptions = command.parent.opts();
       const config = await getConfig();
+      const { formatOutput } = await import('../utils/formatters');
       
       // Remove sensitive information for display
       const displayConfig = { ...config };

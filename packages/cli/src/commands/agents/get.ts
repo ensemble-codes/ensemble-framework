@@ -8,9 +8,38 @@ import { AgentFilterParams } from '@ensemble-ai/sdk';
 
 export const getAgentsCommand = new Command('get')
   .description('Get agents with filtering and output options')
+  .argument('[address]', 'Agent address (optional - if provided, fetches specific agent)')
   .option('-h, --help', 'Display help information')
-  .action(() => {
-    getAgentsCommand.outputHelp();
+  .action(async (address?: string, options?: any) => {
+    if (options?.help) {
+      getAgentsCommand.outputHelp();
+      return;
+    }
+    
+    if (address) {
+      // If an address is provided, fetch that specific agent
+      try {
+        const sdk = await createSDKInstance();
+        const agentService = sdk.agents;
+
+        console.log(chalk.blue(`🔍 Fetching agent ${address}...`));
+
+        const agent = await agentService.getAgentRecord(address);
+
+        console.log(chalk.green('✅ Agent found'));
+
+        const output = formatOutput([agent], 'yaml', true);
+        console.log(output);
+
+      } catch (error: any) {
+        console.error(chalk.red('❌ Error fetching agent:'));
+        console.error(chalk.red(error.message));
+        process.exit(1);
+      }
+    } else {
+      // No address provided, show help
+      getAgentsCommand.outputHelp();
+    }
   });
 
 // Get multiple agents command
