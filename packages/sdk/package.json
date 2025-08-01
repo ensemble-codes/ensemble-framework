@@ -1,6 +1,6 @@
 {
   "name": "@ensemble-ai/sdk",
-  "version": "0.4.1",
+  "version": "0.5.4",
   "description": "TypeScript SDK for the Agentic Hub",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,10 +8,14 @@
     "dist"
   ],
   "scripts": {
+    "prebuild": "npm run typechain",
     "prepublish": "npm run typechain && npm run build",
     "build": "tsc",
-    "watch-build": "tsc --watch",
-    "test": "jest",
+    "watch": "tsc --watch",
+    "test": "jest --verbose",
+    "test:agent": "jest test/agentService.test.ts",
+    "test:integration": "npx tsx scripts/test-agent-methods.ts",
+    "typecheck": "tsc --noEmit",
     "docs": "typedoc",
     "upload-docs": "aws s3 cp ./docs s3://$ENSEMBLE_S3_BUCKET_NAME --recursive",
     "register-services": "ts-node ./scripts/register-services.ts",

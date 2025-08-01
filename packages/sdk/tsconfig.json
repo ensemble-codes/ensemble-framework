@@ -5,10 +5,15 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "outDir": "./dist",
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "moduleResolution": "node"
   },
+  "include": ["index.ts", "src/**/*", "typechain/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
