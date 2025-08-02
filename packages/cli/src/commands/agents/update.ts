@@ -6,8 +6,10 @@ import inquirer from 'inquirer';
 import ora from 'ora';
 import { createSDKInstance, createSignerFromPrivateKey } from '../../utils/sdk';
 import { validateAgentRecordYAML } from '../../utils/validation';
-import { getConfig } from '../../config/manager';
+import { getConfig, getActiveWallet } from '../../config/manager';
 import { AgentRecordYAML } from '../../types/config';
+import { WalletService } from '../../services/WalletService';
+import { getEffectiveWallet } from '../../utils/wallet';
 
 export const updateAgentCommand = new Command('update')
   .description('Update agent record with multiple properties or from a config file')
@@ -28,16 +30,20 @@ export const updateAgentCommand = new Command('update')
   .option('--github <username>', 'Update GitHub username')
   .option('--website <url>', 'Update website URL')
   .option('--config <file>', 'Update from configuration file')
+  .option('--wallet <name>', 'Wallet to use for transaction (overrides active wallet)')
   .option('--private-key <key>', 'Private key for signing (or use env ENSEMBLE_PRIVATE_KEY)')
   .option('--network <network>', 'Network (mainnet, sepolia) (default: sepolia)')
   .option('--gas-limit <limit>', 'Custom gas limit')
   .option('--dry-run', 'Preview changes without submitting transaction')
   .option('--confirm', 'Skip confirmation prompt')
-  .action(async (agentAddress: string | undefined, options) => {
+  .action(async (agentAddress: string | undefined, options, command) => {
     if (options.help || !agentAddress) {
       updateAgentCommand.outputHelp();
       return;
     }
+    
+    // Get global options from parent commands
+    const globalOptions = command.parent?.parent?.opts() || {};
     
     try {
       const spinner = ora(`Fetching current agent data for ${agentAddress}...`).start();
@@ -170,13 +176,58 @@ export const updateAgentCommand = new Command('update')
         }
       }
 
-      // Get private key
+      // Get private key from wallet or options
       const config = await getConfig();
-      const privateKey = options.privateKey || process.env.ENSEMBLE_PRIVATE_KEY || config.privateKey;
+      let privateKey: string | undefined;
+      let walletAddress: string | undefined;
+
+      // First check if private key is provided directly
+      privateKey = options.privateKey || process.env.ENSEMBLE_PRIVATE_KEY || config.privateKey;
+
+      // If no private key, try to use wallet
+      if (!privateKey) {
+        const effectiveWallet = await getEffectiveWallet(options.wallet || globalOptions.wallet);
+        
+        if (effectiveWallet) {
+          console.log(chalk.blue(`\n💼 Using wallet: ${effectiveWallet}`));
+          
+          // Get wallet password
+          const { password } = await inquirer.prompt([
+            {
+              type: 'password',
+              name: 'password',
+              message: 'Enter wallet password:',
+              mask: '*'
+            }
+          ]);
+
+          try {
+            const walletService = new WalletService(config.rpcUrl);
+            const signer = await walletService.getWalletSigner(effectiveWallet, password);
+            privateKey = signer.privateKey;
+            walletAddress = await signer.getAddress();
+            
+            // Check if wallet owns the agent
+            if (currentAgent.owner.toLowerCase() !== walletAddress.toLowerCase()) {
+              console.error(chalk.red(`❌ Wallet ${walletAddress} does not own this agent`));
+              console.error(chalk.red(`Agent owner: ${currentAgent.owner}`));
+              process.exit(1);
+            }
+          } catch (error: any) {
+            console.error(chalk.red('❌ Failed to unlock wallet:'));
+            console.error(chalk.red(error.message));
+            process.exit(1);
+          }
+        }
+      }
 
       if (!privateKey) {
-        console.error(chalk.red('❌ Private key required for updates'));
-        console.error(chalk.red('Use --private-key option, ENSEMBLE_PRIVATE_KEY env var, or configure with: ensemble config set-private-key'));
+        console.error(chalk.red('❌ No wallet or private key available for transaction'));
+        console.error(chalk.yellow('💡 Options:'));
+        console.error(chalk.yellow('   - Use --wallet <name> to specify a wallet'));
+        console.error(chalk.yellow('   - Set active wallet: ensemble wallet use <name>'));
+        console.error(chalk.yellow('   - Use --private-key option'));
+        console.error(chalk.yellow('   - Set ENSEMBLE_PRIVATE_KEY environment variable'));
         process.exit(1);
       }
 
@@ -228,16 +279,20 @@ updateAgentCommand
   .command('property <agent-address> <property> <value>')
   .description('Update a single agent property efficiently')
   .option('-h, --help', 'Display help information')
+  .option('--wallet <name>', 'Wallet to use for transaction (overrides active wallet)')
   .option('--private-key <key>', 'Private key for signing (or use env ENSEMBLE_PRIVATE_KEY)')
   .option('--network <network>', 'Network (mainnet, sepolia) (default: sepolia)')
   .option('--gas-limit <limit>', 'Custom gas limit')
   .option('--confirm', 'Skip confirmation prompt')
   .option('--format <format>', 'Input format for complex values (json, csv)')
-  .action(async (agentAddress: string, property: string, value: string, options) => {
+  .action(async (agentAddress: string, property: string, value: string, options, command) => {
     if (options.help) {
       updateAgentCommand.command('property').outputHelp();
       return;
     }
+    
+    // Get global options from parent commands
+    const globalOptions = command.parent?.parent?.parent?.opts() || {};
     
     try {
       // Validate property name
@@ -288,13 +343,49 @@ updateAgentCommand
         }
       }
 
-      // Get configuration and update
+      // Get private key from wallet or options
       const config = await getConfig();
-      const privateKey = options.privateKey || process.env.ENSEMBLE_PRIVATE_KEY || config.privateKey;
+      let privateKey: string | undefined;
+
+      // First check if private key is provided directly
+      privateKey = options.privateKey || process.env.ENSEMBLE_PRIVATE_KEY || config.privateKey;
+
+      // If no private key, try to use wallet
+      if (!privateKey) {
+        const effectiveWallet = await getEffectiveWallet(options.wallet || globalOptions.wallet);
+        
+        if (effectiveWallet) {
+          console.log(chalk.blue(`\n💼 Using wallet: ${effectiveWallet}`));
+          
+          // Get wallet password
+          const { password } = await inquirer.prompt([
+            {
+              type: 'password',
+              name: 'password',
+              message: 'Enter wallet password:',
+              mask: '*'
+            }
+          ]);
+
+          try {
+            const walletService = new WalletService(config.rpcUrl);
+            const signer = await walletService.getWalletSigner(effectiveWallet, password);
+            privateKey = signer.privateKey;
+          } catch (error: any) {
+            console.error(chalk.red('❌ Failed to unlock wallet:'));
+            console.error(chalk.red(error.message));
+            process.exit(1);
+          }
+        }
+      }
 
       if (!privateKey) {
-        console.error(chalk.red('❌ Private key required for updates'));
-        console.error(chalk.red('Use --private-key option, ENSEMBLE_PRIVATE_KEY env var, or configure with: ensemble config set-private-key'));
+        console.error(chalk.red('❌ No wallet or private key available for transaction'));
+        console.error(chalk.yellow('💡 Options:'));
+        console.error(chalk.yellow('   - Use --wallet <name> to specify a wallet'));
+        console.error(chalk.yellow('   - Set active wallet: ensemble wallet use <name>'));
+        console.error(chalk.yellow('   - Use --private-key option'));
+        console.error(chalk.yellow('   - Set ENSEMBLE_PRIVATE_KEY environment variable'));
         process.exit(1);
       }
 

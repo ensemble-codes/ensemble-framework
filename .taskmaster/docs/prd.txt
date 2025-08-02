@@ -203,8 +203,8 @@ Transform AI agents from passive tools into active economic participants capable
     - `ensemble get agent 0x456...def --save-record ./template.yaml --save-record-template`
 
 ###### Agent Registration Commands
-- **ensemble register agent**: Register a new agent on the blockchain using an agent-record.yaml file
-  - Usage: `ensemble register agent --config <agent-record-file> [options]`
+- **ensemble agents register**: Register a new agent on the blockchain using an agent-record.yaml file
+  - Usage: `ensemble agents register --config <agent-record-file> [options]`
   - Primary Options:
     - `--config <file>`: Path to agent-record.yaml file (required)
     - `--private-key <key>`: Private key for signing (or use env ENSEMBLE_PRIVATE_KEY)
@@ -213,9 +213,9 @@ Transform AI agents from passive tools into active economic participants capable
     - `--dry-run`: Validate configuration without submitting transaction
     - `--confirm`: Skip confirmation prompt
   - Examples:
-    - `ensemble register agent --config ./agent-record.yaml`
-    - `ensemble register agent --config ./my-agent-record.yaml --network mainnet --dry-run`
-    - `ensemble register agent --config ./agent-record.yaml --confirm`
+    - `ensemble agents register --config ./agent-record.yaml`
+    - `ensemble agents register --config ./my-agent-record.yaml --network mainnet --dry-run`
+    - `ensemble agents register --config ./agent-record.yaml --confirm`
 
 - **ensemble init agent-record**: Generate a template agent-record.yaml file
   - Usage: `ensemble init agent-record [template-type] [options]`
@@ -289,8 +289,8 @@ Transform AI agents from passive tools into active economic participants capable
     - `ensemble validate agent-record ./my-agent-record.yaml --check-urls --verbose`
 
 ###### Agent Update Commands
-- **ensemble update agent**: Update agent record with multiple properties
-  - Usage: `ensemble update agent <agent-address> [options]`
+- **ensemble agents update**: Update agent record with multiple properties
+  - Usage: `ensemble agents update <agent-address> [options]`
   - Options:
     - `--name <name>`: Update agent name
     - `--description <description>`: Update agent description
@@ -313,12 +313,12 @@ Transform AI agents from passive tools into active economic participants capable
     - `--dry-run`: Preview changes without submitting transaction
     - `--confirm`: Skip confirmation prompt
   - Examples:
-    - `ensemble update agent 0x456...def --name "Updated Name" --status maintenance`
-    - `ensemble update agent 0x456...def --config ./updated-config.json --dry-run`
-    - `ensemble update agent 0x456...def --attributes "ai,chatbot,updated" --confirm`
+    - `ensemble agents update 0x456...def --name "Updated Name" --status maintenance`
+    - `ensemble agents update 0x456...def --config ./updated-config.json --dry-run`
+    - `ensemble agents update 0x456...def --attributes "ai,chatbot,updated" --confirm`
 
-- **ensemble update agent-property**: Update a single agent property efficiently
-  - Usage: `ensemble update agent-property <agent-address> <property> <value> [options]`
+- **ensemble agents update-property**: Update a single agent property efficiently
+  - Usage: `ensemble agents update-property <agent-address> <property> <value> [options]`
   - Supported Properties:
     - name, description, category, imageURI, status
     - attributes (JSON array or comma-separated string)
@@ -333,10 +333,10 @@ Transform AI agents from passive tools into active economic participants capable
     - `--confirm`: Skip confirmation prompt
     - `--format <format>`: Input format for complex values (json, csv)
   - Examples:
-    - `ensemble update agent-property 0x456...def name "New Agent Name"`
-    - `ensemble update agent-property 0x456...def status maintenance`
-    - `ensemble update agent-property 0x456...def attributes "ai,chatbot,helper" --format csv`
-    - `ensemble update agent-property 0x456...def socials '{"twitter":"@newhandle","github":"newuser"}'`
+    - `ensemble agents update-property 0x456...def name "New Agent Name"`
+    - `ensemble agents update-property 0x456...def status maintenance`
+    - `ensemble agents update-property 0x456...def attributes "ai,chatbot,helper" --format csv`
+    - `ensemble agents update-property 0x456...def socials '{"twitter":"@newhandle","github":"newuser"}'`
 
 ###### Configuration & Environment Commands
 - **ensemble config**: Manage CLI configuration and network settings

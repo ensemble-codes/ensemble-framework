@@ -204,7 +204,7 @@
         "description": "Create a comprehensive command-line interface for agent management that leverages the existing TypeScript SDK and REST API, providing commands for agent discovery, registration, updates, configuration management, and validation.",
         "details": "1. Project Setup and Architecture:\n   - Create a new CLI package using TypeScript with commander.js or yargs for command parsing\n   - Set up proper project structure with src/, bin/, and config/ directories\n   - Configure TypeScript compilation and create executable entry point\n   - Install and configure @ensemble/sdk as primary dependency for blockchain interactions\n\n2. Core CLI Commands Implementation:\n   - `ensemble agents list` - List all agents using SDK's getAgents() method\n   - `ensemble agents get <id>` - Get specific agent details using SDK's getAgent(id)\n   - `ensemble agents categories` - List agent categories using SDK's getAgentCategories()\n   - `ensemble agents register <yaml-file>` - Register agent from agent-record.yaml file\n   - `ensemble agents update <id> <yaml-file>` - Update agent using updateAgentRecord() from SDK\n   - `ensemble agents export <id> <output-file>` - Export agent data to agent-record.yaml format\n   - `ensemble config set <key> <value>` - Manage CLI configuration (network, API endpoints)\n   - `ensemble config get <key>` - Retrieve configuration values\n   - `ensemble validate <yaml-file>` - Validate agent-record.yaml file structure\n\n3. Agent Record YAML Processing:\n   - Implement YAML parser/serializer for agent-record.yaml files\n   - Create TypeScript interfaces matching AgentRecord schema\n   - Add validation logic for required fields, data types, and business rules\n   - Support both import (YAML to SDK format) and export (SDK format to YAML) transformations\n\n4. Output Format Support:\n   - Implement multiple output formats: JSON, YAML, table, and CSV\n   - Add --format flag to all data retrieval commands\n   - Create formatters for each output type with proper data transformation\n   - Support --quiet flag for script-friendly output\n\n5. Configuration Management:\n   - Create ~/.ensemble/config.json for persistent CLI configuration\n   - Support environment-specific settings (mainnet, testnet, local)\n   - Allow configuration of SDK connection parameters, API endpoints, and default output formats\n   - Implement configuration validation and migration logic\n\n6. Error Handling and User Experience:\n   - Implement comprehensive error handling with user-friendly messages\n   - Add progress indicators for long-running operations\n   - Provide detailed help text and examples for each command\n   - Include input validation with clear error messages for invalid parameters\n   - Add --verbose flag for detailed operation logging\n\n7. SDK Integration Strategy:\n   - Use TypeScript SDK as primary data source for all blockchain operations\n   - Fall back to REST API only when SDK methods are unavailable\n   - Implement proper error handling for network connectivity issues\n   - Cache frequently accessed data to improve performance",
         "testStrategy": "1. Unit Testing:\n   - Test all command parsers and argument validation logic\n   - Mock SDK methods and verify correct parameter passing\n   - Test YAML parsing/serialization with various agent-record.yaml formats\n   - Validate output formatters with sample data in all supported formats\n   - Test configuration management operations (set, get, validate)\n\n2. Integration Testing:\n   - Test CLI commands against live testnet using actual SDK connections\n   - Verify agent registration workflow from YAML file to blockchain\n   - Test agent update operations and validate changes are persisted\n   - Validate export functionality produces valid agent-record.yaml files\n   - Test error scenarios with invalid agent IDs, malformed YAML, and network failures\n\n3. End-to-End Testing:\n   - Create complete agent lifecycle test: register → list → get → update → export\n   - Test CLI in different environments (mainnet, testnet, local development)\n   - Verify configuration persistence across CLI sessions\n   - Test all output formats produce correct and parseable results\n   - Validate help text and command documentation accuracy\n\n4. User Acceptance Testing:\n   - Test CLI usability with real agent-record.yaml files\n   - Verify error messages are clear and actionable\n   - Test CLI performance with large agent datasets\n   - Validate cross-platform compatibility (Windows, macOS, Linux)\n   - Test CLI integration in CI/CD pipelines and automation scripts",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           3,
           16,
@@ -240,7 +240,7 @@
               "21.2"
             ],
             "details": "Support import (YAML to SDK format) and export (SDK format to YAML) transformations. Ensure robust validation for agent records and seamless integration with CLI commands.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test YAML parsing/serialization with various agent-record.yaml formats, validate schema enforcement, and check error handling for malformed files."
           },
           {
@@ -251,7 +251,7 @@
               "21.2"
             ],
             "details": "Develop output formatters and integrate them with CLI commands. Ensure script-friendly output with --quiet and consistent formatting across all commands.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Validate output for each format with sample data, test --format and --quiet flags, and ensure compatibility with downstream tools."
           },
           {
@@ -262,7 +262,7 @@
               "21.1"
             ],
             "details": "Enable configuration validation, migration logic, and support for environment-specific overrides. Ensure secure and user-friendly management of configuration data.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test reading/writing config values, environment switching, validation logic, and migration scenarios."
           },
           {
@@ -276,7 +276,7 @@
               "21.5"
             ],
             "details": "Ensure all commands provide clear feedback, handle errors gracefully, and offer actionable help. Add progress indicators for long-running operations and verbose logging for troubleshooting.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test error scenarios, help output, progress indicators, and verbose logging across all commands. Validate input handling and user guidance."
           }
         ]
@@ -287,17 +287,31 @@
         "description": "Add wallet functionality to the CLI for managing private keys, signing transactions, and interacting with agents securely.",
         "details": "1. Wallet Creation and Import Infrastructure:\n   - Implement wallet creation from mnemonic phrases using BIP39 standard with entropy validation\n   - Add private key import functionality supporting hex format, WIF format, and keystore files (JSON)\n   - Create secure mnemonic generation with proper entropy sources and word list validation\n   - Support wallet recovery from 12/24 word mnemonic phrases with checksum verification\n\n2. Secure Storage and Encryption:\n   - Implement AES-256-GCM encryption for private key storage with PBKDF2 key derivation\n   - Create encrypted wallet files stored in user's home directory (~/.ensemble/wallets/)\n   - Add password-based encryption with configurable iteration counts for key stretching\n   - Implement secure memory handling to prevent private key exposure in memory dumps\n\n3. CLI Command Implementation:\n   - `ensemble wallet create [name]` - Generate new wallet with mnemonic backup\n   - `ensemble wallet import [name] --mnemonic|--private-key|--keystore` - Import existing wallet\n   - `ensemble wallet list` - Display all available wallets with addresses and metadata\n   - `ensemble wallet export [name] --format=mnemonic|private-key|keystore` - Export wallet data\n   - `ensemble wallet balance [name]` - Check ETH and token balances for wallet address\n   - `ensemble wallet history [name]` - Display transaction history for wallet\n\n4. Transaction Signing Integration:\n   - Integrate ethers.js Wallet class for transaction signing capabilities\n   - Add support for signing agent registration transactions with wallet credentials\n   - Implement transaction fee estimation and gas price optimization\n   - Create secure transaction broadcasting with confirmation tracking\n\n5. Agent Command Integration:\n   - Modify existing `ensemble agents register` command to accept --wallet parameter\n   - Update `ensemble agents update` command to use wallet for transaction signing\n   - Add wallet selection prompts when multiple wallets are available\n   - Implement automatic wallet detection for agent ownership verification\n\n6. Security and Validation:\n   - Add comprehensive input validation for all wallet operations\n   - Implement secure password prompting with hidden input and confirmation\n   - Add wallet backup verification during creation process\n   - Create secure deletion methods for removing wallet files",
         "testStrategy": "1. Unit Testing:\n   - Test wallet creation with various mnemonic lengths and validate generated addresses\n   - Verify private key encryption/decryption with different password strengths\n   - Test wallet import functionality with valid and invalid mnemonic phrases, private keys, and keystore files\n   - Validate transaction signing produces correct signatures for test transactions\n   - Test secure storage mechanisms and file permissions on wallet directories\n\n2. Integration Testing:\n   - Test wallet integration with agent registration commands using testnet\n   - Verify transaction signing and broadcasting with real blockchain interactions\n   - Test wallet balance checking against live testnet addresses\n   - Validate transaction history retrieval from blockchain explorers or RPC nodes\n\n3. Security Testing:\n   - Perform memory analysis to ensure private keys are not exposed in process memory\n   - Test password strength requirements and brute force resistance\n   - Verify encrypted wallet files cannot be decrypted without correct passwords\n   - Test secure deletion of temporary files and memory cleanup\n\n4. User Experience Testing:\n   - Test CLI prompts and user interactions for wallet creation and import flows\n   - Verify error messages are clear and actionable for common failure scenarios\n   - Test wallet selection mechanisms when multiple wallets exist\n   - Validate backup and recovery workflows with real mnemonic phrases\n\n5. Cross-Platform Testing:\n   - Test wallet file storage and permissions on Windows, macOS, and Linux\n   - Verify CLI commands work correctly across different terminal environments\n   - Test wallet portability between different operating systems",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           21
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Implement ensemble agents update command",
+        "description": "Implement the 'ensemble agents update' command for updating existing agent records with multiple properties at once",
+        "details": "Create a comprehensive update command that allows users to modify agent records on the blockchain. The command should:\n\n1. Support updating multiple properties via CLI options:\n   - --name: Update agent name\n   - --description: Update agent description\n   - --category: Update agent category\n   - --attributes: Update attributes (comma-separated)\n   - --status: Update agent status (active/inactive/maintenance)\n   - --image-uri: Update agent avatar\n   - --communication-type: Update communication type\n   - --communication-url: Update communication endpoint\n   - Social links: --twitter, --telegram, --github, --website\n\n2. Support bulk updates from configuration file:\n   - --config <file>: Load updates from YAML/JSON file\n   - Validate configuration file format\n   - Show diff between current and new values\n\n3. Implementation requirements:\n   - Use SDK's updateAgentRecord method (needs to be implemented in SDK)\n   - Validate agent ownership before allowing updates\n   - Show preview of changes before submitting\n   - Require confirmation (unless --confirm flag)\n   - Support --dry-run for testing\n   - Handle gas estimation and custom gas limits\n\n4. User experience:\n   - Clear progress indicators during blockchain operations\n   - Detailed error messages for common failures\n   - Success confirmation with transaction details\n   - Suggest next steps after update",
+        "testStrategy": "1. Unit tests for update command parsing and validation\n2. Integration tests with mock SDK responses\n3. End-to-end tests on testnet with real agent updates\n4. Test error scenarios: non-existent agents, permission denied, invalid data\n5. Test configuration file parsing and validation\n6. Test dry-run and confirmation flows",
+        "status": "done",
+        "dependencies": [
+          21,
+          20
+        ],
+        "priority": "high",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-07-27T10:45:46.103Z",
+      "updated": "2025-08-02T09:37:11.595Z",
       "description": "Tasks for master context"
     }
   }
