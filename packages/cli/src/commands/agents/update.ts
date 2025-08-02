@@ -11,15 +11,7 @@ import { AgentRecordYAML } from '../../types/config';
 
 export const updateAgentCommand = new Command('update')
   .description('Update agent record with multiple properties or from a config file')
-  .option('-h, --help', 'Display help information')
-  .action(() => {
-    updateAgentCommand.outputHelp();
-  });
-
-// Update agent with config file
-updateAgentCommand
-  .command('agent <agent-address>')
-  .description('Update agent record with multiple properties')
+  .argument('[agent-address]', 'Agent address to update')
   .option('-h, --help', 'Display help information')
   .option('--name <name>', 'Update agent name')
   .option('--description <description>', 'Update agent description')
@@ -36,14 +28,14 @@ updateAgentCommand
   .option('--github <username>', 'Update GitHub username')
   .option('--website <url>', 'Update website URL')
   .option('--config <file>', 'Update from configuration file')
-  .option('--private-key <key>', 'Private key for signing (or use env PRIVATE_KEY)')
+  .option('--private-key <key>', 'Private key for signing (or use env ENSEMBLE_PRIVATE_KEY)')
   .option('--network <network>', 'Network (mainnet, sepolia) (default: sepolia)')
   .option('--gas-limit <limit>', 'Custom gas limit')
   .option('--dry-run', 'Preview changes without submitting transaction')
   .option('--confirm', 'Skip confirmation prompt')
-  .action(async (agentAddress: string, options) => {
-    if (options.help) {
-      updateAgentCommand.command('agent').outputHelp();
+  .action(async (agentAddress: string | undefined, options) => {
+    if (options.help || !agentAddress) {
+      updateAgentCommand.outputHelp();
       return;
     }
     
@@ -144,16 +136,20 @@ updateAgentCommand
         return;
       }
 
-      // Show update summary
-      console.log(chalk.blue('📋 Update Summary:'));
-      console.log(`  Agent: ${currentAgent.name} (${agentAddress})`);
-      console.log('  Changes:');
-      Object.entries(updateData).forEach(([key, value]) => {
-        console.log(`    ${key}: ${JSON.stringify(value)}`);
+      // Show update summary with current vs new values
+      console.log(chalk.blue('\n📋 Update Summary:'));
+      console.log(chalk.blue(`Agent: ${currentAgent.name} (${agentAddress})`));
+      console.log(chalk.blue('\nChanges:'));
+      
+      Object.entries(updateData).forEach(([key, newValue]) => {
+        const currentValue = (currentAgent as any)[key];
+        console.log(chalk.cyan(`  ${key}:`));
+        console.log(chalk.red(`    - Current: ${JSON.stringify(currentValue)}`));
+        console.log(chalk.green(`    + New: ${JSON.stringify(newValue)}`));
       });
 
       if (options.dryRun) {
-        console.log(chalk.green('✅ Dry run completed - no transaction submitted'));
+        console.log(chalk.green('\n✅ Dry run completed - no transaction submitted'));
         return;
       }
 
@@ -180,6 +176,7 @@ updateAgentCommand
 
       if (!privateKey) {
         console.error(chalk.red('❌ Private key required for updates'));
+        console.error(chalk.red('Use --private-key option, ENSEMBLE_PRIVATE_KEY env var, or configure with: ensemble config set-private-key'));
         process.exit(1);
       }
 
@@ -190,8 +187,11 @@ updateAgentCommand
 
         if (result.success) {
           updateSpinner.succeed('Agent updated successfully');
-          console.log(chalk.green('✅ Agent update completed'));
-          console.log(chalk.blue(`Transaction: ${result.transactionHash}`));
+          console.log(chalk.green('\n✅ Agent update completed'));
+          console.log(chalk.blue(`📝 Transaction: ${result.transactionHash}`));
+          console.log(chalk.cyan('\n💡 Next steps:'));
+          console.log(chalk.cyan(`   - View updated agent: ensemble agents get agent ${agentAddress}`));
+          console.log(chalk.cyan(`   - Export agent record: ensemble agents get agent ${agentAddress} --save-record updated-agent.yaml`));
         } else {
           updateSpinner.fail('Agent update failed');
           console.error(chalk.red('❌ Update returned false'));
@@ -202,29 +202,40 @@ updateAgentCommand
         updateSpinner.fail('Agent update failed');
         console.error(chalk.red('❌ Update error:'));
         console.error(chalk.red(updateError.message));
+        
+        if (updateError.message.includes('execution reverted')) {
+          console.error(chalk.yellow('\n💡 Common issues:'));
+          console.error(chalk.yellow('   - You may not be the owner of this agent'));
+          console.error(chalk.yellow('   - The agent contract may be paused'));
+          console.error(chalk.yellow('   - Invalid data format for one of the fields'));
+        }
+        
         process.exit(1);
       }
 
     } catch (error: any) {
       console.error(chalk.red('❌ Update failed:'));
       console.error(chalk.red(error.message));
+      if (options.verbose) {
+        console.error(error.stack);
+      }
       process.exit(1);
     }
   });
 
-// Update single property
+// Add subcommand for updating single property
 updateAgentCommand
-  .command('agent-property <agent-address> <property> <value>')
+  .command('property <agent-address> <property> <value>')
   .description('Update a single agent property efficiently')
   .option('-h, --help', 'Display help information')
-  .option('--private-key <key>', 'Private key for signing (or use env PRIVATE_KEY)')
+  .option('--private-key <key>', 'Private key for signing (or use env ENSEMBLE_PRIVATE_KEY)')
   .option('--network <network>', 'Network (mainnet, sepolia) (default: sepolia)')
   .option('--gas-limit <limit>', 'Custom gas limit')
   .option('--confirm', 'Skip confirmation prompt')
   .option('--format <format>', 'Input format for complex values (json, csv)')
   .action(async (agentAddress: string, property: string, value: string, options) => {
     if (options.help) {
-      updateAgentCommand.command('agent-property').outputHelp();
+      updateAgentCommand.command('property').outputHelp();
       return;
     }
     
@@ -283,6 +294,7 @@ updateAgentCommand
 
       if (!privateKey) {
         console.error(chalk.red('❌ Private key required for updates'));
+        console.error(chalk.red('Use --private-key option, ENSEMBLE_PRIVATE_KEY env var, or configure with: ensemble config set-private-key'));
         process.exit(1);
       }
 
@@ -296,8 +308,11 @@ updateAgentCommand
 
         if (result.success) {
           spinner.succeed('Property updated successfully');
-          console.log(chalk.green('✅ Property update completed'));
-          console.log(chalk.blue(`Transaction: ${result.transactionHash}`));
+          console.log(chalk.green('\n✅ Property update completed'));
+          console.log(chalk.blue(`📝 Transaction: ${result.transactionHash}`));
+          console.log(chalk.cyan('\n💡 Next steps:'));
+          console.log(chalk.cyan(`   - View updated agent: ensemble agents get agent ${agentAddress}`));
+          console.log(chalk.cyan(`   - Update more properties: ensemble agents update ${agentAddress} --${property} <new-value>`));
         } else {
           spinner.fail('Property update failed');
           console.error(chalk.red('❌ Update returned false'));
