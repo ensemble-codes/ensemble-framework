@@ -2,7 +2,8 @@ import { BigInt } from "@graphprotocol/graph-ts";
 import {
   AgentRegistered,
   ProposalAdded,
-  ReputationUpdated
+  ReputationUpdated,
+  AgentDataUpdated
 } from "../generated/AgentsRegistry/AgentsRegistry"
 import {
   Agent,
@@ -63,4 +64,23 @@ export function handleProposalRemoved(event: ProposalAdded): void {
   entity.isRemoved = true;
 
   entity.save()
+}
+
+export function handleAgentDataUpdated(event: AgentDataUpdated): void {
+  let entity = Agent.load(event.params.agent.toHex());
+  if (entity == null) {
+    return
+  }
+
+  entity.name = event.params.name;
+  entity.agentUri = event.params.agentUri;
+
+  // Update metadata if agentUri has changed
+  let contentPath = getContentPath(event.params.agentUri);
+  if (contentPath != "") {
+    entity.metadata = contentPath;
+    IpfsContent.create(contentPath);
+  }
+
+  entity.save();
 }
