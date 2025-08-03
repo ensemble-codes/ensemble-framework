@@ -87,7 +87,7 @@ export type AgentMetadata = {
   instructions: string[];
   prompts: string[];
   communicationURL?: string;
-  communicationParams?: object;
+  communicationParams?: string;
 }
 
 export interface TaskConnectorContract extends BaseContract {

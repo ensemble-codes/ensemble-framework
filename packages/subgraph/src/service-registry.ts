@@ -6,6 +6,7 @@ export function handleServiceRegistered(event: ServiceRegistered): void {
 
     entity.name = event.params.name;
     entity.description = event.params.description;
+    entity.category = event.params.category;
 
     entity.save();
 }
