@@ -1,16 +1,19 @@
 import { Ensemble } from '@ensemble-ai/sdk';
 import { ethers } from 'ethers';
+import { PinataSDK } from 'pinata-web3';
 import { getConfig } from '../config/manager';
 
-export async function createSDKInstance(): Promise<Ensemble> {
+export async function createSDKInstance(providedSigner?: ethers.Signer): Promise<Ensemble> {
   const config = await getConfig();
   
   // Create provider
   const provider = new ethers.JsonRpcProvider(config.rpcUrl);
   
-  // Create signer if private key is available
+  // Use provided signer or create one
   let signer: ethers.Signer;
-  if (config.privateKey) {
+  if (providedSigner) {
+    signer = providedSigner;
+  } else if (config.privateKey) {
     signer = new ethers.Wallet(config.privateKey, provider);
   } else {
     // Use a dummy signer for read-only operations
@@ -30,7 +33,20 @@ export async function createSDKInstance(): Promise<Ensemble> {
     subgraphUrl: config.subgraphUrl
   };
 
-  return Ensemble.create(ensembleConfig, signer);
+  // Initialize Pinata SDK if credentials are available
+  let pinataSDK: PinataSDK | undefined;
+  
+  const pinataJwt = config.pinata?.jwt;
+  const pinataGateway = config.pinata?.gateway;
+  
+  if (pinataJwt && pinataGateway) {
+    pinataSDK = new PinataSDK({
+      pinataJwt,
+      pinataGateway
+    });
+  }
+
+  return Ensemble.create(ensembleConfig, signer, pinataSDK);
 }
 
 export function createSignerFromPrivateKey(privateKey: string, rpcUrl: string): ethers.Signer {

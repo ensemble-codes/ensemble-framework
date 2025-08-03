@@ -17,7 +17,11 @@ const DEFAULT_CONFIG: CLIConfig = {
     taskRegistry: '0x847fA49b999489fD2780fe2843A7b1608106b49b',
     serviceRegistry: '0x3Acbf1Ca047a18bE88E7160738A9B0bB64203244'
   },
-  subgraphUrl: 'https://api.goldsky.com/api/public/project_cmcnps2k01akp01uobifl4bby/subgraphs/ensemble-subgraph/0.0.5/gn'
+  subgraphUrl: 'https://api.goldsky.com/api/public/project_cmcnps2k01akp01uobifl4bby/subgraphs/ensemble-subgraph/0.0.5/gn',
+  pinata: {
+    jwt: undefined,
+    gateway: undefined
+  }
 };
 
 export async function getConfig(): Promise<CLIConfig> {

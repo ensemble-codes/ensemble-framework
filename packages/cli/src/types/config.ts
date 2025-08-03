@@ -11,6 +11,10 @@ export interface CLIConfig {
     serviceRegistry: string;
   };
   subgraphUrl?: string;
+  pinata?: {
+    jwt?: string;
+    gateway?: string;
+  };
 }
 
 export interface AgentRecordYAML {

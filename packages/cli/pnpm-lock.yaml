@@ -35,6 +35,9 @@ importers:
       ora:
         specifier: ^8.0.0
         version: 8.2.0
+      pinata-web3:
+        specifier: ^0.5.4
+        version: 0.5.4
       table:
         specifier: ^6.8.0
         version: 6.9.0

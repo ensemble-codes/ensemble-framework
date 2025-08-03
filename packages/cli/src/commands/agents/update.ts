@@ -6,7 +6,7 @@ import inquirer from 'inquirer';
 import ora from 'ora';
 import { createSDKInstance, createSignerFromPrivateKey } from '../../utils/sdk';
 import { validateAgentRecordYAML } from '../../utils/validation';
-import { getConfig, getActiveWallet } from '../../config/manager';
+import { getConfig } from '../../config/manager';
 import { AgentRecordYAML } from '../../types/config';
 import { WalletService } from '../../services/WalletService';
 import { getEffectiveWallet } from '../../utils/wallet';
@@ -107,7 +107,7 @@ export const updateAgentCommand = new Command('update')
           updateData.attributes = options.attributes.split(',').map((s: string) => s.trim());
         }
 
-        // Handle socials updates
+        // Handle socials updates - merge with existing socials
         const socialsUpdate: any = {};
         if (options.twitter) socialsUpdate.twitter = options.twitter;
         if (options.telegram) socialsUpdate.telegram = options.telegram;
@@ -115,7 +115,11 @@ export const updateAgentCommand = new Command('update')
         if (options.website) socialsUpdate.website = options.website;
 
         if (Object.keys(socialsUpdate).length > 0) {
-          updateData.socials = socialsUpdate;
+          // Merge with existing socials instead of replacing
+          updateData.socials = {
+            ...currentAgent.socials,
+            ...socialsUpdate
+          };
         }
 
         // Handle file-based updates
@@ -186,7 +190,7 @@ export const updateAgentCommand = new Command('update')
 
       // If no private key, try to use wallet
       if (!privateKey) {
-        const effectiveWallet = await getEffectiveWallet(options.wallet || globalOptions.wallet);
+        const effectiveWallet = await getEffectiveWallet(options.wallet ?? globalOptions.wallet);
         
         if (effectiveWallet) {
           console.log(chalk.blue(`\n💼 Using wallet: ${effectiveWallet}`));
@@ -206,7 +210,7 @@ export const updateAgentCommand = new Command('update')
             const signer = await walletService.getWalletSigner(effectiveWallet, password);
             privateKey = signer.privateKey;
             walletAddress = await signer.getAddress();
-            
+            console.log(chalk.blue(`Signing with wallet address: ${walletAddress}`));
             // Check if wallet owns the agent
             if (currentAgent.owner.toLowerCase() !== walletAddress.toLowerCase()) {
               console.error(chalk.red(`❌ Wallet ${walletAddress} does not own this agent`));
@@ -234,7 +238,12 @@ export const updateAgentCommand = new Command('update')
       const updateSpinner = ora('Updating agent record...').start();
 
       try {
-        const result = await agentService.updateAgentRecord(agentAddress, updateData);
+        // Create new SDK instance with the wallet's private key
+        const signer = createSignerFromPrivateKey(privateKey, config.rpcUrl);
+        const sdkWithWallet = await createSDKInstance(signer);
+        const agentServiceWithWallet = sdkWithWallet.agents;
+        
+        const result = await agentServiceWithWallet.updateAgentRecord(agentAddress, updateData);
 
         if (result.success) {
           updateSpinner.succeed('Agent updated successfully');
@@ -254,7 +263,9 @@ export const updateAgentCommand = new Command('update')
         console.error(chalk.red('❌ Update error:'));
         console.error(chalk.red(updateError.message));
         
-        if (updateError.message.includes('execution reverted')) {
+        if (updateError.message.includes('IPFS SDK is not initialized')) {
+          console.error(chalk.yellow('\n💡 To update agents, you need to configure Pinata IPFS'));
+        } else if (updateError.message.includes('execution reverted')) {
           console.error(chalk.yellow('\n💡 Common issues:'));
           console.error(chalk.yellow('   - You may not be the owner of this agent'));
           console.error(chalk.yellow('   - The agent contract may be paused'));
@@ -352,7 +363,7 @@ updateAgentCommand
 
       // If no private key, try to use wallet
       if (!privateKey) {
-        const effectiveWallet = await getEffectiveWallet(options.wallet || globalOptions.wallet);
+        const effectiveWallet = await getEffectiveWallet(options.wallet ?? globalOptions.wallet);
         
         if (effectiveWallet) {
           console.log(chalk.blue(`\n💼 Using wallet: ${effectiveWallet}`));
@@ -389,13 +400,15 @@ updateAgentCommand
         process.exit(1);
       }
 
-      const sdk = await createSDKInstance();
-      const agentService = sdk.agents;
-
       const spinner = ora('Updating agent property...').start();
 
       try {
-        const result = await agentService.updateAgentRecordProperty(agentAddress, property as any, parsedValue);
+        // Create new SDK instance with the wallet's private key
+        const signer = createSignerFromPrivateKey(privateKey, config.rpcUrl);
+        const sdkWithWallet = await createSDKInstance(signer);
+        const agentServiceWithWallet = sdkWithWallet.agents;
+        
+        const result = await agentServiceWithWallet.updateAgentRecordProperty(agentAddress, property as any, parsedValue);
 
         if (result.success) {
           spinner.succeed('Property updated successfully');
@@ -414,6 +427,17 @@ updateAgentCommand
         spinner.fail('Property update failed');
         console.error(chalk.red('❌ Update error:'));
         console.error(chalk.red(updateError.message));
+        
+        if (updateError.message.includes('IPFS SDK is not initialized')) {
+          console.error(chalk.yellow('\n💡 To update agents, you need to configure Pinata IPFS:'));
+          console.error(chalk.yellow('   1. Sign up for a free account at https://pinata.cloud'));
+          console.error(chalk.yellow('   2. Create an API key at https://app.pinata.cloud/developers/api-keys'));
+          console.error(chalk.yellow('   3. Set environment variables:'));
+          console.error(chalk.yellow('      export PINATA_JWT=your_jwt_here'));
+          console.error(chalk.yellow('      export PINATA_GATEWAY=your_gateway_here'));
+          console.error(chalk.yellow('   4. Or create a .env file with these variables'));
+        }
+        
         process.exit(1);
       }
 
