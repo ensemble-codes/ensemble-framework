@@ -35,6 +35,7 @@ export function handleAgentMetadata(content: Bytes): void {
     ipfsData.openingGreeting = extractStringField(value, "openingGreeting")
     ipfsData.communicationType = extractStringField(value, "communicationType")
     ipfsData.communicationURL = extractStringField(value, "communicationURL")
+    ipfsData.communicationParams = extractStringField(value, "communicationParams")
 
     let socials = value.get("socials")
     if (!socials) {

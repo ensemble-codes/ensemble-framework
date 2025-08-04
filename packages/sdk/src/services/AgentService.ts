@@ -33,7 +33,7 @@ interface SubgraphIpfsMetadata {
   prompts: string[];
   communicationType: string;
   communicationURL: string;
-  communicationParams?: any; // JSON type
+  communicationParams?: string; // JSON string
   imageUri: string;
   twitter?: string;
   telegram?: string;
@@ -94,7 +94,7 @@ export class AgentService {
       },
       communicationType: (metadata?.communicationType as any) || 'websocket',
       communicationURL: metadata?.communicationURL || '',
-      communicationParams: metadata?.communicationParams || {},
+      communicationParams: metadata?.communicationParams || '{}',
       reputation: BigInt(agent.reputation),
       totalRatings: BigInt(totalRatingsCount)
     };
@@ -924,9 +924,19 @@ export class AgentService {
         }
         break;
       case 'socials':
-      case 'communicationParams':
         if (typeof value !== 'object' || value === null || Array.isArray(value)) {
           throw new AgentUpdateError(`Property ${property} must be an object`);
+        }
+        break;
+      case 'communicationParams':
+        if (typeof value !== 'string') {
+          throw new AgentUpdateError(`Property ${property} must be a string`);
+        }
+        // Validate it's a valid JSON string
+        try {
+          JSON.parse(value);
+        } catch (e) {
+          throw new AgentUpdateError(`Property ${property} must be a valid JSON string`);
         }
         break;
     }
