@@ -70,7 +70,7 @@ describe("AgentService Tests", () => {
               prompts: ["Test prompt"],
               communicationType: "websocket",
               communicationURL: "wss://testagent.com/ws",
-              communicationParams: { timeout: 30000 },
+              communicationParams: JSON.stringify({ timeout: 30000 }),
               imageUri: "https://ipfs.io/ipfs/QmTestImage",
               twitter: "@testagent",
               telegram: "@testagent",
@@ -457,7 +457,7 @@ describe("AgentService Tests", () => {
       });
 
       it("should validate object properties correctly", async () => {
-        const objectProperties = ['socials', 'communicationParams'];
+        const objectProperties = ['socials'];
         
         for (const prop of objectProperties) {
           await expect(
@@ -467,7 +467,7 @@ describe("AgentService Tests", () => {
       });
 
       it("should reject non-object values for object properties", async () => {
-        const objectProperties = ['socials', 'communicationParams'];
+        const objectProperties = ['socials'];
         const invalidValues = ["string", 123, []];
         
         for (const prop of objectProperties) {
@@ -484,6 +484,31 @@ describe("AgentService Tests", () => {
             agentService.updateAgentRecordProperty(validAgentId, prop as any, null)
           ).rejects.toThrow(AgentUpdateError);
         }
+      });
+
+      it("should validate communicationParams as JSON string", async () => {
+        // Valid JSON strings
+        await expect(
+          agentService.updateAgentRecordProperty(validAgentId, 'communicationParams', JSON.stringify({ timeout: 30000 }))
+        ).resolves.toBeDefined();
+        
+        await expect(
+          agentService.updateAgentRecordProperty(validAgentId, 'communicationParams', '{}')
+        ).resolves.toBeDefined();
+        
+        // Invalid values - not strings
+        await expect(
+          agentService.updateAgentRecordProperty(validAgentId, 'communicationParams', { timeout: 30000 })
+        ).rejects.toThrow("Property communicationParams must be a string");
+        
+        await expect(
+          agentService.updateAgentRecordProperty(validAgentId, 'communicationParams', 123)
+        ).rejects.toThrow("Property communicationParams must be a string");
+        
+        // Invalid JSON string
+        await expect(
+          agentService.updateAgentRecordProperty(validAgentId, 'communicationParams', '{invalid json}')
+        ).rejects.toThrow("Property communicationParams must be a valid JSON string");
       });
 
       it("should reject invalid property names", async () => {
@@ -558,7 +583,7 @@ describe("AgentService Tests", () => {
           },
           communicationType: "websocket",
           communicationURL: "wss://updated-agent.com/ws",
-          communicationParams: { timeout: 60000 },
+          communicationParams: JSON.stringify({ timeout: 60000 }),
           status: AgentStatus.ACTIVE
         };
 

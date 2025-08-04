@@ -159,7 +159,7 @@ export interface AgentRecord {
   socials: AgentSocials; // Social media or contact information for the agent
   communicationType: AgentCommunicationType; // Type of communication supported by the agent
   communicationURL?: string; // Optional URL for communication endpoint
-  communicationParams?: object; // Optional parameters for communication setup
+  communicationParams?: string; // Optional parameters for communication setup
   reputation: BigNumberish; // Agent's reputation score
   totalRatings: BigNumberish; // Total number of ratings received by the agent
 }
@@ -256,7 +256,7 @@ export interface UpdateableAgentRecord {
   socials?: Partial<AgentSocials>;
   communicationType?: AgentCommunicationType;
   communicationURL?: string;
-  communicationParams?: object;
+  communicationParams?: string;
   status?: AgentStatus;
 }
 
