@@ -50,6 +50,8 @@ dataSources:
           handler: handleUpdateReputation
         - event: ProposalAdded(indexed address,uint256,string,uint256,address)
           handler: handleProposalAdded
+        - event: AgentDataUpdated(indexed address,string,string)
+          handler: handleAgentDataUpdated
       file: ./src/agents-registry.ts
   - kind: ethereum
     name: TaskRegistry
