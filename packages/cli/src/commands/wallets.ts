@@ -81,7 +81,7 @@ async function promptPassword(message: string = 'Enter password:', confirm: bool
   return password;
 }
 
-export const walletCommand = new Command('wallet')
+export const walletCommand = new Command('wallets')
   .description('Wallet management commands');
 
 // Create wallet command
@@ -298,7 +298,7 @@ walletCommand
 
       if (wallets.length === 0) {
         console.log(chalk.yellow('No wallets found.'));
-        console.log(chalk.blue('💡 Create a new wallet with: ensemble wallet create'));
+        console.log(chalk.blue('💡 Create a new wallet with: ensemble wallets create'));
         return;
       }
 
@@ -339,7 +339,7 @@ walletCommand
       let targetWallet = wallet || await getEffectiveWallet(globalOptions.wallet);
       if (!targetWallet) {
         console.error(chalk.red('❌ No wallet specified and no active wallet set'));
-        console.error(chalk.yellow('💡 Use --wallet <name>, set an active wallet with "ensemble wallet use <name>", or specify a wallet: ensemble wallet balance <name>'));
+        console.error(chalk.yellow('💡 Use --wallet <name>, set an active wallet with "ensemble wallets use <name>", or specify a wallet: ensemble wallets balance <name>'));
         process.exit(1);
       }
       
@@ -443,7 +443,7 @@ walletCommand
       } catch (error) {
         if (error instanceof WalletNotFoundError) {
           console.error(chalk.red(`❌ Wallet '${name}' not found`));
-          console.error(chalk.yellow('💡 Use "ensemble wallet list" to see available wallets'));
+          console.error(chalk.yellow('💡 Use "ensemble wallets list" to see available wallets'));
           process.exit(1);
         }
         throw error;
@@ -473,7 +473,7 @@ walletCommand
 
       if (!activeWallet) {
         console.log(chalk.yellow('No active wallet set'));
-        console.log(chalk.blue('💡 Use "ensemble wallet use <name>" to set an active wallet'));
+        console.log(chalk.blue('💡 Use "ensemble wallets use <name>" to set an active wallet'));
         return;
       }
 
@@ -488,7 +488,7 @@ walletCommand
       } catch (error) {
         if (error instanceof WalletNotFoundError) {
           console.error(chalk.red(`❌ Active wallet '${activeWallet}' not found`));
-          console.error(chalk.yellow('💡 The wallet may have been deleted. Use "ensemble wallet use <name>" to set a new active wallet'));
+          console.error(chalk.yellow('💡 The wallet may have been deleted. Use "ensemble wallets use <name>" to set a new active wallet'));
           
           // Clear the invalid active wallet
           await clearActiveWallet();

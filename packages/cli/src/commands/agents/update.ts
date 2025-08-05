@@ -25,6 +25,7 @@ export const updateAgentCommand = new Command('update')
   .option('--status <status>', 'Update agent status')
   .option('--communication-type <type>', 'Update communication type')
   .option('--communication-url <url>', 'Update communication URL')
+  .option('--communication-params <params>', 'Update communication parameters (JSON string)')
   .option('--twitter <handle>', 'Update Twitter handle')
   .option('--telegram <handle>', 'Update Telegram handle')
   .option('--github <username>', 'Update GitHub username')
@@ -102,6 +103,17 @@ export const updateAgentCommand = new Command('update')
         if (options.status) updateData.status = options.status;
         if (options.communicationType) updateData.communicationType = options.communicationType;
         if (options.communicationUrl) updateData.communicationURL = options.communicationUrl;
+        if (options.communicationParams) {
+          try {
+            // Validate it's valid JSON
+            JSON.parse(options.communicationParams);
+            updateData.communicationParams = options.communicationParams;
+          } catch (e) {
+            console.error(chalk.red('❌ Invalid JSON for --communication-params'));
+            console.error(chalk.yellow('💡 Example: --communication-params \'{"timeout": 30000}\''));
+            process.exit(1);
+          }
+        }
 
         if (options.attributes) {
           updateData.attributes = options.attributes.split(',').map((s: string) => s.trim());

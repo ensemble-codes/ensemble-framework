@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { getAgentsCommand } from './agents/get';
-import { listAgentsCommand } from './agents/list';
-import { registerAgentCommand } from './agents/register';
-import { updateAgentCommand } from './agents/update';
+import { getAgentsCommand } from './get';
+import { listAgentsCommand } from './list';
+import { registerAgentCommand } from './register';
+import { updateAgentCommand } from './update';
 
 export const agentsCommand = new Command('agents')
   .description('Agent management commands')
@@ -26,8 +26,8 @@ agentsCommand.action(async (address?: string, options?: any) => {
   if (address) {
     // If an address is provided, fetch that specific agent
     try {
-      const { createSDKInstance } = await import('../utils/sdk');
-      const { formatOutput } = await import('../utils/formatters');
+      const { createSDKInstance } = await import('../../utils/sdk');
+      const { formatOutput } = await import('../../utils/formatters');
       
       const sdk = await createSDKInstance();
       const agentService = sdk.agents;

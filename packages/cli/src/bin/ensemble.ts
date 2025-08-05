@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { config } from 'dotenv';
 import { getConfig } from '../config/manager';
-import { walletCommand } from '../commands/wallet';
+import { walletCommand } from '../commands/wallets';
 import { agentsCommand } from '../commands/agents';
 
 // Load environment variables
