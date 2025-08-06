@@ -52,6 +52,7 @@ export function handleAgentMetadata(content: Bytes): void {
     ipfsData.twitter = extractStringField(socialsObj, "twitter")
     ipfsData.github = extractStringField(socialsObj, "github")
     ipfsData.dexscreener = extractStringField(socialsObj, "dexscreener")
+    ipfsData.website = extractStringField(socialsObj, "website")
 
     ipfsData.save();
 }
@@ -82,5 +83,6 @@ function saveDefaultMetadata(ipfsData: IpfsMetadata): void {
     ipfsData.twitter = ""
     ipfsData.github = ""
     ipfsData.dexscreener = ""
+    ipfsData.website = ""
     ipfsData.save()
 }
