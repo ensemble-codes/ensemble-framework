@@ -6,6 +6,8 @@ import { config } from 'dotenv';
 import { getConfig } from '../config/manager';
 import { walletCommand } from '../commands/wallets';
 import { agentsCommand } from '../commands/agents';
+import { initCommand } from '../commands/init';
+import { validateCommand } from '../commands/validate';
 
 // Load environment variables
 config();
@@ -53,6 +55,12 @@ program
       process.exit(1);
     }
   });
+
+// Add init command
+program.addCommand(initCommand)
+
+// Add validate command
+program.addCommand(validateCommand)
 
 // Add wallet command
 program.addCommand(walletCommand);
