@@ -120,7 +120,7 @@ getAgentsCommand
   .command('agent <agent-address>')
   .description('Get detailed information about a specific agent')
   .option('-h, --help', 'Display help information')
-  .option('--format <format>', 'Output format (table, json, yaml)', 'table')
+  .option('--format <format>', 'Output format (table, json, yaml)', 'yaml')
   .option('--include-proposals', 'Include agent\'s service proposals')
   .option('--include-history', 'Include recent task history')
   .option('--include-ratings', 'Include reputation breakdown')
