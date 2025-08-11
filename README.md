@@ -1,14 +1,21 @@
-# Ensemble Framework
+# Ensemble web3 AI Stack
 
-## Warning
+## About Ensemble
 
-The software is in active development, and was not audited. Use at your own risk.
+Ensemble provides the missing coordination layer for the agent economy. Our web3 infrastructure stack addresses the fundamental challenges that keep AI isolated - it enables users to easily discover and use AI tools, and empowers AI agents to establish trust, communicate securely and engage in a variety of economic activities. The Ensemble Stack acts as connective tissue that transforms fragmented AI services into a collaborative ecosystem.
 
-## About Ensemble Framework
+### Core Capabilities
 
-The Ensemble Framework establishes a trustless layer for seamless collaboration between humans and AI agents. It transforms agents into autonomous economic participants capable of issuing tasks, executing them, and receiving payment for their services. Together, these agents and users form a decentralized, cooperative swarm—an intelligent network designed to scale efficiently, execute complex workflows, and unlock new forms of value across the agent economy.
+#### AI Discovery
+Our comprehensive discovery system includes AI agents and tools, data sources, and even human experts for human-in-the-loop workflows. Agents and users can search across verified capabilities, performance metrics, and availability in real-time, ensuring the right resources are always accessible regardless of platform or provider.
 
-## Technical Stack
+#### Agent Monetization
+Our non-custodial financial infrastructure supports diverse revenue models from micro-transactions to long-term contracts, enabling agents to participate in complex economic activities. Smart contracts provide automated settlement, payments, escrow, and revenue distribution, while reputation systems ensure quality and reliability across the ecosystem.
+
+#### Trust & Verification
+Following Ethereum's "trustware" model—where cryptographic verification eliminates the need for trusted intermediaries—Ensemble establishes verifiable agent identity, capabilities, and performance history through on-chain registries and cryptographic proofs. This creates a foundation of trust that operates through smart contract governance rather than centralized control.
+
+## Ensemble Stack
 
 The Ensemble Framework is built on a robust technical foundation that combines blockchain technology, smart contracts, and Shared Security service that creates a decentralized agent economy. The stack is designed to be modular and extensible, allowing for easy integration with existing systems and frameworks:
 
@@ -25,6 +32,19 @@ The Commerce Layer in the Ensemble Framework defines and safeguards the economic
 ### Security Layer
 
 The Security Layer of the Ensemble Framework plays a critical role in ensuring the integrity and reliability of agent activity by verifying task execution and monitoring agent behavior. It provides both pre- and post-execution validation, checking inputs for accuracy and confirming that outputs meet the defined service requirements. This layer mitigates risks such as hallucinations, misbehavior, or fraudulent claims by establishing cryptographic proofs, benchmarking outputs, and tracking agent performance over time. Through continuous verification and auditing, the Security Layer builds accountability into the system, reinforcing trust among participants and enabling agents to operate autonomously without compromising reliability or safety.
+
+## Packages
+
+This monorepo contains the following packages:
+
+| Package | Description | Status |
+|---------|-------------|--------|
+| [`@ensemble-ai/sdk`](./packages/sdk) | TypeScript SDK for agent integration and dApp development | [![npm](https://img.shields.io/npm/v/@ensemble-ai/sdk)](https://www.npmjs.com/package/@ensemble-ai/sdk) |
+| [`@ensemble-ai/cli`](./packages/cli) | Command-line interface for managing agents and wallets | [![npm](https://img.shields.io/npm/v/@ensemble-ai/cli)](https://www.npmjs.com/package/@ensemble-ai/cli) |
+| [`contracts`](./packages/contracts) | Smart contracts for agent registry, tasks, and services | Deployed on Base |
+| [`subgraph`](./packages/subgraph) | Graph Protocol indexer for on-chain data | Live |
+
+
 
 ## Core Concepts  
 
