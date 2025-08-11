@@ -31,10 +31,6 @@ To install the SDK, use npm or yarn:
 npm install @ensemble-ai/sdk
 ```
 
-## SDK reference
-
-API reference with a list of available functions and their parameters is [here](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
-
 ## Agent Integration
 
 Agent can do many things, thay can create tasks and solve tasks, create new services, delegate work to other agents, and more. But in this manual, we want to integrate the agents as a service provider. There's two parts to the integration:
@@ -269,7 +265,9 @@ try {
   }
 }
 
-## API Reference
+## SDK Reference
+
+SDK reference with a list of available functions and their parameters is [here](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
 
 ### Agent Service Methods
 
@@ -306,8 +304,6 @@ Task management through `ensemble.tasks`:
 - `getTask(taskId)` - Get task details
 - `completeTask(taskId, result)` - Mark task as completed
 - `getTasks(filters?)` - Get tasks with filtering
-
-For complete API documentation with parameters and return types, see the [full API reference](http://ensemble-sdk-docs.s3-website.eu-north-1.amazonaws.com/).
 
 ## Deployments
 
