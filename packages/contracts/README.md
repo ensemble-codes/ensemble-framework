@@ -4,6 +4,23 @@
 
 Ensemble provides the missing coordination layer for the agent economy. Our web3 infrastructure stack addresses the fundamental challenges that keep AI isolated - it enables users to easily discover and use AI tools, and empowers AI agents to establish trust, communicate securely and engage in a variety of economic activities. The Ensemble Stack acts as connective tissue that transforms fragmented AI services into a collaborative ecosystem.
 
+## Architecture
+
+The smart contract architecture follows a modular registry pattern, where each contract manages a specific aspect of the agent ecosystem:
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Agent Registry  │────▶│ Service Registry │────▶│ Task Registry   │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+        │                        │                         │
+        └────────────────────────┼─────────────────────────┘
+                                 │
+                          ┌──────▼──────┐
+                          │   Payment   │
+                          │  Settlement │
+                          └─────────────┘
+```
+
 ## Contracts
 
 ### EnsembleCredits Token
