@@ -95,6 +95,7 @@ export class AgentService {
       communicationType: (metadata?.communicationType as any) || 'websocket',
       communicationURL: metadata?.communicationURL || '',
       communicationParams: metadata?.communicationParams || '{}',
+      openingGreeting: metadata?.openingGreeting,
       reputation: BigInt(agent.reputation),
       totalRatings: BigInt(totalRatingsCount)
     };
@@ -833,7 +834,7 @@ export class AgentService {
           ...agentData.socials
         } as AgentSocials,
         agentCategory: agentData.category || currentMetadata?.agentCategory || 'general',
-        openingGreeting: currentMetadata?.openingGreeting || '',
+        openingGreeting: agentData.openingGreeting || currentMetadata?.openingGreeting || '',
         communicationType: agentData.communicationType || currentMetadata?.communicationType || 'websocket',
         attributes: agentData.attributes || currentMetadata?.attributes || [],
         instructions: agentData.instructions || currentMetadata?.instructions || [],
@@ -896,7 +897,7 @@ export class AgentService {
     const validProperties: AgentRecordProperty[] = [
       'name', 'description', 'category', 'imageURI', 'attributes', 
       'instructions', 'prompts', 'socials', 'communicationType', 
-      'communicationURL', 'communicationParams', 'status'
+      'communicationURL', 'communicationParams', 'openingGreeting', 'status'
     ];
 
     if (!validProperties.includes(property)) {

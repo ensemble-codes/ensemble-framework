@@ -160,6 +160,7 @@ export interface AgentRecord {
   communicationType: AgentCommunicationType; // Type of communication supported by the agent
   communicationURL?: string; // Optional URL for communication endpoint
   communicationParams?: string; // Optional parameters for communication setup
+  openingGreeting?: string; // Optional greeting message for the agent
   reputation: BigNumberish; // Agent's reputation score
   totalRatings: BigNumberish; // Total number of ratings received by the agent
 }
@@ -205,11 +206,6 @@ export interface registerAgentWithServiceParams {
   tokenAddress: string;
 }
 
-export interface RegisterAgentParams {
-  agentAddress: string;
-  name: string;
-  agentUri: string;
-}
 
 export interface NetworkConfig {
   chainId: number;
@@ -225,7 +221,6 @@ export interface EnsembleConfig {
   subgraphUrl?: string;
 }
 
-export type LegacyRegisterAgentParams = RegisterAgentParams;
 
 export type LegacyAddProposalParams = Omit<AddProposalParams, 'tokenAddress'>;
 
@@ -257,6 +252,7 @@ export interface UpdateableAgentRecord {
   communicationType?: AgentCommunicationType;
   communicationURL?: string;
   communicationParams?: string;
+  openingGreeting?: string;
   status?: AgentStatus;
 }
 
