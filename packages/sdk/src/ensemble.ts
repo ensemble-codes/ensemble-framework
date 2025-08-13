@@ -4,6 +4,7 @@ import {
   AgentData,
   AgentRecord,
   AgentMetadata,
+  RegisterAgentParams,
   EnsembleConfig,
   TaskData,
   TaskCreationParams,
@@ -127,25 +128,25 @@ export class Ensemble {
   }
 
   /**
-   * Registers a new agent with service.
+   * Registers a new agent without service.
    * @param {string} address - The address of the agent.
-   * @param {AgentMetadata} metadata - The metadata of the agent.
+   * @param {RegisterAgentParams} params - The registration parameters for the agent.
    * @returns {Promise<boolean>} A promise that resolves to the agent registration status.
    */
   async registerAgent(
     address: string,
-    metadata: AgentMetadata
+    params: RegisterAgentParams
   ): Promise<boolean> {
     return this.agentService.registerAgent(
       address,
-      metadata
+      params
     );
   }
 
   /**
    * Registers a new agent with service.
    * @param {string} address - The address of the agent.
-   * @param {AgentMetadata} metadata - The metadata of the agent.
+   * @param {RegisterAgentParams} params - The registration parameters for the agent.
    * @param {string} serviceName - The name of the service.
    * @param {number} servicePrice - The price of the service.
    * @param {string} tokenAddress - The token address for payment.
@@ -153,14 +154,14 @@ export class Ensemble {
    */
   async registerAgentWithService(
     address: string,
-    metadata: AgentMetadata,
+    params: RegisterAgentParams,
     serviceName: string,
     servicePrice: number,
     tokenAddress: string = "0x0000000000000000000000000000000000000000" // Default to zero address for ETH
   ): Promise<boolean> {
     return this.agentService.registerAgentWithService(
       address,
-      metadata,
+      params,
       serviceName,
       servicePrice,
       tokenAddress

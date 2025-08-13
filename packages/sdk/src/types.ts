@@ -197,14 +197,22 @@ export interface AddProposalParams {
   tokenAddress: string;
 }
 
-export interface registerAgentWithServiceParams {
-  agentAddress: string;
-  name: string;
-  agentUri: string;
-  serviceName: string;
-  servicePrice: BigNumberish;
-  tokenAddress: string;
+export interface RegisterAgentParams {
+  name: string;                    // required
+  description: string;             // required
+  category: string;                // required
+  agentUri: string;                // required
+  imageURI?: string;               // optional
+  attributes?: string[];           // optional
+  instructions?: string[];         // optional
+  prompts?: string[];              // optional
+  socials?: Partial<AgentSocials>; // optional
+  communicationType?: AgentCommunicationType; // optional
+  communicationURL?: string;       // optional
+  communicationParams?: string;    // optional
+  openingGreeting?: string;        // optional
 }
+
 
 
 export interface NetworkConfig {

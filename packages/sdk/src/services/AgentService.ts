@@ -4,6 +4,7 @@ import {
   AgentRecord, 
   Proposal, 
   AgentMetadata, 
+  RegisterAgentParams,
   AgentFilterParams,
   UpdateableAgentRecord,
   TransactionResult,
@@ -123,25 +124,47 @@ export class AgentService {
   /**
    * Registers a new agent without service.
    * @param {string} address - The address of the agent.
-   * @param {AgentMetadata} metadata - The metadata of the agent.
+   * @param {RegisterAgentParams} params - The registration parameters for the agent.
    * @returns {Promise<boolean>} A promise that resolves to the agent registration status.
    */
   async registerAgent(
     address: string,
-    metadata: AgentMetadata
+    params: RegisterAgentParams
   ): Promise<boolean> {
     try {
       if (!this.ipfsSDK) {
         throw new Error("IPFS SDK is not initialized");
       }
-      console.log(`registering agent ${address} with metadata: ${metadata}`);
+      console.log(`registering agent ${address} with params:`, params);
+      
+      // Convert RegisterAgentParams to AgentMetadata for IPFS storage
+      const metadata: AgentMetadata = {
+        name: params.name,
+        description: params.description,
+        imageURI: params.imageURI || '',
+        socials: {
+          twitter: params.socials?.twitter || '',
+          telegram: params.socials?.telegram || '',
+          dexscreener: params.socials?.dexscreener || '',
+          github: params.socials?.github || '',
+          website: params.socials?.website || ''
+        },
+        agentCategory: params.category,
+        openingGreeting: params.openingGreeting || '',
+        communicationType: params.communicationType || 'websocket',
+        attributes: params.attributes || [],
+        instructions: params.instructions || [],
+        prompts: params.prompts || [],
+        communicationURL: params.communicationURL,
+        communicationParams: params.communicationParams
+      };
       
       const uploadResponse = await this.ipfsSDK.upload.json(metadata);
-      const agentURI = `ipfs://${uploadResponse.IpfsHash}`;
+      const agentURI = params.agentUri || `ipfs://${uploadResponse.IpfsHash}`;
 
       const tx = await this.agentRegistry.registerAgent(
         address,
-        metadata.name,
+        params.name,
         agentURI
       );
 
@@ -163,7 +186,7 @@ export class AgentService {
   /**
    * Registers a new agent with service.
    * @param {string} address - The address of the agent..
-   * @param {AgentMetadata} metadata - The metadata of the agent.
+   * @param {RegisterAgentParams} params - The registration parameters for the agent.
    * @param {string} serviceName - The name of the service.
    * @param {number} servicePrice - The price of the service.
    * @param {string} tokenAddress - The token address for payment.
@@ -171,7 +194,7 @@ export class AgentService {
    */
   async registerAgentWithService(
     address: string,
-    metadata: AgentMetadata,
+    params: RegisterAgentParams,
     serviceName: string,
     servicePrice: number,
     tokenAddress: string = "0x0000000000000000000000000000000000000000" // Default to zero address for ETH
@@ -180,14 +203,36 @@ export class AgentService {
       if (!this.ipfsSDK) {
         throw new Error("IPFS SDK is not initialized");
       }
-      console.log(`registering agent ${address} with metadata: ${metadata}`);
+      console.log(`registering agent ${address} with params:`, params);
+      
+      // Convert RegisterAgentParams to AgentMetadata for IPFS storage
+      const metadata: AgentMetadata = {
+        name: params.name,
+        description: params.description,
+        imageURI: params.imageURI || '',
+        socials: {
+          twitter: params.socials?.twitter || '',
+          telegram: params.socials?.telegram || '',
+          dexscreener: params.socials?.dexscreener || '',
+          github: params.socials?.github || '',
+          website: params.socials?.website || ''
+        },
+        agentCategory: params.category,
+        openingGreeting: params.openingGreeting || '',
+        communicationType: params.communicationType || 'websocket',
+        attributes: params.attributes || [],
+        instructions: params.instructions || [],
+        prompts: params.prompts || [],
+        communicationURL: params.communicationURL,
+        communicationParams: params.communicationParams
+      };
       
       const uploadResponse = await this.ipfsSDK.upload.json(metadata);
-      const agentURI = `ipfs://${uploadResponse.IpfsHash}`;
+      const agentURI = params.agentUri || `ipfs://${uploadResponse.IpfsHash}`;
 
       const tx = await this.agentRegistry.registerAgentWithService(
         address,
-        metadata.name,
+        params.name,
         agentURI,
         serviceName,
         servicePrice,

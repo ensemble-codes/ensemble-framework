@@ -11,7 +11,7 @@ import {
   ServiceAlreadyRegisteredError,
   ServiceNotRegisteredError,
 } from "../src/errors";
-import { AgentMetadata } from "../src/types";
+import { RegisterAgentParams } from "../src/types";
 import { PinataSDK } from "pinata-web3";
 
 describe("Ensemble Unit Tests", () => {
@@ -88,9 +88,11 @@ describe("Ensemble Unit Tests", () => {
   });
 
   it("should fail to register an agent without a service", async () => {
-    const agentMetadata: AgentMetadata = {
+    const agentParams: RegisterAgentParams = {
       name: "Agent-test",
       description: "This is an agent for testing.",
+      category: "Test",
+      agentUri: "ipfs://test-uri",
       imageURI: "https://example.com/image.jpg",
       socials: {
         twitter: "https://twitter.com/agent-test",
@@ -99,7 +101,6 @@ describe("Ensemble Unit Tests", () => {
       },
       communicationType: "xmtp",
       attributes: ["Test"],
-      agentCategory: "Test",
       openingGreeting: "Test",
       instructions: ["Test"],
       prompts: ["Test"],
@@ -113,14 +114,16 @@ describe("Ensemble Unit Tests", () => {
     );
 
     await expect(
-      sdk.registerAgentWithService(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
+      sdk.registerAgentWithService(agentAddress, agentParams, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
     ).rejects.toThrow(ServiceNotRegisteredError);
   });
 
   it("should register an agent successfully", async () => {
-    const agentMetadata: AgentMetadata = {
+    const agentParams: RegisterAgentParams = {
       name: "Agent-test",
       description: "This is an agent for testing.",
+      category: "Test",
+      agentUri: "ipfs://test-uri",
       imageURI: "https://example.com/image.jpg",
       socials: {
         twitter: "https://twitter.com/agent-test",
@@ -129,7 +132,6 @@ describe("Ensemble Unit Tests", () => {
       },
       communicationType: "xmtp",
       attributes: ["Test"],
-      agentCategory: "Test",
       openingGreeting: "Test",
       instructions: ["Test"],
       prompts: ["Test"],
@@ -143,7 +145,7 @@ describe("Ensemble Unit Tests", () => {
 
     const isRegistered = await sdk.registerAgentWithService(
       agentAddress,
-      agentMetadata,
+      agentParams,
       serviceName,
       servicePrice,
       "0x0000000000000000000000000000000000000000" // ETH address
@@ -153,9 +155,11 @@ describe("Ensemble Unit Tests", () => {
   });
 
   it("should not register the same agent twice", async () => {
-    const agentMetadata: AgentMetadata = {
+    const agentParams: RegisterAgentParams = {
       name: "Agent-test",
       description: "This is an agent for testing.",
+      category: "Test",
+      agentUri: "ipfs://test-uri",
       imageURI: "https://example.com/image.jpg",
       socials: {
         twitter: "https://twitter.com/agent-test",
@@ -164,7 +168,6 @@ describe("Ensemble Unit Tests", () => {
       },
       communicationType: "xmtp",
       attributes: ["Test"],
-      agentCategory: "Test",
       openingGreeting: "Test",
       instructions: ["Test"],
       prompts: ["Test"],
@@ -179,7 +182,7 @@ describe("Ensemble Unit Tests", () => {
     const servicePrice = 100;
 
     await expect(
-      sdk.registerAgentWithService(agentAddress, agentMetadata, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
+      sdk.registerAgentWithService(agentAddress, agentParams, serviceName, servicePrice, "0x0000000000000000000000000000000000000000")
     ).rejects.toThrow(AgentAlreadyRegisteredError);
   });
 
