@@ -28,12 +28,10 @@ interface SubgraphIpfsMetadata {
   name: string;
   description: string;
   agentCategory: string;
-  openingGreeting: string;
   attributes: string[];
   instructions: string[];
   prompts: string[];
   communicationType: string;
-  communicationURL: string;
   communicationParams?: string; // JSON string
   imageUri: string;
   twitter?: string;
@@ -93,10 +91,8 @@ export class AgentService {
         github: metadata?.github || '',
         website: metadata?.website || ''
       },
-      communicationType: (metadata?.communicationType as any) || 'websocket',
-      communicationURL: metadata?.communicationURL || '',
+      communicationType: (metadata?.communicationType as any) || 'socketio-eliza',
       communicationParams: metadata?.communicationParams || '{}',
-      openingGreeting: metadata?.openingGreeting,
       reputation: BigInt(agent.reputation),
       totalRatings: BigInt(totalRatingsCount)
     };
@@ -150,12 +146,10 @@ export class AgentService {
           website: params.socials?.website || ''
         },
         agentCategory: params.category,
-        openingGreeting: params.openingGreeting || '',
-        communicationType: params.communicationType || 'websocket',
+        communicationType: params.communicationType || 'socketio-eliza',
         attributes: params.attributes || [],
         instructions: params.instructions || [],
         prompts: params.prompts || [],
-        communicationURL: params.communicationURL,
         communicationParams: params.communicationParams
       };
       
@@ -218,12 +212,10 @@ export class AgentService {
           website: params.socials?.website || ''
         },
         agentCategory: params.category,
-        openingGreeting: params.openingGreeting || '',
-        communicationType: params.communicationType || 'websocket',
+        communicationType: params.communicationType || 'socketio-eliza',
         attributes: params.attributes || [],
         instructions: params.instructions || [],
         prompts: params.prompts || [],
-        communicationURL: params.communicationURL,
         communicationParams: params.communicationParams
       };
       
@@ -362,12 +354,10 @@ export class AgentService {
             name
             description
             agentCategory
-            openingGreeting
             attributes
             instructions
             prompts
             communicationType
-            communicationURL
             communicationParams
             imageUri
             twitter
@@ -532,12 +522,10 @@ export class AgentService {
             name
             description
             agentCategory
-            openingGreeting
             attributes
             instructions
             prompts
             communicationType
-            communicationURL
             communicationParams
             imageUri
             twitter
@@ -677,12 +665,10 @@ export class AgentService {
             name
             description
             agentCategory
-            openingGreeting
             attributes
             instructions
             prompts
             communicationType
-            communicationURL
             communicationParams
             imageUri
             twitter
@@ -879,12 +865,10 @@ export class AgentService {
           ...agentData.socials
         } as AgentSocials,
         agentCategory: agentData.category || currentMetadata?.agentCategory || 'general',
-        openingGreeting: agentData.openingGreeting || currentMetadata?.openingGreeting || '',
-        communicationType: agentData.communicationType || currentMetadata?.communicationType || 'websocket',
+        communicationType: agentData.communicationType || currentMetadata?.communicationType || 'socketio-eliza',
         attributes: agentData.attributes || currentMetadata?.attributes || [],
         instructions: agentData.instructions || currentMetadata?.instructions || [],
         prompts: agentData.prompts || currentMetadata?.prompts || [],
-        communicationURL: agentData.communicationURL || currentMetadata?.communicationURL,
         communicationParams: agentData.communicationParams || currentMetadata?.communicationParams
       };
 
@@ -942,7 +926,7 @@ export class AgentService {
     const validProperties: AgentRecordProperty[] = [
       'name', 'description', 'category', 'imageURI', 'attributes', 
       'instructions', 'prompts', 'socials', 'communicationType', 
-      'communicationURL', 'communicationParams', 'openingGreeting', 'status'
+      'communicationParams', 'status'
     ];
 
     if (!validProperties.includes(property)) {
@@ -956,7 +940,6 @@ export class AgentService {
       case 'category':
       case 'imageURI':
       case 'communicationType':
-      case 'communicationURL':
       case 'status':
         if (typeof value !== 'string') {
           throw new AgentUpdateError(`Property ${property} must be a string`);

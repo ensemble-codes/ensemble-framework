@@ -33,9 +33,8 @@ pnpm dev agents get 0x5c02b4685492d36a40107b6ec48a91ab3f8875cb
 
 # Update agent
 pnpm dev agents update 0x5c02b4685492d36a40107b6ec48a91ab3f8875cb \
-  --communication-type "websocket" \
-  --communication-url "https://agents.ensemble.codes" \
-  --communication-params '{"agentId": "28d29474-23c7-01b9-aee8-ba150c366103"}'
+  --communication-type "socketio-eliza" \
+  --communication-params '{"websocketUrl": "https://agents.ensemble.codes", "agentId": "28d29474-23c7-01b9-aee8-ba150c366103", "version": "1.x", "env": "production"}'
 
 # Wallet operations
 pnpm dev wallets create main-wallet

@@ -101,7 +101,6 @@ describe("Ensemble Unit Tests", () => {
       },
       communicationType: "xmtp",
       attributes: ["Test"],
-      openingGreeting: "Test",
       instructions: ["Test"],
       prompts: ["Test"],
     };
@@ -132,7 +131,6 @@ describe("Ensemble Unit Tests", () => {
       },
       communicationType: "xmtp",
       attributes: ["Test"],
-      openingGreeting: "Test",
       instructions: ["Test"],
       prompts: ["Test"],
     };
@@ -168,7 +166,6 @@ describe("Ensemble Unit Tests", () => {
       },
       communicationType: "xmtp",
       attributes: ["Test"],
-      openingGreeting: "Test",
       instructions: ["Test"],
       prompts: ["Test"],
     };

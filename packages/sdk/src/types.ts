@@ -73,7 +73,63 @@ export type AgentSocials = {
   website?: string;
 }
 
-export type AgentCommunicationType = 'xmtp' | 'websocket';
+export type AgentCommunicationType = 'xmtp' | 'socketio-eliza';
+
+// Communication Parameters Types
+
+export interface BaseCommunicationParams {
+  // Base interface for common communication parameters across all types
+}
+
+export interface SocketIOElizaParams extends BaseCommunicationParams {
+  websocketUrl: string;       // Websocket URL for socketio-eliza connection
+  agentId: string;           // Agent identifier for socketio-eliza connection
+  version: '0.x' | '1.x';    // Eliza framework version
+  env: 'production' | 'dev'; // Environment setting
+}
+
+export interface XMTPParams extends BaseCommunicationParams {
+  address: string;           // XMTP address
+  env: 'production' | 'dev'; // XMTP network environment
+}
+
+export type CommunicationParams = SocketIOElizaParams | XMTPParams;
+
+// Type alias for serialized communication parameters (JSON string)
+export type SerializedCommunicationParams = string;
+
+// Type guard functions for communication parameters
+export function isSocketIOElizaParams(params: any): params is SocketIOElizaParams {
+  if (!params || typeof params !== 'object') return false;
+  
+  // Check if any SocketIO-Eliza-specific properties exist
+  const socketIOElizaProps = ['agentId', 'websocketUrl', 'version'];
+  const hasSocketIOElizaProp = socketIOElizaProps.some(prop => params.hasOwnProperty(prop));
+  
+  // If it has XMTP-specific properties, it's not SocketIO-Eliza params
+  const xmtpProps = ['address'];
+  const hasXMTPProp = xmtpProps.some(prop => params.hasOwnProperty(prop) && !params.hasOwnProperty('agentId'));
+  
+  return hasSocketIOElizaProp && !hasXMTPProp;
+}
+
+export function isXMTPParams(params: any): params is XMTPParams {
+  if (!params || typeof params !== 'object') return false;
+  
+  // Check if any XMTP-specific properties exist
+  const xmtpProps = ['address'];
+  const hasXMTPProp = xmtpProps.some(prop => params.hasOwnProperty(prop));
+  
+  // If it has SocketIO-Eliza-specific properties, it's not XMTP params
+  const socketIOElizaProps = ['agentId', 'websocketUrl', 'version'];
+  const hasSocketIOElizaProp = socketIOElizaProps.some(prop => params.hasOwnProperty(prop));
+  
+  return hasXMTPProp && !hasSocketIOElizaProp;
+}
+
+export function isCommunicationParams(params: any): params is CommunicationParams {
+  return isSocketIOElizaParams(params) || isXMTPParams(params);
+}
 
 export type AgentMetadata = {
   name: string;
@@ -81,13 +137,11 @@ export type AgentMetadata = {
   imageURI: string;
   socials: AgentSocials;
   agentCategory: string;
-  openingGreeting: string;
   communicationType: AgentCommunicationType;
   attributes: string[];
   instructions: string[];
   prompts: string[];
-  communicationURL?: string;
-  communicationParams?: string;
+  communicationParams?: string | CommunicationParams;
 }
 
 export interface TaskConnectorContract extends BaseContract {
@@ -158,9 +212,7 @@ export interface AgentRecord {
   prompts: string[]; // Example prompts or tasks for the agent
   socials: AgentSocials; // Social media or contact information for the agent
   communicationType: AgentCommunicationType; // Type of communication supported by the agent
-  communicationURL?: string; // Optional URL for communication endpoint
-  communicationParams?: string; // Optional parameters for communication setup
-  openingGreeting?: string; // Optional greeting message for the agent
+  communicationParams?: string | CommunicationParams; // Optional parameters for communication setup
   reputation: BigNumberish; // Agent's reputation score
   totalRatings: BigNumberish; // Total number of ratings received by the agent
 }
@@ -208,9 +260,7 @@ export interface RegisterAgentParams {
   prompts?: string[];              // optional
   socials?: Partial<AgentSocials>; // optional
   communicationType?: AgentCommunicationType; // optional
-  communicationURL?: string;       // optional
-  communicationParams?: string;    // optional
-  openingGreeting?: string;        // optional
+  communicationParams?: string | CommunicationParams;    // optional
 }
 
 
@@ -258,9 +308,7 @@ export interface UpdateableAgentRecord {
   prompts?: string[];
   socials?: Partial<AgentSocials>;
   communicationType?: AgentCommunicationType;
-  communicationURL?: string;
-  communicationParams?: string;
-  openingGreeting?: string;
+  communicationParams?: string | CommunicationParams;
   status?: AgentStatus;
 }
 

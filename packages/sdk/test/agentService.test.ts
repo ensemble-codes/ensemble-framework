@@ -64,13 +64,11 @@ describe("AgentService Tests", () => {
               name: "Test Agent",
               description: "A test agent",
               agentCategory: "test",
-              openingGreeting: "Hello!",
               attributes: ["testing", "ai"],
               instructions: ["Step 1", "Step 2"],
               prompts: ["Test prompt"],
-              communicationType: "websocket",
-              communicationURL: "wss://testagent.com/ws",
-              communicationParams: JSON.stringify({ timeout: 30000 }),
+              communicationType: "socketio-eliza",
+              communicationParams: JSON.stringify({ websocketUrl: "wss://testagent.com/ws", agentId: "test-agent", version: "1.x", env: "dev" }),
               imageUri: "https://ipfs.io/ipfs/QmTestImage",
               twitter: "@testagent",
               telegram: "@testagent",
@@ -200,9 +198,8 @@ describe("AgentService Tests", () => {
             attributes: ["testing", "ai"],
             instructions: ["Step 1", "Step 2"],
             prompts: ["Test prompt"],
-            communicationType: "websocket",
-            communicationURL: "wss://testagent.com/ws",
-            communicationParams: { timeout: 30000 },
+            communicationType: "socketio-eliza",
+            communicationParams: { websocketUrl: "wss://testagent.com/ws", agentId: "test-agent", version: "1.x", env: "dev" },
             imageUri: "https://ipfs.io/ipfs/QmTestImage",
             twitter: "@testagent",
             telegram: "@testagent",
@@ -384,8 +381,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            openingGreeting: "Hello",
-            communicationType: "websocket",
+            communicationType: "socketio-eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
@@ -398,7 +394,7 @@ describe("AgentService Tests", () => {
       });
 
       it("should validate string properties correctly", async () => {
-        const stringProperties = ['name', 'description', 'category', 'imageURI', 'communicationType', 'communicationURL', 'status'];
+        const stringProperties = ['name', 'description', 'category', 'imageURI', 'communicationType', 'status'];
         
         for (const prop of stringProperties) {
           await expect(
@@ -555,8 +551,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            openingGreeting: "Hello",
-            communicationType: "websocket",
+            communicationType: "socketio-eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
@@ -581,9 +576,8 @@ describe("AgentService Tests", () => {
             twitter: "@updated_agent",
             github: "updated-agent"
           },
-          communicationType: "websocket",
-          communicationURL: "wss://updated-agent.com/ws",
-          communicationParams: JSON.stringify({ timeout: 60000 }),
+          communicationType: "socketio-eliza",
+          communicationParams: JSON.stringify({ websocketUrl: "wss://updated-agent.com/ws", agentId: "updated-agent", version: "1.x", env: "production" }),
           status: AgentStatus.ACTIVE
         };
 
@@ -638,8 +632,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            openingGreeting: "Hello",
-            communicationType: "websocket",
+            communicationType: "socketio-eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
@@ -790,8 +783,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            openingGreeting: "Hello",
-            communicationType: "websocket",
+            communicationType: "socketio-eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
