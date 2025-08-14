@@ -7,6 +7,9 @@ import { ServiceRegistryService } from "./services/ServiceRegistryService"
 // Export all types and interfaces
 export * from "./types"
 
+// Export Zod schemas and validation functions
+export * from "./schemas/agent.schemas"
+
 export { 
     Ensemble, 
     AgentService, 

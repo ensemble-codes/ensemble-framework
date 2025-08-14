@@ -15,6 +15,13 @@ import {
   AgentSocials
 } from "../types";
 import {
+  validateRegisterParams,
+  validateUpdateParams,
+  validateAgentRecord,
+  parseAgentRecord,
+  parseCommunicationParamsFromString
+} from "../schemas/agent.schemas";
+import {
   AgentAlreadyRegisteredError,
   ServiceNotRegisteredError,
 } from "../errors";
@@ -131,6 +138,13 @@ export class AgentService {
       if (!this.ipfsSDK) {
         throw new Error("IPFS SDK is not initialized");
       }
+      
+      // Validate registration parameters using Zod
+      const validationResult = validateRegisterParams(params);
+      if (!validationResult.success) {
+        throw new Error(`Invalid registration parameters: ${validationResult.error.issues.map(i => i.message).join(', ')}`);
+      }
+      
       console.log(`registering agent ${address} with params:`, params);
       
       // Convert RegisterAgentParams to AgentMetadata for IPFS storage
@@ -197,6 +211,13 @@ export class AgentService {
       if (!this.ipfsSDK) {
         throw new Error("IPFS SDK is not initialized");
       }
+      
+      // Validate registration parameters using Zod
+      const validationResult = validateRegisterParams(params);
+      if (!validationResult.success) {
+        throw new Error(`Invalid registration parameters: ${validationResult.error.issues.map(i => i.message).join(', ')}`);
+      }
+      
       console.log(`registering agent ${address} with params:`, params);
       
       // Convert RegisterAgentParams to AgentMetadata for IPFS storage
@@ -833,6 +854,12 @@ export class AgentService {
   async updateAgentRecord(agentId: string, agentData: UpdateableAgentRecord): Promise<TransactionResult> {
     // Validate agent ID format
     this.validateAgentId(agentId);
+
+    // Validate update parameters using Zod
+    const validationResult = validateUpdateParams(agentData);
+    if (!validationResult.success) {
+      throw new Error(`Invalid update parameters: ${validationResult.error.issues.map(i => i.message).join(', ')}`);
+    }
 
     // Check if agent exists
     await this.validateAgentExists(agentId);

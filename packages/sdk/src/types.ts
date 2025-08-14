@@ -1,5 +1,19 @@
 import { BigNumberish } from "ethers";
 import { Contract, BaseContract, ContractRunner } from "ethers";
+import {
+  AgentSocials,
+  AgentCommunicationType,
+  SocketIOElizaParams,
+  XMTPParams,
+  CommunicationParams,
+  AgentRecord,
+  AgentMetadata,
+  RegisterAgentParams,
+  UpdateableAgentRecord,
+  isSocketIOElizaParams,
+  isXMTPParams,
+  isCommunicationParams
+} from './schemas/agent.schemas';
 
 export interface TaskCreatedEvent {
   owner: string;
@@ -65,84 +79,25 @@ export interface TaskStatusChangedEvent {
   status: TaskStatus;
 }
 
-export type AgentSocials = {
-  twitter: string;
-  telegram: string;
-  dexscreener: string;
-  github?: string;
-  website?: string;
-}
-
-export type AgentCommunicationType = 'xmtp' | 'socketio-eliza';
-
-// Communication Parameters Types
-
-export interface BaseCommunicationParams {
-  // Base interface for common communication parameters across all types
-}
-
-export interface SocketIOElizaParams extends BaseCommunicationParams {
-  websocketUrl: string;       // Websocket URL for socketio-eliza connection
-  agentId: string;           // Agent identifier for socketio-eliza connection
-  version: '0.x' | '1.x';    // Eliza framework version
-  env: 'production' | 'dev'; // Environment setting
-}
-
-export interface XMTPParams extends BaseCommunicationParams {
-  address: string;           // XMTP address
-  env: 'production' | 'dev'; // XMTP network environment
-}
-
-export type CommunicationParams = SocketIOElizaParams | XMTPParams;
+// Re-export types from schemas
+export {
+  AgentSocials,
+  AgentCommunicationType,
+  SocketIOElizaParams,
+  XMTPParams,
+  CommunicationParams,
+  AgentRecord,
+  AgentMetadata,
+  RegisterAgentParams,
+  UpdateableAgentRecord,
+  AgentStatus,
+  isSocketIOElizaParams,
+  isXMTPParams,
+  isCommunicationParams
+} from './schemas/agent.schemas';
 
 // Type alias for serialized communication parameters (JSON string)
 export type SerializedCommunicationParams = string;
-
-// Type guard functions for communication parameters
-export function isSocketIOElizaParams(params: any): params is SocketIOElizaParams {
-  if (!params || typeof params !== 'object') return false;
-  
-  // Check if any SocketIO-Eliza-specific properties exist
-  const socketIOElizaProps = ['agentId', 'websocketUrl', 'version'];
-  const hasSocketIOElizaProp = socketIOElizaProps.some(prop => params.hasOwnProperty(prop));
-  
-  // If it has XMTP-specific properties, it's not SocketIO-Eliza params
-  const xmtpProps = ['address'];
-  const hasXMTPProp = xmtpProps.some(prop => params.hasOwnProperty(prop) && !params.hasOwnProperty('agentId'));
-  
-  return hasSocketIOElizaProp && !hasXMTPProp;
-}
-
-export function isXMTPParams(params: any): params is XMTPParams {
-  if (!params || typeof params !== 'object') return false;
-  
-  // Check if any XMTP-specific properties exist
-  const xmtpProps = ['address'];
-  const hasXMTPProp = xmtpProps.some(prop => params.hasOwnProperty(prop));
-  
-  // If it has SocketIO-Eliza-specific properties, it's not XMTP params
-  const socketIOElizaProps = ['agentId', 'websocketUrl', 'version'];
-  const hasSocketIOElizaProp = socketIOElizaProps.some(prop => params.hasOwnProperty(prop));
-  
-  return hasXMTPProp && !hasSocketIOElizaProp;
-}
-
-export function isCommunicationParams(params: any): params is CommunicationParams {
-  return isSocketIOElizaParams(params) || isXMTPParams(params);
-}
-
-export type AgentMetadata = {
-  name: string;
-  description: string;
-  imageURI: string;
-  socials: AgentSocials;
-  agentCategory: string;
-  communicationType: AgentCommunicationType;
-  attributes: string[];
-  instructions: string[];
-  prompts: string[];
-  communicationParams?: string | CommunicationParams;
-}
 
 export interface TaskConnectorContract extends BaseContract {
   execute(data: string, target: string, value: BigNumberish): Promise<{
@@ -199,23 +154,6 @@ export interface Service {
 }
 
 
-export interface AgentRecord {
-  name: string; // The display name of the agent
-  description: string; // A brief description of the agent
-  address: string; // The blockchain address of the agent
-  category: string; // The category or type of the agent
-  owner: string; // The address of the agent's owner
-  agentUri: string; // URI pointing to agent metadata or resources
-  imageURI: string; // URI for the agent's image or avatar
-  attributes: string[]; // List of agent's attributes or tags
-  instructions: string[]; // List of instructions for interacting with the agent
-  prompts: string[]; // Example prompts or tasks for the agent
-  socials: AgentSocials; // Social media or contact information for the agent
-  communicationType: AgentCommunicationType; // Type of communication supported by the agent
-  communicationParams?: string | CommunicationParams; // Optional parameters for communication setup
-  reputation: BigNumberish; // Agent's reputation score
-  totalRatings: BigNumberish; // Total number of ratings received by the agent
-}
 
 export interface AgentData {
   name: string;
@@ -249,19 +187,6 @@ export interface AddProposalParams {
   tokenAddress: string;
 }
 
-export interface RegisterAgentParams {
-  name: string;                    // required
-  description: string;             // required
-  category: string;                // required
-  agentUri: string;                // required
-  imageURI?: string;               // optional
-  attributes?: string[];           // optional
-  instructions?: string[];         // optional
-  prompts?: string[];              // optional
-  socials?: Partial<AgentSocials>; // optional
-  communicationType?: AgentCommunicationType; // optional
-  communicationParams?: string | CommunicationParams;    // optional
-}
 
 
 
@@ -291,26 +216,7 @@ export interface TransactionResult {
   events?: any[];
 }
 
-export enum AgentStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  MAINTENANCE = 'maintenance',
-  SUSPENDED = 'suspended'
-}
 
-export interface UpdateableAgentRecord {
-  name?: string;
-  description?: string;
-  category?: string;
-  imageURI?: string;
-  attributes?: string[];
-  instructions?: string[];
-  prompts?: string[];
-  socials?: Partial<AgentSocials>;
-  communicationType?: AgentCommunicationType;
-  communicationParams?: string | CommunicationParams;
-  status?: AgentStatus;
-}
 
 export type AgentRecordProperty = keyof UpdateableAgentRecord;
 
