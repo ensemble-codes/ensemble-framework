@@ -1,18 +1,7 @@
 import { BigNumberish } from "ethers";
-import { Contract, BaseContract, ContractRunner } from "ethers";
+import { BaseContract } from "ethers";
 import {
-  AgentSocials,
-  AgentCommunicationType,
-  SocketIOElizaParams,
-  XMTPParams,
-  CommunicationParams,
-  AgentRecord,
-  AgentMetadata,
-  RegisterAgentParams,
   UpdateableAgentRecord,
-  isSocketIOElizaParams,
-  isXMTPParams,
-  isCommunicationParams
 } from './schemas/agent.schemas';
 
 export interface TaskCreatedEvent {
@@ -91,9 +80,6 @@ export {
   RegisterAgentParams,
   UpdateableAgentRecord,
   AgentStatus,
-  isSocketIOElizaParams,
-  isXMTPParams,
-  isCommunicationParams
 } from './schemas/agent.schemas';
 
 // Type alias for serialized communication parameters (JSON string)
