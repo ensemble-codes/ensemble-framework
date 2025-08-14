@@ -153,7 +153,6 @@ function validateBusinessRules(agentRecord: AgentRecordYAML, result: ValidationR
 async function validateUrls(agentRecord: AgentRecordYAML, result: ValidationResult): Promise<void> {
   const urlFields = [
     { field: 'imageURI', value: agentRecord.imageURI },
-    { field: 'communication.url', value: agentRecord.communication?.url },
     { field: 'socials.website', value: agentRecord.socials?.website }
   ];
 

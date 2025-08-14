@@ -24,7 +24,6 @@ export const updateAgentCommand = new Command('update')
   .option('--image-uri <uri>', 'Update agent image URI')
   .option('--status <status>', 'Update agent status')
   .option('--communication-type <type>', 'Update communication type')
-  .option('--communication-url <url>', 'Update communication URL')
   .option('--communication-params <params>', 'Update communication parameters (JSON string)')
   .option('--twitter <handle>', 'Update Twitter handle')
   .option('--telegram <handle>', 'Update Telegram handle')
@@ -90,8 +89,7 @@ export const updateAgentCommand = new Command('update')
           prompts: agentRecord.prompts,
           socials: agentRecord.socials,
           communicationType: agentRecord.communication?.type,
-          communicationURL: agentRecord.communication?.url,
-          communicationParams: agentRecord.communication?.params,
+          communicationParams: agentRecord.communication?.params ? JSON.stringify(agentRecord.communication.params) : undefined,
           status: agentRecord.status
         };
       } else {
@@ -102,7 +100,6 @@ export const updateAgentCommand = new Command('update')
         if (options.imageUri) updateData.imageURI = options.imageUri;
         if (options.status) updateData.status = options.status;
         if (options.communicationType) updateData.communicationType = options.communicationType;
-        if (options.communicationUrl) updateData.communicationURL = options.communicationUrl;
         if (options.communicationParams) {
           try {
             // Validate it's valid JSON
@@ -322,7 +319,7 @@ updateAgentCommand
       const validProperties = [
         'name', 'description', 'category', 'imageURI', 'status',
         'attributes', 'instructions', 'prompts', 'socials',
-        'communicationType', 'communicationURL', 'communicationParams'
+        'communicationType', 'communicationParams'
       ];
 
       if (!validProperties.includes(property)) {

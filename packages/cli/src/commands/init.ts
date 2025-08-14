@@ -92,8 +92,8 @@ async function createInteractiveTemplate(): Promise<AgentRecordYAML> {
       type: 'list',
       name: 'communicationType',
       message: 'Communication type:',
-      choices: ['websocket', 'xmtp'],
-      default: 'websocket'
+      choices: ['socketio-eliza', 'xmtp'],
+      default: 'socketio-eliza'
     },
     {
       type: 'input',
@@ -135,7 +135,6 @@ async function createInteractiveTemplate(): Promise<AgentRecordYAML> {
     imageURI: answers.imageURI || '',
     communication: {
       type: answers.communicationType,
-      url: answers.communicationURL || '',
       params: {}
     },
     socials: {
@@ -156,8 +155,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
       category: 'general',
       attributes: ['example'],
       communication: {
-        type: 'websocket',
-        url: '',
+        type: 'socketio-eliza',
         params: {}
       },
       socials: {},
@@ -179,8 +177,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         'Tell me more about your issue'
       ],
       communication: {
-        type: 'websocket',
-        url: 'wss://my-chatbot.com/ws',
+        type: 'socketio-eliza',
         params: {
           timeout: 30000,
           maxConnections: 100
@@ -207,8 +204,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         'Create a plan for my project'
       ],
       communication: {
-        type: 'websocket',
-        url: '',
+        type: 'socketio-eliza',
         params: {}
       },
       socials: {},
@@ -225,8 +221,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         'Handle errors gracefully'
       ],
       communication: {
-        type: 'websocket',
-        url: '',
+        type: 'socketio-eliza',
         params: {
           timeout: 60000
         }

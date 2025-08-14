@@ -9,6 +9,7 @@ import { createSDKInstance, createSignerFromPrivateKey } from '../../utils/sdk';
 import { validateAgentRecordYAML } from '../../utils/validation';
 import { getConfig } from '../../config/manager';
 import { AgentRecordYAML } from '../../types/config';
+import { RegisterAgentParams } from '@ensemble-ai/sdk';
 
 export const registerAgentCommand = new Command('register')
   .description('Register a new agent on the blockchain using an agent-record.yaml file')
@@ -102,11 +103,13 @@ export const registerAgentCommand = new Command('register')
 
       console.log(chalk.blue(`🔑 Using agent address: ${agentAddress}`));
 
-      // Convert YAML to AgentMetadata format
-      const metadata = {
+      // Convert YAML to RegisterAgentParams format
+      const registerParams: RegisterAgentParams = {
         name: agentRecord.name,
         description: agentRecord.description,
-        imageURI: agentRecord.imageURI || '',
+        category: agentRecord.category,
+        agentUri: agentRecord.imageURI || 'https://example.com/default-agent-metadata.json',
+        imageURI: agentRecord.imageURI,
         socials: {
           twitter: agentRecord.socials?.twitter || '',
           telegram: agentRecord.socials?.telegram || '',
@@ -114,14 +117,11 @@ export const registerAgentCommand = new Command('register')
           github: agentRecord.socials?.github || '',
           website: agentRecord.socials?.website || ''
         },
-        agentCategory: agentRecord.category,
-        openingGreeting: 'Hello! I am ready to help.',
-        communicationType: agentRecord.communication?.type || 'websocket' as const,
+        communicationType: agentRecord.communication?.type || 'socketio-eliza',
         attributes: agentRecord.attributes || [],
         instructions: agentRecord.instructions || [],
         prompts: agentRecord.prompts || [],
-        communicationURL: agentRecord.communication?.url,
-        communicationParams: agentRecord.communication?.params
+        communicationParams: agentRecord.communication?.params ? JSON.stringify(agentRecord.communication.params) : undefined
       };
 
       const registrationSpinner = ora('Registering agent on blockchain...').start();
@@ -129,7 +129,7 @@ export const registerAgentCommand = new Command('register')
       try {
         // Register the agent
         const agentService = sdk.agents;
-        const success = await agentService.registerAgent(agentAddress, metadata);
+        const success = await agentService.registerAgent(agentAddress, registerParams);
 
         if (success) {
           registrationSpinner.succeed('Agent registered successfully');
