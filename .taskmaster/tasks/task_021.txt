@@ -1,0 +1,121 @@
+# Task ID: 21
+# Title: Build Ensemble CLI Tool
+# Status: done
+# Dependencies: 3, 16, 20
+# Priority: high
+# Description: Create a comprehensive command-line interface for agent management that leverages the existing TypeScript SDK and REST API, providing commands for agent discovery, registration, updates, configuration management, and validation.
+# Details:
+1. Project Setup and Architecture:
+   - Create a new CLI package using TypeScript with commander.js or yargs for command parsing
+   - Set up proper project structure with src/, bin/, and config/ directories
+   - Configure TypeScript compilation and create executable entry point
+   - Install and configure @ensemble/sdk as primary dependency for blockchain interactions
+
+2. Core CLI Commands Implementation:
+   - `ensemble agents list` - List all agents using SDK's getAgents() method
+   - `ensemble agents get <id>` - Get specific agent details using SDK's getAgent(id)
+   - `ensemble agents categories` - List agent categories using SDK's getAgentCategories()
+   - `ensemble agents register <yaml-file>` - Register agent from agent-record.yaml file
+   - `ensemble agents update <id> <yaml-file>` - Update agent using updateAgentRecord() from SDK
+   - `ensemble agents export <id> <output-file>` - Export agent data to agent-record.yaml format
+   - `ensemble config set <key> <value>` - Manage CLI configuration (network, API endpoints)
+   - `ensemble config get <key>` - Retrieve configuration values
+   - `ensemble validate <yaml-file>` - Validate agent-record.yaml file structure
+
+3. Agent Record YAML Processing:
+   - Implement YAML parser/serializer for agent-record.yaml files
+   - Create TypeScript interfaces matching AgentRecord schema
+   - Add validation logic for required fields, data types, and business rules
+   - Support both import (YAML to SDK format) and export (SDK format to YAML) transformations
+
+4. Output Format Support:
+   - Implement multiple output formats: JSON, YAML, table, and CSV
+   - Add --format flag to all data retrieval commands
+   - Create formatters for each output type with proper data transformation
+   - Support --quiet flag for script-friendly output
+
+5. Configuration Management:
+   - Create ~/.ensemble/config.json for persistent CLI configuration
+   - Support environment-specific settings (mainnet, testnet, local)
+   - Allow configuration of SDK connection parameters, API endpoints, and default output formats
+   - Implement configuration validation and migration logic
+
+6. Error Handling and User Experience:
+   - Implement comprehensive error handling with user-friendly messages
+   - Add progress indicators for long-running operations
+   - Provide detailed help text and examples for each command
+   - Include input validation with clear error messages for invalid parameters
+   - Add --verbose flag for detailed operation logging
+
+7. SDK Integration Strategy:
+   - Use TypeScript SDK as primary data source for all blockchain operations
+   - Fall back to REST API only when SDK methods are unavailable
+   - Implement proper error handling for network connectivity issues
+   - Cache frequently accessed data to improve performance
+
+# Test Strategy:
+1. Unit Testing:
+   - Test all command parsers and argument validation logic
+   - Mock SDK methods and verify correct parameter passing
+   - Test YAML parsing/serialization with various agent-record.yaml formats
+   - Validate output formatters with sample data in all supported formats
+   - Test configuration management operations (set, get, validate)
+
+2. Integration Testing:
+   - Test CLI commands against live testnet using actual SDK connections
+   - Verify agent registration workflow from YAML file to blockchain
+   - Test agent update operations and validate changes are persisted
+   - Validate export functionality produces valid agent-record.yaml files
+   - Test error scenarios with invalid agent IDs, malformed YAML, and network failures
+
+3. End-to-End Testing:
+   - Create complete agent lifecycle test: register → list → get → update → export
+   - Test CLI in different environments (mainnet, testnet, local development)
+   - Verify configuration persistence across CLI sessions
+   - Test all output formats produce correct and parseable results
+   - Validate help text and command documentation accuracy
+
+4. User Acceptance Testing:
+   - Test CLI usability with real agent-record.yaml files
+   - Verify error messages are clear and actionable
+   - Test CLI performance with large agent datasets
+   - Validate cross-platform compatibility (Windows, macOS, Linux)
+   - Test CLI integration in CI/CD pipelines and automation scripts
+
+# Subtasks:
+## 1. Project Setup and Architecture [done]
+### Dependencies: None
+### Description: Initialize the CLI project using TypeScript, set up the directory structure (src/, bin/, config/), configure TypeScript compilation, and establish the executable entry point. Install and configure @ensemble/sdk and a command parser library (commander.js or yargs).
+### Details:
+Create a new CLI package, configure tsconfig.json, and ensure the CLI can be executed from the command line. Integrate @ensemble/sdk for blockchain interactions and set up the foundational project structure.
+
+## 2. Implement Core CLI Commands [done]
+### Dependencies: 21.1
+### Description: Develop the main CLI commands for agent management, including listing, retrieving, registering, updating, exporting agents, managing configuration, and validating agent records.
+### Details:
+Implement commands: 'ensemble agents list', 'ensemble agents get <id>', 'ensemble agents categories', 'ensemble agents register <yaml-file>', 'ensemble agents update <id> <yaml-file>', 'ensemble agents export <id> <output-file>', 'ensemble config set/get', and 'ensemble validate <yaml-file>'. Use SDK methods for all blockchain operations.
+
+## 3. Agent Record YAML Processing [done]
+### Dependencies: 21.2
+### Description: Implement YAML parsing and serialization for agent-record.yaml files, define TypeScript interfaces for AgentRecord schema, and add validation logic for required fields and business rules.
+### Details:
+Support import (YAML to SDK format) and export (SDK format to YAML) transformations. Ensure robust validation for agent records and seamless integration with CLI commands.
+
+## 4. Output Format Support [done]
+### Dependencies: 21.2
+### Description: Add support for multiple output formats (JSON, YAML, table, CSV) to all data retrieval commands, including --format and --quiet flags, and implement formatters for each type.
+### Details:
+Develop output formatters and integrate them with CLI commands. Ensure script-friendly output with --quiet and consistent formatting across all commands.
+
+## 5. Configuration Management [done]
+### Dependencies: 21.1
+### Description: Implement persistent CLI configuration using a config file (e.g., ~/.ensemble/config.json), support environment-specific settings, and allow configuration of SDK parameters, API endpoints, and default output formats.
+### Details:
+Enable configuration validation, migration logic, and support for environment-specific overrides. Ensure secure and user-friendly management of configuration data.
+
+## 6. Error Handling and User Experience Enhancements [done]
+### Dependencies: 21.2, 21.3, 21.4, 21.5
+### Description: Implement comprehensive error handling, user-friendly messages, progress indicators, detailed help text, input validation, and a --verbose flag for detailed logging.
+### Details:
+Ensure all commands provide clear feedback, handle errors gracefully, and offer actionable help. Add progress indicators for long-running operations and verbose logging for troubleshooting.
+

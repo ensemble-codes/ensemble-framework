@@ -1,0 +1,115 @@
+# Task ID: 14
+# Title: Add Swagger/OpenAPI Documentation for REST API Endpoints
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Implement comprehensive Swagger/OpenAPI documentation for all REST API endpoints with an interactive UI for testing and API exploration.
+# Details:
+1. Select and install appropriate OpenAPI tooling based on the existing backend framework (e.g., Swagger UI, ReDoc, or Stoplight):
+   - For Node.js/Express: use swagger-jsdoc and swagger-ui-express
+   - For Python/Flask: use flask-restx or flask-swagger-ui
+   - For Java Spring: use SpringFox or SpringDoc
+
+2. Create a base OpenAPI specification document (openapi.yaml or openapi.json) with:
+   - API metadata (title, version, description, contact information)
+   - Server configurations for different environments
+   - Security scheme definitions (JWT, API keys, OAuth2)
+   - Common response schemas and error formats
+
+3. Document all existing REST API endpoints with:
+   - Detailed path descriptions and operation summaries
+   - Request parameters (path, query, header)
+   - Request body schemas with examples
+   - Response schemas with status codes and examples
+   - Authentication requirements
+
+4. Implement code annotations or decorators in the API controllers/handlers to:
+   - Generate OpenAPI specifications from code comments
+   - Ensure documentation stays in sync with implementation
+   - Include validation rules and constraints
+
+5. Set up the interactive documentation UI:
+   - Configure Swagger UI with custom themes matching application branding
+   - Enable the "Try it out" feature for API testing
+   - Add authorization UI components for authenticated endpoints
+   - Configure CORS settings to allow documentation access
+
+6. Implement documentation for specific API categories:
+   - Agent management endpoints
+   - Task creation and management
+   - Authentication and identity endpoints
+   - Blockchain interaction endpoints
+   - Analytics and monitoring endpoints
+
+7. Add examples and use cases for common API workflows:
+   - Create sample requests for typical user journeys
+   - Document request/response pairs for complex operations
+   - Include authentication flow examples
+
+8. Implement API versioning strategy in the documentation:
+   - Document deprecation policies and timelines
+   - Provide migration guides between API versions
+   - Support multiple API versions in the documentation UI
+
+9. Integrate the documentation into the CI/CD pipeline:
+   - Validate OpenAPI specification during builds
+   - Generate updated documentation on deployment
+   - Publish documentation to a dedicated developer portal
+
+10. Implement documentation for error handling:
+    - Document all possible error codes and messages
+    - Provide troubleshooting guidance for common errors
+    - Include rate limiting and throttling information
+
+# Test Strategy:
+1. Validate OpenAPI specification compliance:
+   - Use tools like Spectral or OpenAPI validator to check specification correctness
+   - Verify that the OpenAPI document adheres to the OpenAPI 3.0 or 3.1 specification
+   - Ensure all required fields are present and properly formatted
+
+2. Test documentation generation:
+   - Verify that code annotations correctly generate OpenAPI specifications
+   - Check that changes to API endpoints are automatically reflected in documentation
+   - Test the documentation build process in different environments
+
+3. Verify interactive UI functionality:
+   - Test the Swagger UI in different browsers (Chrome, Firefox, Safari, Edge)
+   - Verify that the "Try it out" feature works for all endpoints
+   - Test authentication flows within the documentation UI
+   - Check that request/response examples are correctly displayed
+
+4. Conduct comprehensive API testing through the documentation UI:
+   - Test all endpoints using the interactive documentation
+   - Verify that responses match the documented schemas
+   - Test error scenarios and verify error documentation accuracy
+   - Check that all parameters and request bodies work as documented
+
+5. Perform security testing on the documentation:
+   - Verify that sensitive information is not exposed in examples
+   - Test that authentication tokens are properly handled
+   - Ensure that the documentation itself doesn't introduce security vulnerabilities
+
+6. Conduct user acceptance testing:
+   - Have developers use the documentation to implement API clients
+   - Collect feedback on documentation clarity and completeness
+   - Verify that the documentation helps reduce onboarding time
+
+7. Test documentation accessibility:
+   - Verify that the documentation meets WCAG accessibility standards
+   - Test screen reader compatibility
+   - Check color contrast and text readability
+
+8. Performance testing:
+   - Measure documentation load time and rendering performance
+   - Test documentation with large API specifications
+   - Verify that the interactive UI remains responsive with complex schemas
+
+9. Integration testing:
+   - Verify that the documentation integrates properly with the main application
+   - Test that API changes trigger documentation updates
+   - Check that documentation links correctly to other developer resources
+
+10. Cross-environment testing:
+    - Verify documentation works in development, staging, and production
+    - Test that environment-specific configurations are correctly applied
+    - Ensure documentation URLs and references are environment-aware

@@ -1,0 +1,56 @@
+# Task ID: 17
+# Title: Fix failing API tests in packages/api/src/routes/agents.test.ts
+# Status: done
+# Dependencies: 16
+# Priority: medium
+# Description: Debug and resolve failing test cases in the agents route test suite to ensure all API endpoints are properly tested and validated.
+# Details:
+1. Analyze the current test failures in packages/api/src/routes/agents.test.ts by running the test suite and identifying specific error messages, assertion failures, or timeout issues.
+
+2. Update test mocks and fixtures to align with the new SDK integration implemented in Task 16:
+   - Replace any hardcoded mock data with realistic test data that matches SDK response formats
+   - Update test assertions to expect actual blockchain data structures instead of mock responses
+   - Mock the @ensemble/sdk methods properly using jest.mock() or similar testing framework mocking capabilities
+
+3. Fix test setup and teardown procedures:
+   - Ensure proper test database/blockchain state initialization before each test
+   - Add cleanup procedures to reset state between tests
+   - Configure test environment variables for testnet connections if needed
+
+4. Address authentication and authorization test scenarios:
+   - Update tests to handle any new authentication requirements
+   - Mock authentication tokens or user sessions as needed
+   - Test both authenticated and unauthenticated request scenarios
+
+5. Update test assertions for error handling:
+   - Verify that API endpoints return appropriate HTTP status codes
+   - Test error response formats match the expected API contract
+   - Ensure blockchain connection failures are handled gracefully in tests
+
+6. Add missing test coverage for any new endpoints or functionality:
+   - Test all CRUD operations (GET, POST, PUT, DELETE) for agent routes
+   - Add edge case testing for invalid inputs, malformed requests, and boundary conditions
+   - Test rate limiting, pagination, and query parameter handling if applicable
+
+# Test Strategy:
+1. Run the failing test suite to establish baseline failure count and specific error messages: `npm test packages/api/src/routes/agents.test.ts --verbose`
+
+2. Fix tests incrementally and verify each fix:
+   - Run individual test cases to isolate and resolve specific failures
+   - Use `--watch` mode during development for rapid feedback
+   - Ensure each test passes consistently across multiple runs
+
+3. Validate test coverage and quality:
+   - Run coverage reports to ensure all code paths in agents routes are tested
+   - Verify that tests cover both success and failure scenarios
+   - Check that mocked SDK methods are called with expected parameters
+
+4. Integration testing validation:
+   - Run tests against a test environment with actual SDK integration
+   - Verify that tests work with both mocked and real SDK responses
+   - Test with different network conditions and error scenarios
+
+5. Regression testing:
+   - Run the full API test suite to ensure fixes don't break other tests
+   - Verify that all agent-related API endpoints still function correctly
+   - Test the API manually using tools like Postman or curl to confirm test accuracy
