@@ -147,7 +147,7 @@ Transform AI agents from passive tools into active economic participants capable
     - Supports nested object validation for socials and communication params
   
   - **Communication Parameters Validation**: Granular validation for different communication types
-    - Eliza Parameters: websocketUrl (URL), agentId (string), version (enum), env (enum)
+    - Eliza Parameters: connectionUrl (URL), agentId (string), version (enum), env (enum)
     - XMTP Parameters: Custom validation schema for XMTP-specific requirements
     - Extensible pattern for future communication types
   
@@ -290,10 +290,10 @@ Transform AI agents from passive tools into active economic participants capable
   
   # Communication Settings
   communication:
-    type: "eliza"                           # Required: eliza | xmtp | websocket
-    url: "wss://my-agent.com/ws"            # Optional: Communication endpoint
+    type: "eliza"                           # Required: eliza | xmtp
+    url: "https://my-agent.com"             # Optional: Communication endpoint
     params:                                  # Optional: Communication parameters
-      websocketUrl: "wss://agents.ensemble.codes"
+      connectionUrl: "https://agents.ensemble.codes"
       agentId: "agent-unique-id"
       version: "1.x"                        # 0.x | 1.x
       env: "production"                     # production | dev
@@ -332,7 +332,7 @@ Transform AI agents from passive tools into active economic participants capable
     - `--prompts <file>`: Update prompts from file
     - `--image-uri <uri>`: Update agent image URI
     - `--status <status>`: Update agent status
-    - `--communication-type <type>`: Update communication type (eliza, xmtp, websocket)
+    - `--communication-type <type>`: Update communication type (eliza, xmtp)
     - `--communication-url <url>`: Update communication URL
     - `--communication-params-prop <key=value>`: Update individual communication parameter
     - `--twitter <handle>`: Update Twitter handle
@@ -350,7 +350,7 @@ Transform AI agents from passive tools into active economic participants capable
     - `ensemble agents update 0x456...def --config ./updated-config.json --dry-run`
     - `ensemble agents update 0x456...def --attributes "ai,chatbot,updated" --confirm`
     - `ensemble agents update 0x456...def --communication-params-prop env=production`
-    - `ensemble agents update 0x456...def --communication-type eliza --communication-params-prop version=1.x`
+    - `ensemble agents update 0x456...def --communication-type eliza --communication-params-prop connectionUrl=https://agents.ensemble.codes`
 
 - **ensemble agents update-property**: Update a single agent property efficiently
   - Usage: `ensemble agents update-property <agent-address> <property> <value> [options]`

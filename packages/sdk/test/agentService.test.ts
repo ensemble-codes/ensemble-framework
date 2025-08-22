@@ -68,7 +68,7 @@ describe("AgentService Tests", () => {
               instructions: ["Step 1", "Step 2"],
               prompts: ["Test prompt"],
               communicationType: "eliza",
-              communicationParams: JSON.stringify({ websocketUrl: "wss://testagent.com/ws", agentId: "test-agent", version: "1.x", env: "dev" }),
+              communicationParams: JSON.stringify({ connectionUrl: "https://agents.ensemble.codes", agentId: "test-agent", version: "1.x", env: "dev" }),
               imageUri: "https://ipfs.io/ipfs/QmTestImage",
               twitter: "@testagent",
               telegram: "@testagent",
@@ -199,7 +199,7 @@ describe("AgentService Tests", () => {
             instructions: ["Step 1", "Step 2"],
             prompts: ["Test prompt"],
             communicationType: "eliza",
-            communicationParams: { websocketUrl: "wss://testagent.com/ws", agentId: "test-agent", version: "1.x", env: "dev" },
+            communicationParams: { connectionUrl: "https://agents.ensemble.codes", agentId: "test-agent", version: "1.x", env: "dev" },
             imageUri: "https://ipfs.io/ipfs/QmTestImage",
             twitter: "@testagent",
             telegram: "@testagent",
@@ -584,7 +584,7 @@ describe("AgentService Tests", () => {
             github: "updated-agent"
           },
           communicationType: "eliza",
-          communicationParams: JSON.stringify({ websocketUrl: "wss://updated-agent.com/ws", agentId: "updated-agent", version: "1.x", env: "production" }),
+          communicationParams: JSON.stringify({ connectionUrl: "https://updated-agent.ensemble.codes", agentId: "updated-agent", version: "1.x", env: "production" }),
           status: 'active' as const
         };
 

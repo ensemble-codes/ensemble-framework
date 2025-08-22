@@ -30,13 +30,28 @@ export const AgentCommunicationTypeSchema = z.enum(['xmtp', 'eliza']);
 // ============================================================================
 
 /**
- * Schema for Eliza communication parameters
+ * Schema for Eliza communication parameters with backward compatibility
  */
 export const ElizaParamsSchema = z.object({
-  websocketUrl: z.string().url('Invalid websocket URL'),
+  connectionUrl: z.string().url('Invalid connection URL').optional(),
+  websocketUrl: z.string().url('Invalid websocket URL').optional(), // Deprecated, for backward compatibility
   agentId: z.string().min(1, 'Agent ID is required'),
   version: z.enum(['0.x', '1.x']),
   env: z.enum(['production', 'dev'])
+}).transform((data) => {
+  // Handle backward compatibility: migrate websocketUrl to connectionUrl
+  if (data.websocketUrl && !data.connectionUrl) {
+    const { websocketUrl, ...rest } = data;
+    return { ...rest, connectionUrl: websocketUrl };
+  }
+  // Remove websocketUrl if connectionUrl exists
+  if (data.connectionUrl && data.websocketUrl) {
+    const { websocketUrl, ...rest } = data;
+    return rest;
+  }
+  return data;
+}).refine((data) => data.connectionUrl, {
+  message: 'Either connectionUrl or websocketUrl (deprecated) is required'
 });
 
 /**

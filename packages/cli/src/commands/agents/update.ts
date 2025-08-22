@@ -331,7 +331,7 @@ async function handleCommunicationParamsUpdate(options: any, currentAgent: any, 
       currentParams = { ...currentParams, ...jsonParams };
     } catch (e) {
       console.error(chalk.red('❌ Invalid JSON for --communication-params'));
-      console.error(chalk.yellow('💡 Example: --communication-params \'{"websocketUrl": "https://example.com"}\''));
+      console.error(chalk.yellow('💡 Example: --communication-params \'{"connectionUrl": "https://agents.ensemble.codes"}\''));
       process.exit(1);
     }
   }
@@ -342,7 +342,7 @@ async function handleCommunicationParamsUpdate(options: any, currentAgent: any, 
     
     if (!propString || !propString.includes('=')) {
       console.error(chalk.red('❌ Invalid format for --communication-params-prop'));
-      console.error(chalk.yellow('💡 Example: --communication-params-prop websocketUrl=wss://example.com'));
+      console.error(chalk.yellow('💡 Example: --communication-params-prop connectionUrl=https://example.com'));
       process.exit(1);
     }
     
@@ -351,7 +351,7 @@ async function handleCommunicationParamsUpdate(options: any, currentAgent: any, 
     
     if (!key || !value) {
       console.error(chalk.red('❌ Both key and value are required for --communication-params-prop'));
-      console.error(chalk.yellow('💡 Example: --communication-params-prop websocketUrl=wss://example.com'));
+      console.error(chalk.yellow('💡 Example: --communication-params-prop connectionUrl=https://example.com'));
       process.exit(1);
     }
     
@@ -371,16 +371,17 @@ async function handleCommunicationParamsUpdate(options: any, currentAgent: any, 
  */
 async function validateAndSetCommProperty(currentParams: any, key: string, value: string, commType: string): Promise<void> {
   switch (key) {
-    case 'websocketUrl':
+    case 'connectionUrl':
+    case 'websocketUrl':  // SDK will handle the migration
       if (commType !== 'eliza' && commType !== 'websocket') {
-        console.error(chalk.red(`❌ Cannot set websocketUrl for communication type: ${commType}`));
+        console.error(chalk.red(`❌ Cannot set ${key} for communication type: ${commType}`));
         process.exit(1);
       }
-      if (!value.startsWith('ws://') && !value.startsWith('wss://')) {
-        console.error(chalk.red('❌ WebSocket URL must start with ws:// or wss://'));
+      if (!value.startsWith('ws://') && !value.startsWith('wss://') && !value.startsWith('http://') && !value.startsWith('https://')) {
+        console.error(chalk.red('❌ Connection URL must start with http://, https://, ws://, or wss://'));
         process.exit(1);
       }
-      currentParams.websocketUrl = value;
+      currentParams[key] = value;
       break;
       
     case 'agentId':
