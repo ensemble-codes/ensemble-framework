@@ -158,8 +158,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         type: 'eliza',
         params: {}
       },
-      socials: {},
-      status: 'active'
+      socials: {}
     },
     chatbot: {
       name: 'My Chatbot',
@@ -185,8 +184,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
       },
       socials: {
         website: 'https://my-chatbot.com'
-      },
-      status: 'active'
+      }
     },
     assistant: {
       name: 'AI Assistant',
@@ -207,8 +205,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         type: 'eliza',
         params: {}
       },
-      socials: {},
-      status: 'active'
+      socials: {}
     },
     service: {
       name: 'Service Agent',
@@ -226,8 +223,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
           timeout: 60000
         }
       },
-      socials: {},
-      status: 'active'
+      socials: {}
     }
   };
 
@@ -240,7 +236,7 @@ function generateAgentRecordYAML(template: AgentRecordYAML): string {
 # Edit the values below and use 'ensemble register agent --config <file>' to register
 #
 # Required fields: name, description, category
-# Optional fields: All others
+# Optional fields: All others (including status: 'active' | 'inactive' | 'maintenance')
 #
 # Generated on: ${new Date().toISOString()}
 

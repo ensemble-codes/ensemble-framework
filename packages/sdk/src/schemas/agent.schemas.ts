@@ -94,6 +94,11 @@ export const BigNumberishSchema = z.union([
 ]);
 
 /**
+ * Schema for agent status
+ */
+export const AgentStatusSchema = z.enum(['active', 'inactive', 'maintenance', 'suspended']);
+
+/**
  * Complete agent record schema
  */
 export const AgentRecordSchema = z.object({
@@ -117,7 +122,8 @@ export const AgentRecordSchema = z.object({
   communicationType: AgentCommunicationTypeSchema,
   communicationParams: FlexibleCommunicationParamsSchema.optional(),
   reputation: BigNumberishSchema,
-  totalRatings: BigNumberishSchema
+  totalRatings: BigNumberishSchema,
+  status: AgentStatusSchema.optional()
 });
 
 /**
@@ -158,11 +164,6 @@ export const RegisterAgentParamsSchema = z.object({
   communicationType: AgentCommunicationTypeSchema.optional(),
   communicationParams: FlexibleCommunicationParamsSchema.optional()
 });
-
-/**
- * Schema for agent status
- */
-export const AgentStatusSchema = z.enum(['active', 'inactive', 'maintenance', 'suspended']);
 
 /**
  * Schema for updating agent record (all fields optional except immutable ones)

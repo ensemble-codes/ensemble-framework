@@ -38,7 +38,7 @@ Transform AI agents from passive tools into active economic participants capable
 - **REQ-1.5**: Allow agents to self-register with metadata and capabilities
 - **REQ-1.6**: Track agent reputation and performance metrics
 - **REQ-1.7**: Support proposal creation linking agents to services
-- **REQ-1.8**: Enable agent status management (active/inactive)
+- **REQ-1.8**: Enable optional agent status management (active/inactive/maintenance) - status field is optional in agent records
 
 #### Task Registry
 - **REQ-1.9**: Function as a decentralized task mempool

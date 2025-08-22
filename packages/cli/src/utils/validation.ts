@@ -78,7 +78,7 @@ function convertYamlToSdkFormat(agentRecord: AgentRecordYAML): RegisterAgentPara
     name: agentRecord.name,
     description: agentRecord.description,
     category: agentRecord.category,
-    agentUri: agentRecord.agentUri || 'https://example.com/default-agent-metadata.json',
+    agentUri: 'https://example.com/default-agent-metadata.json',
     imageURI: agentRecord.imageURI,
     attributes: agentRecord.attributes,
     instructions: agentRecord.instructions,
