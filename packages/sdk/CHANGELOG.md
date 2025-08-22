@@ -5,6 +5,18 @@ All notable changes to the Ensemble SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2025-08-22
+
+### Added
+- Optional signer pattern - SDK can now be initialized without a signer for read-only operations
+- `setSigner(signer)` method to add signer after initialization  
+- Support for provider-only initialization
+- Clear error messages when write operations require signer
+
+### Changed
+- All services now support optional signer with proper validation
+- Maintains full backward compatibility with existing code
+
 ## [0.6.0] - 2025-08-22
 
 ### BREAKING CHANGE
