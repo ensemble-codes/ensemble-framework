@@ -1,15 +1,38 @@
+import { ethers } from "ethers";
 import { Service } from "../types";
 import { ServiceAlreadyRegisteredError } from "../errors";
 import { ServiceRegistry } from "../../typechain";
 
 export class ServiceRegistryService {
-  constructor(private readonly serviceRegistry: ServiceRegistry) {}
+  constructor(
+    private readonly serviceRegistry: ServiceRegistry,
+    private signer?: ethers.Signer
+  ) {}
+
+  /**
+   * Set the signer for write operations
+   * @param {ethers.Signer} signer - The signer to use for write operations
+   */
+  setSigner(signer: ethers.Signer): void {
+    this.signer = signer;
+  }
+
+  /**
+   * Check if a signer is required for write operations
+   * @private
+   */
+  private requireSigner(): void {
+    if (!this.signer) {
+      throw new Error("Signer required for write operations. Call setSigner() first.");
+    }
+  }
 
   /**
    * @param service The service to register
    * @returns A promise that resolves when the service is registered
    */
   async registerService(service: Service): Promise<boolean> {
+    this.requireSigner();
     try {
       console.log(`Registering service: ${service.name}`);
 
