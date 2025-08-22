@@ -1,6 +1,6 @@
 {
   "name": "@ensemble-ai/sdk",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "TypeScript SDK for the Agentic Hub",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
