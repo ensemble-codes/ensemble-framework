@@ -7,6 +7,11 @@ describe("Optional Signer Basic Integration", () => {
     serviceRegistryAddress: "0x123",
     agentRegistryAddress: "0x456", 
     taskRegistryAddress: "0x789",
+    network: {
+      chainId: 1,
+      name: "mainnet",
+      rpcUrl: "https://test-rpc.com"
+    },
     subgraphUrl: "https://test-subgraph.com"
   };
 
