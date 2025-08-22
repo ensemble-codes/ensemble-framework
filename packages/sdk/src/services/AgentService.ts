@@ -107,7 +107,7 @@ export class AgentService {
 
   constructor(
     private readonly agentRegistry: AgentsRegistry,
-    private readonly signer: ethers.Signer,
+    private signer?: ethers.Signer,
     private readonly ipfsSDK?: PinataSDK,
     subgraphUrl?: string
   ) {
@@ -117,11 +117,30 @@ export class AgentService {
   }
 
   /**
+   * Set the signer for write operations
+   * @param {ethers.Signer} signer - The signer to use for write operations
+   */
+  setSigner(signer: ethers.Signer): void {
+    this.signer = signer;
+  }
+
+  /**
+   * Check if a signer is required for write operations
+   * @private
+   */
+  private requireSigner(): void {
+    if (!this.signer) {
+      throw new Error("Signer required for write operations. Call setSigner() first.");
+    }
+  }
+
+  /**
    * Gets the address of the agent.
    * @returns {Promise<string>} A promise that resolves to the agent.
    */
   async getAgentAddress(): Promise<string> {
-    return this.signer.getAddress();
+    this.requireSigner();
+    return this.signer!.getAddress();
   }
 
   /**
@@ -134,6 +153,7 @@ export class AgentService {
     address: string,
     params: RegisterAgentParams
   ): Promise<boolean> {
+    this.requireSigner();
     try {
       if (!this.ipfsSDK) {
         throw new Error("IPFS SDK is not initialized");
@@ -207,6 +227,7 @@ export class AgentService {
     servicePrice: number,
     tokenAddress: string = "0x0000000000000000000000000000000000000000" // Default to zero address for ETH
   ): Promise<boolean> {
+    this.requireSigner();
     try {
       if (!this.ipfsSDK) {
         throw new Error("IPFS SDK is not initialized");
@@ -283,6 +304,7 @@ export class AgentService {
     servicePrice: number,
     tokenAddress: string
   ): Promise<boolean> {
+    this.requireSigner();
     try {
       const tx = await this.agentRegistry.addProposal(
         agentAddress,
@@ -310,6 +332,7 @@ export class AgentService {
     agentAddress: string,
     proposalId: string
   ): Promise<boolean> {
+    this.requireSigner();
     try {
       const tx = await this.agentRegistry.removeProposal(
         agentAddress,
@@ -451,6 +474,7 @@ export class AgentService {
     agentAddress: string,
     metadata: AgentMetadata
   ): Promise<boolean> {
+    this.requireSigner();
     try {
       if (!this.ipfsSDK) {
         throw new Error("IPFS SDK is not initialized");
@@ -852,6 +876,7 @@ export class AgentService {
    * console.log(`Transaction hash: ${result.transactionHash}`);
    */
   async updateAgentRecord(agentId: string, agentData: UpdateableAgentRecord): Promise<TransactionResult> {
+    this.requireSigner();
     // Validate agent ID format
     this.validateAgentId(agentId);
 
@@ -946,6 +971,7 @@ export class AgentService {
     property: AgentRecordProperty, 
     value: any
   ): Promise<TransactionResult> {
+    this.requireSigner();
     // Validate agent ID format
     this.validateAgentId(agentId);
 

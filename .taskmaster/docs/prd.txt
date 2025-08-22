@@ -130,6 +130,7 @@ Transform AI agents from passive tools into active economic participants capable
 - **REQ-4.3**: Enable real-time task notifications
 - **REQ-4.4**: Provide payment and reputation management tools
 - **REQ-4.5**: Support multiple blockchain networks (Base, Base Sepolia)
+- **REQ-4.6**: Support optional signer pattern for flexible SDK usage
 
 #### SDK Validation Features
 - **REQ-4.1.1**: Comprehensive Zod-based validation system for all agent operations
@@ -157,17 +158,95 @@ Transform AI agents from passive tools into active economic participants capable
     - Integration with CLI for user-friendly error display
     - Validation result objects with success/error status
 
+#### SDK Optional Signer Pattern
+- **REQ-4.6.1**: Flexible SDK initialization supporting both read-only and write operations
+  - **Optional Signer Parameter**: Ensemble.create(config, signerOrProvider?, ipfsSDK?)
+    - Accepts ethers.Signer for write operations
+    - Accepts ethers.Provider for read-only operations
+    - Defaults to JsonRpcProvider when no parameter provided
+    - Maintains backward compatibility with existing signer-required patterns
+  
+  - **Dynamic Signer Assignment**: setSigner(signer: ethers.Signer) method
+    - Enables adding signer after SDK initialization
+    - Updates all service instances (AgentService, ServiceRegistryService)
+    - Allows transition from read-only to full-functionality mode
+    - Useful for applications with delayed wallet connection
+  
+  - **Write Operation Protection**: Automatic signer validation for write methods
+    - Clear error messages: "Signer required for write operations. Call setSigner() first."
+    - Fail-fast validation prevents confusing ethers.js errors
+    - Consistent behavior across all write operations
+    - Developer-friendly error handling with actionable guidance
+
+- **REQ-4.6.2**: Method-level signer requirements and usage patterns
+  - **Read-Only Methods** (No signer required):
+    - getAgentRecord(), getAgentsByOwner(), searchAgents()
+    - getTaskData(), getTasksByIssuer()
+    - getService(), agent discovery operations
+    - All subgraph-based queries and blockchain reads
+  
+  - **Write Methods** (Signer required):
+    - createTask(), completeTask(), rateTask(), cancelTask()
+    - registerAgent(), registerAgentWithService(), updateAgentMetadata()
+    - addProposal(), registerService()
+    - getWalletAddress() (requires signer for address retrieval)
+
+- **REQ-4.6.3**: Implementation architecture and technical specifications
+  - **Service Layer Updates**: All core services support optional signer pattern
+    - AgentService: Optional signer in constructor, setSigner() method, requireSigner() validation
+    - ServiceRegistryService: Optional signer support with write operation guards
+    - TaskService: Inherits signer requirements through AgentService dependency
+  
+  - **Contract Connection Strategy**: Flexible provider/signer usage
+    - Connect contracts with Provider for read operations
+    - Utilize Signer for write operations when available
+    - Automatic detection of Signer vs Provider using 'getAddress' method presence
+    - Seamless reconnection when signer is added via setSigner()
+  
+  - **Error Handling Strategy**: Consistent and user-friendly error messaging
+    - Explicit requireSigner() calls in all write methods
+    - Standardized error message across all services
+    - Prevention of confusing ethers.js internal errors
+    - Clear guidance on required actions (call setSigner() first)
+
+- **REQ-4.6.4**: Usage examples and integration patterns
+  ```typescript
+  // Read-only usage (no signer needed)
+  const ensemble = Ensemble.create(config);
+  const agents = await ensemble.getAgentsByOwner(address);
+  const task = await ensemble.getTaskData(taskId);
+  
+  // Write operations (signer required)
+  // Option 1: Provide signer upfront
+  const ensemble = Ensemble.create(config, signer);
+  await ensemble.createTask(params);
+  
+  // Option 2: Add signer later
+  const ensemble = Ensemble.create(config);
+  ensemble.setSigner(signer);
+  await ensemble.createTask(params);
+  
+  // Option 3: Clear error handling
+  const ensemble = Ensemble.create(config);
+  try {
+    await ensemble.createTask(params);
+  } catch (error) {
+    // Error: "Signer required for write operations. Call setSigner() first."
+    // User knows exactly what action to take
+  }
+  ```
+
 #### Python SDK
-- **REQ-4.6**: Mirror TypeScript SDK functionality for Python agents
-- **REQ-4.7**: Provide Pythonic API design patterns
-- **REQ-4.8**: Support async/await programming models
-- **REQ-4.9**: Enable easy agent deployment and management
+- **REQ-4.7**: Mirror TypeScript SDK functionality for Python agents
+- **REQ-4.8**: Provide Pythonic API design patterns
+- **REQ-4.9**: Support async/await programming models
+- **REQ-4.10**: Enable easy agent deployment and management
 
 #### Frontend Applications
-- **REQ-4.10**: Build intuitive task management interface
-- **REQ-4.11**: Provide agent monitoring and analytics dashboard
-- **REQ-4.12**: Enable user-friendly task creation workflows
-- **REQ-4.13**: Support agent registration and configuration
+- **REQ-4.11**: Build intuitive task management interface
+- **REQ-4.12**: Provide agent monitoring and analytics dashboard
+- **REQ-4.13**: Enable user-friendly task creation workflows
+- **REQ-4.14**: Support agent registration and configuration
 
 ### 5. Developer Tools & Infrastructure
 

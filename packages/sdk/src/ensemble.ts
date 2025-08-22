@@ -20,11 +20,16 @@ import {
 } from "../typechain";
 
 export class Ensemble {
+  private signer?: ethers.Signer;
+
   constructor(
     private readonly taskService: TaskService,
     private readonly agentService: AgentService,
-    private readonly serviceRegistryService: ServiceRegistryService
-  ) {}
+    private readonly serviceRegistryService: ServiceRegistryService,
+    signer?: ethers.Signer
+  ) {
+    this.signer = signer;
+  }
 
   /**
    * Get the agent service instance
@@ -33,31 +38,55 @@ export class Ensemble {
     return this.agentService;
   }
 
+  /**
+   * Set the signer for write operations
+   * @param {ethers.Signer} signer - The signer to use for write operations
+   */
+  setSigner(signer: ethers.Signer): void {
+    this.signer = signer;
+    this.agentService.setSigner(signer);
+    this.serviceRegistryService.setSigner(signer);
+  }
+
+  /**
+   * Check if a signer is required for write operations
+   * @private
+   */
+  private requireSigner(): void {
+    if (!this.signer) {
+      throw new Error("Signer required for write operations. Call setSigner() first.");
+    }
+  }
+
   static create(
     config: EnsembleConfig,
-    signer: ethers.Signer,
+    signerOrProvider?: ethers.Signer | ethers.Provider,
     ipfsSDK?: PinataSDK
   ) {
+    // Determine if we have a signer or just a provider
+    const signer = signerOrProvider && 'getAddress' in signerOrProvider ? signerOrProvider : undefined;
+    const provider = signerOrProvider || new ethers.JsonRpcProvider();
+
     const serviceRegistry = ServiceRegistry__factory.connect(
       config.serviceRegistryAddress,
-      signer
+      provider
     );
 
     const agentRegistry = AgentsRegistry__factory.connect(
       config.agentRegistryAddress,
-      signer
+      provider
     );
 
     const taskRegistry = TaskRegistry__factory.connect(
       config.taskRegistryAddress,
-      signer
+      provider
     );
 
-    const serviceRegistryService = new ServiceRegistryService(serviceRegistry);
+    const serviceRegistryService = new ServiceRegistryService(serviceRegistry, signer);
     const agentService = new AgentService(agentRegistry, signer, ipfsSDK, config.subgraphUrl);
     const taskService = new TaskService(taskRegistry, agentService);
 
-    return new Ensemble(taskService, agentService, serviceRegistryService);
+    return new Ensemble(taskService, agentService, serviceRegistryService, signer);
   }
 
   /**
@@ -75,8 +104,10 @@ export class Ensemble {
    * Creates a new task.
    * @param {TaskCreationParams} params - The parameters for task creation.
    * @returns {Promise<TaskData>} A promise that resolves to the task ID.
+   * @requires signer
    */
   async createTask(params: TaskCreationParams): Promise<TaskData> {
+    this.requireSigner();
     return this.taskService.createTask(params);
   }
 
@@ -103,8 +134,10 @@ export class Ensemble {
    * @param {string} taskId - The ID of the task.
    * @param {string} result - The result of the task.
    * @returns {Promise<void>} A promise that resolves when the task is completed.
+   * @requires signer
    */
   async completeTask(taskId: string, result: string): Promise<void> {
+    this.requireSigner();
     return this.taskService.completeTask(taskId, result);
   }
 
@@ -113,8 +146,10 @@ export class Ensemble {
    * @param {string} taskId - The ID of the task.
    * @param {number} rating - The rating.
    * @returns {Promise<void>} A promise that resolves when the task is assigned.
+   * @requires signer
    */
   async rateTask(taskId: string, rating: number): Promise<void> {
+    this.requireSigner();
     return this.taskService.rateTask(taskId, rating);
   }
 
@@ -122,8 +157,10 @@ export class Ensemble {
    * Cancels a task.
    * @param {string} taskId - The ID of the task.
    * @returns {Promise<void>} A promise that resolves when the task is canceled.
+   * @requires signer
    */
   async cancelTask(taskId: string): Promise<void> {
+    this.requireSigner();
     return this.taskService.cancelTask(taskId);
   }
 
@@ -132,11 +169,13 @@ export class Ensemble {
    * @param {string} address - The address of the agent.
    * @param {RegisterAgentParams} params - The registration parameters for the agent.
    * @returns {Promise<boolean>} A promise that resolves to the agent registration status.
+   * @requires signer
    */
   async registerAgent(
     address: string,
     params: RegisterAgentParams
   ): Promise<boolean> {
+    this.requireSigner();
     return this.agentService.registerAgent(
       address,
       params
@@ -151,6 +190,7 @@ export class Ensemble {
    * @param {number} servicePrice - The price of the service.
    * @param {string} tokenAddress - The token address for payment.
    * @returns {Promise<boolean>} A promise that resolves to the agent registration status.
+   * @requires signer
    */
   async registerAgentWithService(
     address: string,
@@ -159,6 +199,7 @@ export class Ensemble {
     servicePrice: number,
     tokenAddress: string = "0x0000000000000000000000000000000000000000" // Default to zero address for ETH
   ): Promise<boolean> {
+    this.requireSigner();
     return this.agentService.registerAgentWithService(
       address,
       params,
@@ -171,8 +212,10 @@ export class Ensemble {
   /**
    * Gets the address of the agent.
    * @returns {Promise<string>} A promise that resolves to the agent address.
+   * @requires signer
    */
   async getWalletAddress(): Promise<string> {
+    this.requireSigner();
     return this.agentService.getAgentAddress();
   }
 
@@ -190,11 +233,13 @@ export class Ensemble {
    * @param {string} agentAddress - The address of the agent to update.
    * @param {AgentMetadata} metadata - The new metadata for the agent.
    * @returns {Promise<boolean>} A promise that resolves to true if the update was successful.
+   * @requires signer
    */
   async updateAgentMetadata(
     agentAddress: string,
     metadata: AgentMetadata
   ): Promise<boolean> {
+    this.requireSigner();
     return this.agentService.updateAgentMetadata(agentAddress, metadata);
   }
 
@@ -222,8 +267,10 @@ export class Ensemble {
    * Registers a new service.
    * @param {Service} service - The service to register.
    * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if the service is registered.
+   * @requires signer
    */
   async registerService(service: Service): Promise<boolean> {
+    this.requireSigner();
     return this.serviceRegistryService.registerService(service);
   }
 
@@ -243,6 +290,7 @@ export class Ensemble {
    * @param {number} servicePrice The price of the service.
    * @param {string} tokenAddress The token address for payment.
    * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if the proposal was added.
+   * @requires signer
    */
   async addProposal(
     agentAddress: string,
@@ -250,6 +298,7 @@ export class Ensemble {
     servicePrice: number,
     tokenAddress: string
   ): Promise<boolean> {
+    this.requireSigner();
     return this.agentService.addProposal(agentAddress, serviceName, servicePrice, tokenAddress);
   }
 }
