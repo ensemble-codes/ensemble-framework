@@ -6,7 +6,7 @@ import inquirer from 'inquirer';
 import ora from 'ora';
 import { createSDKInstance, createSignerFromPrivateKey } from '../../utils/sdk';
 import { validateAgentRecordYAML } from '../../utils/validation';
-import { validateUpdateParams } from '@ensemble-ai/sdk';
+import { validateUpdateParams } from '@ensemble-ai/sdk/src/schemas/agent.schemas';
 import { getConfig } from '../../config/manager';
 import { AgentRecordYAML } from '../../types/config';
 import { WalletService } from '../../services/WalletService';
@@ -356,7 +356,7 @@ async function handleCommunicationParamsUpdate(options: any, currentAgent: any, 
     }
     
     // Determine current or target communication type
-    const commType = options.communicationType || currentAgent.communicationType || 'socketio-eliza';
+    const commType = options.communicationType || currentAgent.communicationType || 'eliza';
     
     // Validate and set the property based on communication type and key
     await validateAndSetCommProperty(currentParams, key, value, commType);
@@ -372,7 +372,7 @@ async function handleCommunicationParamsUpdate(options: any, currentAgent: any, 
 async function validateAndSetCommProperty(currentParams: any, key: string, value: string, commType: string): Promise<void> {
   switch (key) {
     case 'websocketUrl':
-      if (commType !== 'socketio-eliza' && commType !== 'websocket') {
+      if (commType !== 'eliza' && commType !== 'websocket') {
         console.error(chalk.red(`❌ Cannot set websocketUrl for communication type: ${commType}`));
         process.exit(1);
       }
@@ -384,7 +384,7 @@ async function validateAndSetCommProperty(currentParams: any, key: string, value
       break;
       
     case 'agentId':
-      if (commType !== 'socketio-eliza' && commType !== 'websocket') {
+      if (commType !== 'eliza' && commType !== 'websocket') {
         console.error(chalk.red(`❌ Cannot set agentId for communication type: ${commType}`));
         process.exit(1);
       }
@@ -392,7 +392,7 @@ async function validateAndSetCommProperty(currentParams: any, key: string, value
       break;
       
     case 'version':
-      if (commType !== 'socketio-eliza' && commType !== 'websocket') {
+      if (commType !== 'eliza' && commType !== 'websocket') {
         console.error(chalk.red(`❌ Cannot set version for communication type: ${commType}`));
         process.exit(1);
       }

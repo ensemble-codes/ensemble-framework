@@ -72,7 +72,7 @@ export interface TaskStatusChangedEvent {
 export {
   AgentSocials,
   AgentCommunicationType,
-  SocketIOElizaParams,
+  ElizaParams,
   XMTPParams,
   CommunicationParams,
   AgentRecord,

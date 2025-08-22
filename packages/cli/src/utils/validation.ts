@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { parse as yamlParse } from 'yaml';
 import { AgentRecordYAML } from '../types/config';
-import { validateRegisterParams, RegisterAgentParams } from '@ensemble-ai/sdk';
+import { validateRegisterParams, RegisterAgentParams } from '@ensemble-ai/sdk/src/schemas/agent.schemas';
 
 export interface ValidationResult {
   valid: boolean;
@@ -128,7 +128,7 @@ function validateSchema(agentRecord: any, result: ValidationResult): void {
 
   // Validate communication type
   if (agentRecord.communication?.type) {
-    const validCommTypes = ['socketio-eliza', 'xmtp'];
+    const validCommTypes = ['eliza', 'xmtp'];
     if (!validCommTypes.includes(agentRecord.communication.type)) {
       result.errors.push(`Invalid communication type. Must be one of: ${validCommTypes.join(', ')}`);
     }

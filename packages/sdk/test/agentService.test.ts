@@ -67,7 +67,7 @@ describe("AgentService Tests", () => {
               attributes: ["testing", "ai"],
               instructions: ["Step 1", "Step 2"],
               prompts: ["Test prompt"],
-              communicationType: "socketio-eliza",
+              communicationType: "eliza",
               communicationParams: JSON.stringify({ websocketUrl: "wss://testagent.com/ws", agentId: "test-agent", version: "1.x", env: "dev" }),
               imageUri: "https://ipfs.io/ipfs/QmTestImage",
               twitter: "@testagent",
@@ -198,7 +198,7 @@ describe("AgentService Tests", () => {
             attributes: ["testing", "ai"],
             instructions: ["Step 1", "Step 2"],
             prompts: ["Test prompt"],
-            communicationType: "socketio-eliza",
+            communicationType: "eliza",
             communicationParams: { websocketUrl: "wss://testagent.com/ws", agentId: "test-agent", version: "1.x", env: "dev" },
             imageUri: "https://ipfs.io/ipfs/QmTestImage",
             twitter: "@testagent",
@@ -381,7 +381,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            communicationType: "socketio-eliza",
+            communicationType: "eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
@@ -399,7 +399,7 @@ describe("AgentService Tests", () => {
           description: "Valid description", 
           category: "valid-category",
           imageURI: "https://example.com/image.png",
-          communicationType: "socketio-eliza",
+          communicationType: "eliza",
           status: "active"
         };
         
@@ -558,7 +558,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            communicationType: "socketio-eliza",
+            communicationType: "eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
@@ -583,7 +583,7 @@ describe("AgentService Tests", () => {
             twitter: "@updated_agent",
             github: "updated-agent"
           },
-          communicationType: "socketio-eliza",
+          communicationType: "eliza",
           communicationParams: JSON.stringify({ websocketUrl: "wss://updated-agent.com/ws", agentId: "updated-agent", version: "1.x", env: "production" }),
           status: 'active' as const
         };
@@ -639,7 +639,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            communicationType: "socketio-eliza",
+            communicationType: "eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
@@ -790,7 +790,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            communicationType: "socketio-eliza",
+            communicationType: "eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]

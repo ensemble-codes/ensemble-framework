@@ -26,7 +26,7 @@ export interface AgentRecordYAML {
   prompts?: string[];
   imageURI?: string;
   communication?: {
-    type: 'socketio-eliza' | 'xmtp';
+    type: 'eliza' | 'xmtp';
     params?: Record<string, any>;
   };
   socials?: {

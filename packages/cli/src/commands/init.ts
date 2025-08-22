@@ -92,8 +92,8 @@ async function createInteractiveTemplate(): Promise<AgentRecordYAML> {
       type: 'list',
       name: 'communicationType',
       message: 'Communication type:',
-      choices: ['socketio-eliza', 'xmtp'],
-      default: 'socketio-eliza'
+      choices: ['eliza', 'xmtp'],
+      default: 'eliza'
     },
     {
       type: 'input',
@@ -155,7 +155,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
       category: 'general',
       attributes: ['example'],
       communication: {
-        type: 'socketio-eliza',
+        type: 'eliza',
         params: {}
       },
       socials: {},
@@ -177,7 +177,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         'Tell me more about your issue'
       ],
       communication: {
-        type: 'socketio-eliza',
+        type: 'eliza',
         params: {
           timeout: 30000,
           maxConnections: 100
@@ -204,7 +204,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         'Create a plan for my project'
       ],
       communication: {
-        type: 'socketio-eliza',
+        type: 'eliza',
         params: {}
       },
       socials: {},
@@ -221,7 +221,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         'Handle errors gracefully'
       ],
       communication: {
-        type: 'socketio-eliza',
+        type: 'eliza',
         params: {
           timeout: 60000
         }

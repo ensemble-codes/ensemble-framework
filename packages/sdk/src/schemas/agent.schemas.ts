@@ -23,16 +23,16 @@ export const AgentSocialsSchema = z.object({
 /**
  * Schema for agent communication types
  */
-export const AgentCommunicationTypeSchema = z.enum(['xmtp', 'socketio-eliza']);
+export const AgentCommunicationTypeSchema = z.enum(['xmtp', 'eliza']);
 
 // ============================================================================
 // Communication Parameters Schemas
 // ============================================================================
 
 /**
- * Schema for SocketIO-Eliza communication parameters
+ * Schema for Eliza communication parameters
  */
-export const SocketIOElizaParamsSchema = z.object({
+export const ElizaParamsSchema = z.object({
   websocketUrl: z.string().url('Invalid websocket URL'),
   agentId: z.string().min(1, 'Agent ID is required'),
   version: z.enum(['0.x', '1.x']),
@@ -52,7 +52,7 @@ export const XMTPParamsSchema = z.object({
  * Supports discriminated union for better type narrowing
  */
 export const CommunicationParamsSchema = z.union([
-  SocketIOElizaParamsSchema,
+  ElizaParamsSchema,
   XMTPParamsSchema
 ]);
 
@@ -175,7 +175,7 @@ export const UpdateableAgentRecordSchema = z.object({
 
 export type AgentSocials = z.infer<typeof AgentSocialsSchema>;
 export type AgentCommunicationType = z.infer<typeof AgentCommunicationTypeSchema>;
-export type SocketIOElizaParams = z.infer<typeof SocketIOElizaParamsSchema>;
+export type ElizaParams = z.infer<typeof ElizaParamsSchema>;
 export type XMTPParams = z.infer<typeof XMTPParamsSchema>;
 export type CommunicationParams = z.infer<typeof CommunicationParamsSchema>;
 export type AgentRecord = z.infer<typeof AgentRecordSchema>;
@@ -253,10 +253,10 @@ export const parseUpdateParams = (data: unknown): UpdateableAgentRecord => {
 // ============================================================================
 
 /**
- * Type guard for SocketIOElizaParams
+ * Type guard for ElizaParams
  */
-export const isSocketIOElizaParams = (params: unknown): params is SocketIOElizaParams => {
-  return SocketIOElizaParamsSchema.safeParse(params).success;
+export const isElizaParams = (params: unknown): params is ElizaParams => {
+  return ElizaParamsSchema.safeParse(params).success;
 };
 
 /**

@@ -117,7 +117,7 @@ export const registerAgentCommand = new Command('register')
           github: agentRecord.socials?.github || '',
           website: agentRecord.socials?.website || ''
         },
-        communicationType: agentRecord.communication?.type || 'socketio-eliza',
+        communicationType: agentRecord.communication?.type || 'eliza',
         attributes: agentRecord.attributes || [],
         instructions: agentRecord.instructions || [],
         prompts: agentRecord.prompts || [],

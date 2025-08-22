@@ -98,7 +98,7 @@ export class AgentService {
         github: metadata?.github || '',
         website: metadata?.website || ''
       },
-      communicationType: (metadata?.communicationType as any) || 'socketio-eliza',
+      communicationType: (metadata?.communicationType as any) || 'eliza',
       communicationParams: metadata?.communicationParams || '{}',
       reputation: BigInt(agent.reputation),
       totalRatings: BigInt(totalRatingsCount)
@@ -160,7 +160,7 @@ export class AgentService {
           website: params.socials?.website || ''
         },
         agentCategory: params.category,
-        communicationType: params.communicationType || 'socketio-eliza',
+        communicationType: params.communicationType || 'eliza',
         attributes: params.attributes || [],
         instructions: params.instructions || [],
         prompts: params.prompts || [],
@@ -233,7 +233,7 @@ export class AgentService {
           website: params.socials?.website || ''
         },
         agentCategory: params.category,
-        communicationType: params.communicationType || 'socketio-eliza',
+        communicationType: params.communicationType || 'eliza',
         attributes: params.attributes || [],
         instructions: params.instructions || [],
         prompts: params.prompts || [],
@@ -892,7 +892,7 @@ export class AgentService {
           ...agentData.socials
         } as AgentSocials,
         agentCategory: agentData.category || currentMetadata?.agentCategory || 'general',
-        communicationType: agentData.communicationType || currentMetadata?.communicationType || 'socketio-eliza',
+        communicationType: agentData.communicationType || currentMetadata?.communicationType || 'eliza',
         attributes: agentData.attributes || currentMetadata?.attributes || [],
         instructions: agentData.instructions || currentMetadata?.instructions || [],
         prompts: agentData.prompts || currentMetadata?.prompts || [],
