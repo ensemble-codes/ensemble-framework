@@ -110,24 +110,52 @@ Transform AI agents from passive tools into active economic participants capable
     - Returns: Total count of agents in the system
     - Useful for analytics and system monitoring
   
-  - **AgentService.updateAgentRecord(agentAddress, agentRecord)**: Update complete agent record (NOT IMPLEMENTED)
-    - Parameters: agentAddress (string), agentRecord (Partial<AgentRecord>)
+  - **AgentService.updateAgentRecord(agentAddress, agentRecord)**: Update complete agent record
+    - Parameters: agentAddress (string), agentRecord (UpdateableAgentRecord)
     - Updates: All provided fields in the agent record (name, description, category, attributes, etc.)
-    - Returns: Promise<boolean> indicating success
-    - Features: Validates ownership, uploads metadata to IPFS, updates blockchain state
+    - Returns: Promise<TransactionResult> with transaction hash, block number, gas used
+    - Features: Zod validation, ownership validation, IPFS metadata upload, blockchain state update
+    - Validation: Uses integrated Zod schemas for comprehensive input validation
     - Use case: Bulk updates when multiple properties need to change
   
-  - **AgentService.updateAgentRecordProperty(agentAddress, property, value)**: Update single agent property (NOT IMPLEMENTED)
-    - Parameters: agentAddress (string), property (keyof AgentRecord), value (any)
-    - Updates: Specific property of the agent record
-    - Returns: Promise<boolean> indicating success
-    - Features: Gas-efficient for single property updates, maintains data integrity
+  - **AgentService.updateAgentRecordProperty(agentAddress, property, value)**: Update single agent property
+    - Parameters: agentAddress (string), property (AgentRecordProperty), value (any)
+    - Updates: Specific property of the agent record with type-safe validation
+    - Returns: Promise<TransactionResult> with transaction details
+    - Features: Gas-efficient single property updates, type validation, data integrity checks
+    - Validation: Property-specific validation using Zod schemas
     - Use case: Targeted updates like status changes, adding attributes, or updating social links
 
 - **REQ-4.2**: Support task discovery and proposal submission
 - **REQ-4.3**: Enable real-time task notifications
 - **REQ-4.4**: Provide payment and reputation management tools
 - **REQ-4.5**: Support multiple blockchain networks (Base, Base Sepolia)
+
+#### SDK Validation Features
+- **REQ-4.1.1**: Comprehensive Zod-based validation system for all agent operations
+  - **Registration Validation**: validateRegisterParams() ensures all required fields and data types
+    - Name, description, category validation with string length requirements
+    - Communication type validation (eliza, xmtp, websocket)
+    - Communication parameters validation with type-specific schemas
+    - Social media links validation with URL format checking
+    - Optional fields validation (attributes, instructions, prompts arrays)
+  
+  - **Update Validation**: validateUpdateParams() for partial agent record updates
+    - Type-safe validation for each updatable property
+    - Maintains data integrity during partial updates
+    - Prevents invalid property combinations
+    - Supports nested object validation for socials and communication params
+  
+  - **Communication Parameters Validation**: Granular validation for different communication types
+    - Eliza Parameters: websocketUrl (URL), agentId (string), version (enum), env (enum)
+    - XMTP Parameters: Custom validation schema for XMTP-specific requirements
+    - Extensible pattern for future communication types
+  
+  - **Error Handling & Feedback**: Structured validation error reporting
+    - Detailed error messages with field-specific feedback
+    - Path-based error reporting for nested object validation
+    - Integration with CLI for user-friendly error display
+    - Validation result objects with success/error status
 
 #### Python SDK
 - **REQ-4.6**: Mirror TypeScript SDK functionality for Python agents
@@ -150,6 +178,8 @@ Transform AI agents from passive tools into active economic participants capable
 - **REQ-5.4**: Support configuration and automation for agent operations
 - **REQ-5.5**: Leverage existing TypeScript SDK and REST API endpoints for all blockchain and data operations
 - **REQ-5.6**: Minimize direct blockchain interactions by utilizing SDK abstractions and API layers
+- **REQ-5.7**: Integrate comprehensive Zod validation from SDK for all CLI operations
+- **REQ-5.8**: Provide detailed validation feedback and error handling using SDK validation schemas
 
 ##### Technical Implementation Requirements
 - **CLI Architecture**: The CLI tool must be built as a thin wrapper around existing infrastructure:
@@ -260,11 +290,13 @@ Transform AI agents from passive tools into active economic participants capable
   
   # Communication Settings
   communication:
-    type: "websocket"                        # Required: websocket | xmtp
+    type: "eliza"                           # Required: eliza | xmtp | websocket
     url: "wss://my-agent.com/ws"            # Optional: Communication endpoint
     params:                                  # Optional: Communication parameters
-      timeout: 30000
-      maxConnections: 100
+      websocketUrl: "wss://agents.ensemble.codes"
+      agentId: "agent-unique-id"
+      version: "1.x"                        # 0.x | 1.x
+      env: "production"                     # production | dev
   
   # Social Media & Links
   socials:
@@ -300,8 +332,9 @@ Transform AI agents from passive tools into active economic participants capable
     - `--prompts <file>`: Update prompts from file
     - `--image-uri <uri>`: Update agent image URI
     - `--status <status>`: Update agent status
-    - `--communication-type <type>`: Update communication type
+    - `--communication-type <type>`: Update communication type (eliza, xmtp, websocket)
     - `--communication-url <url>`: Update communication URL
+    - `--communication-params-prop <key=value>`: Update individual communication parameter
     - `--twitter <handle>`: Update Twitter handle
     - `--telegram <handle>`: Update Telegram handle
     - `--github <username>`: Update GitHub username
@@ -316,6 +349,8 @@ Transform AI agents from passive tools into active economic participants capable
     - `ensemble agents update 0x456...def --name "Updated Name" --status maintenance`
     - `ensemble agents update 0x456...def --config ./updated-config.json --dry-run`
     - `ensemble agents update 0x456...def --attributes "ai,chatbot,updated" --confirm`
+    - `ensemble agents update 0x456...def --communication-params-prop env=production`
+    - `ensemble agents update 0x456...def --communication-type eliza --communication-params-prop version=1.x`
 
 - **ensemble agents update-property**: Update a single agent property efficiently
   - Usage: `ensemble agents update-property <agent-address> <property> <value> [options]`
@@ -391,17 +426,37 @@ Transform AI agents from passive tools into active economic participants capable
 - Environment variable substitution in configuration files
 - Template generation for common agent types
 
+#### Development Workflow Enhancements
+- **REQ-5.9**: Monorepo development setup using pnpm workspaces
+  - **Workspace Configuration**: pnpm-workspace.yaml defining package relationships
+    - SDK package: @ensemble-ai/sdk (workspace:*)
+    - CLI package: @ensemble-ai/cli using local SDK version
+    - Automatic dependency linking for local development
+    - Hot reloading of SDK changes in CLI during development
+  
+  - **Local Development Patterns**: Enhanced development experience
+    - Direct imports from SDK source files (e.g., @ensemble-ai/sdk/src/schemas/agent.schemas)
+    - Bypasses build artifacts for immediate access to latest validation schemas
+    - Development mode CLI commands using `pnpm dev` instead of global installation
+    - Seamless testing of SDK changes without publishing
+  
+  - **Communication Type Migration Strategy**: Systematic approach to protocol updates
+    - Migration from "socketio-eliza" to "eliza" across all components
+    - Backward compatibility for existing agents during transition period
+    - Updated validation schemas to support new communication types
+    - Comprehensive testing to ensure compatibility across SDK, CLI, and smart contracts
+
 #### MCP Server Integration
-- **REQ-5.5**: Provide Model Context Protocol server for agent interactions
-- **REQ-5.6**: Enable seamless integration with Claude and other AI models
-- **REQ-5.7**: Support real-time task routing and execution
-- **REQ-5.8**: Provide debugging and monitoring capabilities
+- **REQ-5.10**: Provide Model Context Protocol server for agent interactions
+- **REQ-5.11**: Enable seamless integration with Claude and other AI models
+- **REQ-5.12**: Support real-time task routing and execution
+- **REQ-5.13**: Provide debugging and monitoring capabilities
 
 #### Subgraph & Analytics
-- **REQ-5.9**: Index blockchain data for efficient querying
-- **REQ-5.10**: Provide GraphQL APIs for data access
-- **REQ-5.11**: Enable real-time event streaming
-- **REQ-5.12**: Support analytics and reporting features
+- **REQ-5.14**: Index blockchain data for efficient querying
+- **REQ-5.15**: Provide GraphQL APIs for data access
+- **REQ-5.16**: Enable real-time event streaming
+- **REQ-5.17**: Support analytics and reporting features
 
 ### 6. REST API Layer
 
