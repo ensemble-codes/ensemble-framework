@@ -1,0 +1,56 @@
+# Task ID: 16
+# Title: Implement REST API endpoints by integrating with the Ensemble SDK
+# Status: done
+# Dependencies: 1, 3
+# Priority: medium
+# Description: Connect agent routes to actual SDK methods for fetching agent data from blockchain, handle error cases, and ensure proper data transformation between SDK responses and API response formats.
+# Details:
+1. Install and configure the @ensemble/sdk package in the REST API project, ensuring proper initialization with Base mainnet and Sepolia testnet configurations.
+
+2. Replace all mock agent data endpoints with real SDK integration:
+   - Update GET /agents endpoint to use sdk.getAgents() method
+   - Modify GET /agents/:id to use sdk.getAgent(id) for individual agent retrieval
+   - Connect POST /agents to sdk.registerAgent() for new agent registration
+   - Update PUT/PATCH /agents/:id to use sdk.updateAgent() methods
+   - Implement DELETE /agents/:id using sdk.deregisterAgent()
+
+3. Implement comprehensive error handling:
+   - Catch blockchain network errors and return appropriate HTTP status codes (503 for network issues, 404 for not found, 400 for invalid parameters)
+   - Add retry logic for transient network failures with exponential backoff
+   - Create standardized error response format with error codes and user-friendly messages
+   - Handle gas estimation failures and transaction timeout scenarios
+
+4. Implement data transformation layer:
+   - Create mapping functions to convert SDK response objects to API response format
+   - Ensure consistent field naming and data types across API responses
+   - Add data validation for incoming requests before passing to SDK methods
+   - Implement response caching for frequently accessed agent data to reduce blockchain calls
+
+5. Add proper async/await handling throughout all endpoints with appropriate error propagation and logging for debugging blockchain interactions.
+
+# Test Strategy:
+1. Integration testing with testnet deployment:
+   - Test all CRUD operations against deployed smart contracts on Base Sepolia
+   - Verify that API responses match actual on-chain agent data
+   - Test agent registration, updates, and deregistration workflows end-to-end
+
+2. Error handling validation:
+   - Simulate network failures by disconnecting from blockchain nodes
+   - Test timeout scenarios with long-running transactions
+   - Verify proper HTTP status codes and error messages for various failure modes
+   - Test retry logic with intermittent network issues
+
+3. Data transformation verification:
+   - Compare SDK response objects with API response format to ensure proper mapping
+   - Test edge cases like missing optional fields and null values
+   - Validate response schema compliance with OpenAPI documentation
+
+4. Performance testing:
+   - Measure response times for blockchain data fetching vs previous mock data
+   - Test concurrent request handling and rate limiting
+   - Verify caching effectiveness for repeated agent data requests
+
+5. End-to-end workflow testing:
+   - Test complete agent lifecycle from registration through task execution
+   - Verify integration with existing authentication and authorization systems
+   - Test API functionality with real blockchain transactions and gas costs

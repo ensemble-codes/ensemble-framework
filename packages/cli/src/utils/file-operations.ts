@@ -51,8 +51,7 @@ function convertAgentToYAML(agent: any): string {
     prompts: agent.prompts || [],
     imageURI: agent.imageURI || '',
     communication: {
-      type: agent.communicationType || 'websocket',
-      url: agent.communicationURL || '',
+      type: agent.communicationType || 'eliza',
       params: agent.communicationParams || {}
     },
     socials: {

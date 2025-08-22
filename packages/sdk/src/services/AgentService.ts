@@ -4,6 +4,7 @@ import {
   AgentRecord, 
   Proposal, 
   AgentMetadata, 
+  RegisterAgentParams,
   AgentFilterParams,
   UpdateableAgentRecord,
   TransactionResult,
@@ -13,6 +14,13 @@ import {
   AgentUpdateError,
   AgentSocials
 } from "../types";
+import {
+  validateRegisterParams,
+  validateUpdateParams,
+  validateAgentRecord,
+  parseAgentRecord,
+  parseCommunicationParamsFromString
+} from "../schemas/agent.schemas";
 import {
   AgentAlreadyRegisteredError,
   ServiceNotRegisteredError,
@@ -27,12 +35,10 @@ interface SubgraphIpfsMetadata {
   name: string;
   description: string;
   agentCategory: string;
-  openingGreeting: string;
   attributes: string[];
   instructions: string[];
   prompts: string[];
   communicationType: string;
-  communicationURL: string;
   communicationParams?: string; // JSON string
   imageUri: string;
   twitter?: string;
@@ -92,8 +98,7 @@ export class AgentService {
         github: metadata?.github || '',
         website: metadata?.website || ''
       },
-      communicationType: (metadata?.communicationType as any) || 'websocket',
-      communicationURL: metadata?.communicationURL || '',
+      communicationType: (metadata?.communicationType as any) || 'eliza',
       communicationParams: metadata?.communicationParams || '{}',
       reputation: BigInt(agent.reputation),
       totalRatings: BigInt(totalRatingsCount)
@@ -122,25 +127,52 @@ export class AgentService {
   /**
    * Registers a new agent without service.
    * @param {string} address - The address of the agent.
-   * @param {AgentMetadata} metadata - The metadata of the agent.
+   * @param {RegisterAgentParams} params - The registration parameters for the agent.
    * @returns {Promise<boolean>} A promise that resolves to the agent registration status.
    */
   async registerAgent(
     address: string,
-    metadata: AgentMetadata
+    params: RegisterAgentParams
   ): Promise<boolean> {
     try {
       if (!this.ipfsSDK) {
         throw new Error("IPFS SDK is not initialized");
       }
-      console.log(`registering agent ${address} with metadata: ${metadata}`);
+      
+      // Validate registration parameters using Zod
+      const validationResult = validateRegisterParams(params);
+      if (!validationResult.success) {
+        throw new Error(`Invalid registration parameters: ${validationResult.error.issues.map(i => i.message).join(', ')}`);
+      }
+      
+      console.log(`registering agent ${address} with params:`, params);
+      
+      // Convert RegisterAgentParams to AgentMetadata for IPFS storage
+      const metadata: AgentMetadata = {
+        name: params.name,
+        description: params.description,
+        imageURI: params.imageURI || '',
+        socials: {
+          twitter: params.socials?.twitter || '',
+          telegram: params.socials?.telegram || '',
+          dexscreener: params.socials?.dexscreener || '',
+          github: params.socials?.github || '',
+          website: params.socials?.website || ''
+        },
+        agentCategory: params.category,
+        communicationType: params.communicationType || 'eliza',
+        attributes: params.attributes || [],
+        instructions: params.instructions || [],
+        prompts: params.prompts || [],
+        communicationParams: params.communicationParams
+      };
       
       const uploadResponse = await this.ipfsSDK.upload.json(metadata);
-      const agentURI = `ipfs://${uploadResponse.IpfsHash}`;
+      const agentURI = params.agentUri || `ipfs://${uploadResponse.IpfsHash}`;
 
       const tx = await this.agentRegistry.registerAgent(
         address,
-        metadata.name,
+        params.name,
         agentURI
       );
 
@@ -162,7 +194,7 @@ export class AgentService {
   /**
    * Registers a new agent with service.
    * @param {string} address - The address of the agent..
-   * @param {AgentMetadata} metadata - The metadata of the agent.
+   * @param {RegisterAgentParams} params - The registration parameters for the agent.
    * @param {string} serviceName - The name of the service.
    * @param {number} servicePrice - The price of the service.
    * @param {string} tokenAddress - The token address for payment.
@@ -170,7 +202,7 @@ export class AgentService {
    */
   async registerAgentWithService(
     address: string,
-    metadata: AgentMetadata,
+    params: RegisterAgentParams,
     serviceName: string,
     servicePrice: number,
     tokenAddress: string = "0x0000000000000000000000000000000000000000" // Default to zero address for ETH
@@ -179,14 +211,41 @@ export class AgentService {
       if (!this.ipfsSDK) {
         throw new Error("IPFS SDK is not initialized");
       }
-      console.log(`registering agent ${address} with metadata: ${metadata}`);
+      
+      // Validate registration parameters using Zod
+      const validationResult = validateRegisterParams(params);
+      if (!validationResult.success) {
+        throw new Error(`Invalid registration parameters: ${validationResult.error.issues.map(i => i.message).join(', ')}`);
+      }
+      
+      console.log(`registering agent ${address} with params:`, params);
+      
+      // Convert RegisterAgentParams to AgentMetadata for IPFS storage
+      const metadata: AgentMetadata = {
+        name: params.name,
+        description: params.description,
+        imageURI: params.imageURI || '',
+        socials: {
+          twitter: params.socials?.twitter || '',
+          telegram: params.socials?.telegram || '',
+          dexscreener: params.socials?.dexscreener || '',
+          github: params.socials?.github || '',
+          website: params.socials?.website || ''
+        },
+        agentCategory: params.category,
+        communicationType: params.communicationType || 'eliza',
+        attributes: params.attributes || [],
+        instructions: params.instructions || [],
+        prompts: params.prompts || [],
+        communicationParams: params.communicationParams
+      };
       
       const uploadResponse = await this.ipfsSDK.upload.json(metadata);
-      const agentURI = `ipfs://${uploadResponse.IpfsHash}`;
+      const agentURI = params.agentUri || `ipfs://${uploadResponse.IpfsHash}`;
 
       const tx = await this.agentRegistry.registerAgentWithService(
         address,
-        metadata.name,
+        params.name,
         agentURI,
         serviceName,
         servicePrice,
@@ -316,12 +375,10 @@ export class AgentService {
             name
             description
             agentCategory
-            openingGreeting
             attributes
             instructions
             prompts
             communicationType
-            communicationURL
             communicationParams
             imageUri
             twitter
@@ -486,12 +543,10 @@ export class AgentService {
             name
             description
             agentCategory
-            openingGreeting
             attributes
             instructions
             prompts
             communicationType
-            communicationURL
             communicationParams
             imageUri
             twitter
@@ -631,12 +686,10 @@ export class AgentService {
             name
             description
             agentCategory
-            openingGreeting
             attributes
             instructions
             prompts
             communicationType
-            communicationURL
             communicationParams
             imageUri
             twitter
@@ -802,6 +855,12 @@ export class AgentService {
     // Validate agent ID format
     this.validateAgentId(agentId);
 
+    // Validate update parameters using Zod
+    const validationResult = validateUpdateParams(agentData);
+    if (!validationResult.success) {
+      throw new Error(`Invalid update parameters: ${validationResult.error.issues.map(i => i.message).join(', ')}`);
+    }
+
     // Check if agent exists
     await this.validateAgentExists(agentId);
 
@@ -833,12 +892,10 @@ export class AgentService {
           ...agentData.socials
         } as AgentSocials,
         agentCategory: agentData.category || currentMetadata?.agentCategory || 'general',
-        openingGreeting: currentMetadata?.openingGreeting || '',
-        communicationType: agentData.communicationType || currentMetadata?.communicationType || 'websocket',
+        communicationType: agentData.communicationType || currentMetadata?.communicationType || 'eliza',
         attributes: agentData.attributes || currentMetadata?.attributes || [],
         instructions: agentData.instructions || currentMetadata?.instructions || [],
         prompts: agentData.prompts || currentMetadata?.prompts || [],
-        communicationURL: agentData.communicationURL || currentMetadata?.communicationURL,
         communicationParams: agentData.communicationParams || currentMetadata?.communicationParams
       };
 
@@ -896,7 +953,7 @@ export class AgentService {
     const validProperties: AgentRecordProperty[] = [
       'name', 'description', 'category', 'imageURI', 'attributes', 
       'instructions', 'prompts', 'socials', 'communicationType', 
-      'communicationURL', 'communicationParams', 'status'
+      'communicationParams', 'status'
     ];
 
     if (!validProperties.includes(property)) {
@@ -910,7 +967,6 @@ export class AgentService {
       case 'category':
       case 'imageURI':
       case 'communicationType':
-      case 'communicationURL':
       case 'status':
         if (typeof value !== 'string') {
           throw new AgentUpdateError(`Property ${property} must be a string`);

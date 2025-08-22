@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Build TypeScript SDK for Agent Integration
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Develop comprehensive TypeScript SDK providing APIs for agent registration, task discovery, proposal submission, and payment management
+# Details:
+Create @ensemble/sdk package with classes: EnsembleClient, AgentManager, TaskManager, PaymentManager. Implement Web3 integration using ethers.js v6 for Base network connectivity. Provide async/await APIs for registerAgent(), discoverTasks(), submitProposal(), executeTask(). Include real-time WebSocket connections for task notifications and status updates. Support wallet integration (MetaMask, WalletConnect) and environment configuration for mainnet/testnet.
+
+# Test Strategy:
+Unit tests for all SDK methods with mocked blockchain interactions. Integration tests against deployed testnet contracts. End-to-end testing with sample agent implementations. Performance testing for high-frequency operations.

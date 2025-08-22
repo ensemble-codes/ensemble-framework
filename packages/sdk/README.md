@@ -66,8 +66,7 @@ const agentData = {
     github: "https://github.com/ai-trading-bot",
     website: "https://aitrader.ai"
   },
-  communicationType: "xmtp", // or "websocket"
-  communicationURL: "https://api.aitrader.ai/chat",
+  communicationType: "eliza", // or "xmtp"
   communicationParams: {
     apiVersion: "v1",
     encryption: true

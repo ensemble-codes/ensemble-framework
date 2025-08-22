@@ -12,7 +12,6 @@ async function main() {
         name: agent.name,
         description: agent.description,
         agentCategory: agent.agentCategory,
-        openingGreeting: agent.openingGreeting,
         instructions: agent.instructions,
         prompts: agent.prompts,
         imageURI: agent.imageURI,

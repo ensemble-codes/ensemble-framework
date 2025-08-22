@@ -1,5 +1,8 @@
 import { BigNumberish } from "ethers";
-import { Contract, BaseContract, ContractRunner } from "ethers";
+import { BaseContract } from "ethers";
+import {
+  UpdateableAgentRecord,
+} from './schemas/agent.schemas';
 
 export interface TaskCreatedEvent {
   owner: string;
@@ -65,30 +68,22 @@ export interface TaskStatusChangedEvent {
   status: TaskStatus;
 }
 
-export type AgentSocials = {
-  twitter: string;
-  telegram: string;
-  dexscreener: string;
-  github?: string;
-  website?: string;
-}
+// Re-export types from schemas
+export {
+  AgentSocials,
+  AgentCommunicationType,
+  ElizaParams,
+  XMTPParams,
+  CommunicationParams,
+  AgentRecord,
+  AgentMetadata,
+  RegisterAgentParams,
+  UpdateableAgentRecord,
+  AgentStatus,
+} from './schemas/agent.schemas';
 
-export type AgentCommunicationType = 'xmtp' | 'websocket';
-
-export type AgentMetadata = {
-  name: string;
-  description: string;
-  imageURI: string;
-  socials: AgentSocials;
-  agentCategory: string;
-  openingGreeting: string;
-  communicationType: AgentCommunicationType;
-  attributes: string[];
-  instructions: string[];
-  prompts: string[];
-  communicationURL?: string;
-  communicationParams?: string;
-}
+// Type alias for serialized communication parameters (JSON string)
+export type SerializedCommunicationParams = string;
 
 export interface TaskConnectorContract extends BaseContract {
   execute(data: string, target: string, value: BigNumberish): Promise<{
@@ -145,24 +140,6 @@ export interface Service {
 }
 
 
-export interface AgentRecord {
-  name: string; // The display name of the agent
-  description: string; // A brief description of the agent
-  address: string; // The blockchain address of the agent
-  category: string; // The category or type of the agent
-  owner: string; // The address of the agent's owner
-  agentUri: string; // URI pointing to agent metadata or resources
-  imageURI: string; // URI for the agent's image or avatar
-  attributes: string[]; // List of agent's attributes or tags
-  instructions: string[]; // List of instructions for interacting with the agent
-  prompts: string[]; // Example prompts or tasks for the agent
-  socials: AgentSocials; // Social media or contact information for the agent
-  communicationType: AgentCommunicationType; // Type of communication supported by the agent
-  communicationURL?: string; // Optional URL for communication endpoint
-  communicationParams?: string; // Optional parameters for communication setup
-  reputation: BigNumberish; // Agent's reputation score
-  totalRatings: BigNumberish; // Total number of ratings received by the agent
-}
 
 export interface AgentData {
   name: string;
@@ -196,20 +173,8 @@ export interface AddProposalParams {
   tokenAddress: string;
 }
 
-export interface registerAgentWithServiceParams {
-  agentAddress: string;
-  name: string;
-  agentUri: string;
-  serviceName: string;
-  servicePrice: BigNumberish;
-  tokenAddress: string;
-}
 
-export interface RegisterAgentParams {
-  agentAddress: string;
-  name: string;
-  agentUri: string;
-}
+
 
 export interface NetworkConfig {
   chainId: number;
@@ -225,7 +190,6 @@ export interface EnsembleConfig {
   subgraphUrl?: string;
 }
 
-export type LegacyRegisterAgentParams = RegisterAgentParams;
 
 export type LegacyAddProposalParams = Omit<AddProposalParams, 'tokenAddress'>;
 
@@ -238,27 +202,7 @@ export interface TransactionResult {
   events?: any[];
 }
 
-export enum AgentStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  MAINTENANCE = 'maintenance',
-  SUSPENDED = 'suspended'
-}
 
-export interface UpdateableAgentRecord {
-  name?: string;
-  description?: string;
-  category?: string;
-  imageURI?: string;
-  attributes?: string[];
-  instructions?: string[];
-  prompts?: string[];
-  socials?: Partial<AgentSocials>;
-  communicationType?: AgentCommunicationType;
-  communicationURL?: string;
-  communicationParams?: string;
-  status?: AgentStatus;
-}
 
 export type AgentRecordProperty = keyof UpdateableAgentRecord;
 

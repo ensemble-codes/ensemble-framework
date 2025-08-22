@@ -1,6 +1,6 @@
 {
   "name": "@ensemble-ai/sdk",
-  "version": "0.5.5",
+  "version": "0.6.0",
   "description": "TypeScript SDK for the Agentic Hub",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,7 +31,8 @@
     "graphql": "^16.9.0",
     "graphql-request": "^7.1.2",
     "jest": "^29.7.0",
-    "pinata-web3": "^0.5.4"
+    "pinata-web3": "^0.5.4",
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.26.0",

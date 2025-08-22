@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { parse as yamlParse } from 'yaml';
 import { AgentRecordYAML } from '../types/config';
+import { validateRegisterParams, RegisterAgentParams } from '@ensemble-ai/sdk/src/schemas/agent.schemas';
 
 export interface ValidationResult {
   valid: boolean;
@@ -44,11 +45,18 @@ export async function validateAgentRecordYAML(
       return result;
     }
 
-    // Validate schema
-    validateSchema(agentRecord, result);
+    // Convert YAML format to SDK format and validate using Zod
+    const sdkFormat = convertYamlToSdkFormat(agentRecord);
+    const sdkValidation = validateRegisterParams(sdkFormat);
+    
+    if (!sdkValidation.success) {
+      sdkValidation.error.issues.forEach((issue: any) => {
+        result.errors.push(`${issue.path.join('.')}: ${issue.message}`);
+      });
+    }
 
     if (!options.schemaOnly) {
-      // Additional validations
+      // Additional business rule validations
       validateBusinessRules(agentRecord, result);
       
       if (options.checkUrls) {
@@ -63,6 +71,28 @@ export async function validateAgentRecordYAML(
 
   result.valid = result.errors.length === 0;
   return result;
+}
+
+function convertYamlToSdkFormat(agentRecord: AgentRecordYAML): RegisterAgentParams {
+  return {
+    name: agentRecord.name,
+    description: agentRecord.description,
+    category: agentRecord.category,
+    agentUri: 'https://example.com/default-agent-metadata.json',
+    imageURI: agentRecord.imageURI,
+    attributes: agentRecord.attributes,
+    instructions: agentRecord.instructions,
+    prompts: agentRecord.prompts,
+    socials: agentRecord.socials ? {
+      twitter: agentRecord.socials.twitter || '',
+      telegram: agentRecord.socials.telegram || '',
+      dexscreener: agentRecord.socials.dexscreener || '',
+      github: agentRecord.socials.github,
+      website: agentRecord.socials.website
+    } : undefined,
+    communicationType: agentRecord.communication?.type as any,
+    communicationParams: agentRecord.communication?.params ? JSON.stringify(agentRecord.communication.params) : undefined
+  };
 }
 
 function validateSchema(agentRecord: any, result: ValidationResult): void {
@@ -98,7 +128,7 @@ function validateSchema(agentRecord: any, result: ValidationResult): void {
 
   // Validate communication type
   if (agentRecord.communication?.type) {
-    const validCommTypes = ['websocket', 'xmtp'];
+    const validCommTypes = ['eliza', 'xmtp'];
     if (!validCommTypes.includes(agentRecord.communication.type)) {
       result.errors.push(`Invalid communication type. Must be one of: ${validCommTypes.join(', ')}`);
     }
@@ -106,7 +136,7 @@ function validateSchema(agentRecord: any, result: ValidationResult): void {
 
   // Validate status
   if (agentRecord.status) {
-    const validStatuses = ['active', 'inactive', 'maintenance'];
+    const validStatuses = ['active', 'inactive', 'maintenance', 'suspended'];
     if (!validStatuses.includes(agentRecord.status)) {
       result.errors.push(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
     }
@@ -153,7 +183,6 @@ function validateBusinessRules(agentRecord: AgentRecordYAML, result: ValidationR
 async function validateUrls(agentRecord: AgentRecordYAML, result: ValidationResult): Promise<void> {
   const urlFields = [
     { field: 'imageURI', value: agentRecord.imageURI },
-    { field: 'communication.url', value: agentRecord.communication?.url },
     { field: 'socials.website', value: agentRecord.socials?.website }
   ];
 

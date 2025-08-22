@@ -92,8 +92,8 @@ async function createInteractiveTemplate(): Promise<AgentRecordYAML> {
       type: 'list',
       name: 'communicationType',
       message: 'Communication type:',
-      choices: ['websocket', 'xmtp'],
-      default: 'websocket'
+      choices: ['eliza', 'xmtp'],
+      default: 'eliza'
     },
     {
       type: 'input',
@@ -135,7 +135,6 @@ async function createInteractiveTemplate(): Promise<AgentRecordYAML> {
     imageURI: answers.imageURI || '',
     communication: {
       type: answers.communicationType,
-      url: answers.communicationURL || '',
       params: {}
     },
     socials: {
@@ -156,12 +155,10 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
       category: 'general',
       attributes: ['example'],
       communication: {
-        type: 'websocket',
-        url: '',
+        type: 'eliza',
         params: {}
       },
-      socials: {},
-      status: 'active'
+      socials: {}
     },
     chatbot: {
       name: 'My Chatbot',
@@ -179,8 +176,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         'Tell me more about your issue'
       ],
       communication: {
-        type: 'websocket',
-        url: 'wss://my-chatbot.com/ws',
+        type: 'eliza',
         params: {
           timeout: 30000,
           maxConnections: 100
@@ -188,8 +184,7 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
       },
       socials: {
         website: 'https://my-chatbot.com'
-      },
-      status: 'active'
+      }
     },
     assistant: {
       name: 'AI Assistant',
@@ -207,12 +202,10 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         'Create a plan for my project'
       ],
       communication: {
-        type: 'websocket',
-        url: '',
+        type: 'eliza',
         params: {}
       },
-      socials: {},
-      status: 'active'
+      socials: {}
     },
     service: {
       name: 'Service Agent',
@@ -225,14 +218,12 @@ function getTemplateByType(templateType: string): AgentRecordYAML {
         'Handle errors gracefully'
       ],
       communication: {
-        type: 'websocket',
-        url: '',
+        type: 'eliza',
         params: {
           timeout: 60000
         }
       },
-      socials: {},
-      status: 'active'
+      socials: {}
     }
   };
 
@@ -245,7 +236,7 @@ function generateAgentRecordYAML(template: AgentRecordYAML): string {
 # Edit the values below and use 'ensemble register agent --config <file>' to register
 #
 # Required fields: name, description, category
-# Optional fields: All others
+# Optional fields: All others (including status: 'active' | 'inactive' | 'maintenance')
 #
 # Generated on: ${new Date().toISOString()}
 

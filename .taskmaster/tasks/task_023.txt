@@ -1,0 +1,46 @@
+# Task ID: 23
+# Title: Implement ensemble agents update command
+# Status: pending
+# Dependencies: 21, 20
+# Priority: high
+# Description: Implement the 'ensemble agents update' command for updating existing agent records with multiple properties at once
+# Details:
+Create a comprehensive update command that allows users to modify agent records on the blockchain. The command should:
+
+1. Support updating multiple properties via CLI options:
+   - --name: Update agent name
+   - --description: Update agent description
+   - --category: Update agent category
+   - --attributes: Update attributes (comma-separated)
+   - --status: Update agent status (active/inactive/maintenance)
+   - --image-uri: Update agent avatar
+   - --communication-type: Update communication type
+   - --communication-url: Update communication endpoint
+   - Social links: --twitter, --telegram, --github, --website
+
+2. Support bulk updates from configuration file:
+   - --config <file>: Load updates from YAML/JSON file
+   - Validate configuration file format
+   - Show diff between current and new values
+
+3. Implementation requirements:
+   - Use SDK's updateAgentRecord method (needs to be implemented in SDK)
+   - Validate agent ownership before allowing updates
+   - Show preview of changes before submitting
+   - Require confirmation (unless --confirm flag)
+   - Support --dry-run for testing
+   - Handle gas estimation and custom gas limits
+
+4. User experience:
+   - Clear progress indicators during blockchain operations
+   - Detailed error messages for common failures
+   - Success confirmation with transaction details
+   - Suggest next steps after update
+
+# Test Strategy:
+1. Unit tests for update command parsing and validation
+2. Integration tests with mock SDK responses
+3. End-to-end tests on testnet with real agent updates
+4. Test error scenarios: non-existent agents, permission denied, invalid data
+5. Test configuration file parsing and validation
+6. Test dry-run and confirmation flows

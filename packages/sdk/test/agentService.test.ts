@@ -64,13 +64,11 @@ describe("AgentService Tests", () => {
               name: "Test Agent",
               description: "A test agent",
               agentCategory: "test",
-              openingGreeting: "Hello!",
               attributes: ["testing", "ai"],
               instructions: ["Step 1", "Step 2"],
               prompts: ["Test prompt"],
-              communicationType: "websocket",
-              communicationURL: "wss://testagent.com/ws",
-              communicationParams: JSON.stringify({ timeout: 30000 }),
+              communicationType: "eliza",
+              communicationParams: JSON.stringify({ connectionUrl: "https://agents.ensemble.codes", agentId: "test-agent", version: "1.x", env: "dev" }),
               imageUri: "https://ipfs.io/ipfs/QmTestImage",
               twitter: "@testagent",
               telegram: "@testagent",
@@ -200,9 +198,8 @@ describe("AgentService Tests", () => {
             attributes: ["testing", "ai"],
             instructions: ["Step 1", "Step 2"],
             prompts: ["Test prompt"],
-            communicationType: "websocket",
-            communicationURL: "wss://testagent.com/ws",
-            communicationParams: { timeout: 30000 },
+            communicationType: "eliza",
+            communicationParams: { connectionUrl: "https://agents.ensemble.codes", agentId: "test-agent", version: "1.x", env: "dev" },
             imageUri: "https://ipfs.io/ipfs/QmTestImage",
             twitter: "@testagent",
             telegram: "@testagent",
@@ -384,8 +381,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            openingGreeting: "Hello",
-            communicationType: "websocket",
+            communicationType: "eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
@@ -398,11 +394,18 @@ describe("AgentService Tests", () => {
       });
 
       it("should validate string properties correctly", async () => {
-        const stringProperties = ['name', 'description', 'category', 'imageURI', 'communicationType', 'communicationURL', 'status'];
+        const validValues: Record<string, any> = {
+          name: "Valid Agent Name",
+          description: "Valid description", 
+          category: "valid-category",
+          imageURI: "https://example.com/image.png",
+          communicationType: "eliza",
+          status: "active"
+        };
         
-        for (const prop of stringProperties) {
+        for (const [prop, value] of Object.entries(validValues)) {
           await expect(
-            agentService.updateAgentRecordProperty(validAgentId, prop as any, "valid string")
+            agentService.updateAgentRecordProperty(validAgentId, prop as any, value)
           ).resolves.toBeDefined();
         }
       });
@@ -522,7 +525,7 @@ describe("AgentService Tests", () => {
       });
 
       it("should validate AgentStatus enum values", async () => {
-        const validStatuses = [AgentStatus.ACTIVE, AgentStatus.INACTIVE, AgentStatus.MAINTENANCE, AgentStatus.SUSPENDED];
+        const validStatuses = ['active', 'inactive', 'maintenance', 'suspended'] as const;
         
         for (const status of validStatuses) {
           await expect(
@@ -555,8 +558,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            openingGreeting: "Hello",
-            communicationType: "websocket",
+            communicationType: "eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
@@ -581,10 +583,9 @@ describe("AgentService Tests", () => {
             twitter: "@updated_agent",
             github: "updated-agent"
           },
-          communicationType: "websocket",
-          communicationURL: "wss://updated-agent.com/ws",
-          communicationParams: JSON.stringify({ timeout: 60000 }),
-          status: AgentStatus.ACTIVE
+          communicationType: "eliza",
+          communicationParams: JSON.stringify({ connectionUrl: "https://updated-agent.ensemble.codes", agentId: "updated-agent", version: "1.x", env: "production" }),
+          status: 'active' as const
         };
 
         await expect(
@@ -598,7 +599,7 @@ describe("AgentService Tests", () => {
           { description: "Just Description Update" },
           { attributes: ["just", "attributes"] },
           { socials: { twitter: "@just_twitter" } },
-          { status: AgentStatus.MAINTENANCE }
+          { status: 'maintenance' as const }
         ];
 
         for (const update of partialUpdates) {
@@ -638,8 +639,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            openingGreeting: "Hello",
-            communicationType: "websocket",
+            communicationType: "eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]
@@ -790,8 +790,7 @@ describe("AgentService Tests", () => {
             imageURI: "https://test.com/image.png",
             socials: { twitter: "@test" },
             agentCategory: "test",
-            openingGreeting: "Hello",
-            communicationType: "websocket",
+            communicationType: "eliza",
             attributes: ["test"],
             instructions: ["step1"],
             prompts: ["test prompt"]

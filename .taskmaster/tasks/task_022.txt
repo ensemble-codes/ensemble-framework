@@ -1,0 +1,75 @@
+# Task ID: 22
+# Title: Implement CLI Wallet Management
+# Status: done
+# Dependencies: 21
+# Priority: medium
+# Description: Add wallet functionality to the CLI for managing private keys, signing transactions, and interacting with agents securely.
+# Details:
+1. Wallet Creation and Import Infrastructure:
+   - Implement wallet creation from mnemonic phrases using BIP39 standard with entropy validation
+   - Add private key import functionality supporting hex format, WIF format, and keystore files (JSON)
+   - Create secure mnemonic generation with proper entropy sources and word list validation
+   - Support wallet recovery from 12/24 word mnemonic phrases with checksum verification
+
+2. Secure Storage and Encryption:
+   - Implement AES-256-GCM encryption for private key storage with PBKDF2 key derivation
+   - Create encrypted wallet files stored in user's home directory (~/.ensemble/wallets/)
+   - Add password-based encryption with configurable iteration counts for key stretching
+   - Implement secure memory handling to prevent private key exposure in memory dumps
+
+3. CLI Command Implementation:
+   - `ensemble wallet create [name]` - Generate new wallet with mnemonic backup
+   - `ensemble wallet import [name] --mnemonic|--private-key|--keystore` - Import existing wallet
+   - `ensemble wallet list` - Display all available wallets with addresses and metadata
+   - `ensemble wallet export [name] --format=mnemonic|private-key|keystore` - Export wallet data
+   - `ensemble wallet balance [name]` - Check ETH and token balances for wallet address
+   - `ensemble wallet history [name]` - Display transaction history for wallet
+
+4. Transaction Signing Integration:
+   - Integrate ethers.js Wallet class for transaction signing capabilities
+   - Add support for signing agent registration transactions with wallet credentials
+   - Implement transaction fee estimation and gas price optimization
+   - Create secure transaction broadcasting with confirmation tracking
+
+5. Agent Command Integration:
+   - Modify existing `ensemble agents register` command to accept --wallet parameter
+   - Update `ensemble agents update` command to use wallet for transaction signing
+   - Add wallet selection prompts when multiple wallets are available
+   - Implement automatic wallet detection for agent ownership verification
+
+6. Security and Validation:
+   - Add comprehensive input validation for all wallet operations
+   - Implement secure password prompting with hidden input and confirmation
+   - Add wallet backup verification during creation process
+   - Create secure deletion methods for removing wallet files
+
+# Test Strategy:
+1. Unit Testing:
+   - Test wallet creation with various mnemonic lengths and validate generated addresses
+   - Verify private key encryption/decryption with different password strengths
+   - Test wallet import functionality with valid and invalid mnemonic phrases, private keys, and keystore files
+   - Validate transaction signing produces correct signatures for test transactions
+   - Test secure storage mechanisms and file permissions on wallet directories
+
+2. Integration Testing:
+   - Test wallet integration with agent registration commands using testnet
+   - Verify transaction signing and broadcasting with real blockchain interactions
+   - Test wallet balance checking against live testnet addresses
+   - Validate transaction history retrieval from blockchain explorers or RPC nodes
+
+3. Security Testing:
+   - Perform memory analysis to ensure private keys are not exposed in process memory
+   - Test password strength requirements and brute force resistance
+   - Verify encrypted wallet files cannot be decrypted without correct passwords
+   - Test secure deletion of temporary files and memory cleanup
+
+4. User Experience Testing:
+   - Test CLI prompts and user interactions for wallet creation and import flows
+   - Verify error messages are clear and actionable for common failure scenarios
+   - Test wallet selection mechanisms when multiple wallets exist
+   - Validate backup and recovery workflows with real mnemonic phrases
+
+5. Cross-Platform Testing:
+   - Test wallet file storage and permissions on Windows, macOS, and Linux
+   - Verify CLI commands work correctly across different terminal environments
+   - Test wallet portability between different operating systems

@@ -6,6 +6,7 @@ import inquirer from 'inquirer';
 import ora from 'ora';
 import { createSDKInstance, createSignerFromPrivateKey } from '../../utils/sdk';
 import { validateAgentRecordYAML } from '../../utils/validation';
+import { validateUpdateParams } from '@ensemble-ai/sdk/src/schemas/agent.schemas';
 import { getConfig } from '../../config/manager';
 import { AgentRecordYAML } from '../../types/config';
 import { WalletService } from '../../services/WalletService';
@@ -24,8 +25,8 @@ export const updateAgentCommand = new Command('update')
   .option('--image-uri <uri>', 'Update agent image URI')
   .option('--status <status>', 'Update agent status')
   .option('--communication-type <type>', 'Update communication type')
-  .option('--communication-url <url>', 'Update communication URL')
-  .option('--communication-params <params>', 'Update communication parameters (JSON string)')
+  .option('--communication-params <params>', 'Update communication parameters (JSON string - merges with existing)')
+  .option('--communication-params-prop <key=value>', 'Update single communication parameter property (format: key=value)')
   .option('--twitter <handle>', 'Update Twitter handle')
   .option('--telegram <handle>', 'Update Telegram handle')
   .option('--github <username>', 'Update GitHub username')
@@ -90,8 +91,7 @@ export const updateAgentCommand = new Command('update')
           prompts: agentRecord.prompts,
           socials: agentRecord.socials,
           communicationType: agentRecord.communication?.type,
-          communicationURL: agentRecord.communication?.url,
-          communicationParams: agentRecord.communication?.params,
+          communicationParams: agentRecord.communication?.params ? JSON.stringify(agentRecord.communication.params) : undefined,
           status: agentRecord.status
         };
       } else {
@@ -102,18 +102,8 @@ export const updateAgentCommand = new Command('update')
         if (options.imageUri) updateData.imageURI = options.imageUri;
         if (options.status) updateData.status = options.status;
         if (options.communicationType) updateData.communicationType = options.communicationType;
-        if (options.communicationUrl) updateData.communicationURL = options.communicationUrl;
-        if (options.communicationParams) {
-          try {
-            // Validate it's valid JSON
-            JSON.parse(options.communicationParams);
-            updateData.communicationParams = options.communicationParams;
-          } catch (e) {
-            console.error(chalk.red('❌ Invalid JSON for --communication-params'));
-            console.error(chalk.yellow('💡 Example: --communication-params \'{"timeout": 30000}\''));
-            process.exit(1);
-          }
-        }
+        // Handle communication parameters - prop update or JSON merge
+        await handleCommunicationParamsUpdate(options, currentAgent, updateData);
 
         if (options.attributes) {
           updateData.attributes = options.attributes.split(',').map((s: string) => s.trim());
@@ -156,6 +146,16 @@ export const updateAgentCommand = new Command('update')
       if (Object.keys(updateData).length === 0) {
         console.log(chalk.yellow('⚠️  No updates specified'));
         return;
+      }
+
+      // Validate update data using SDK Zod validation
+      const validationResult = validateUpdateParams(updateData);
+      if (!validationResult.success) {
+        console.error(chalk.red('❌ Invalid update data:'));
+        validationResult.error.issues.forEach((issue: any) => {
+          console.error(chalk.red(`  • ${issue.path.join('.')}: ${issue.message}`));
+        });
+        process.exit(1);
       }
 
       // Show update summary with current vs new values
@@ -297,6 +297,141 @@ export const updateAgentCommand = new Command('update')
     }
   });
 
+/**
+ * Handle communication parameters update from prop update or JSON merge
+ */
+async function handleCommunicationParamsUpdate(options: any, currentAgent: any, updateData: any): Promise<void> {
+  // Check if communication params property update was provided
+  const hasPropUpdate = options.communicationParamsProp;
+  
+  // Check if JSON communication params were provided
+  const hasJsonParams = options.communicationParams;
+  
+  if (!hasPropUpdate && !hasJsonParams) {
+    return; // No communication params to update
+  }
+  
+  // Get current communication parameters
+  let currentParams: any = {};
+  try {
+    if (currentAgent.communicationParams && typeof currentAgent.communicationParams === 'string') {
+      currentParams = JSON.parse(currentAgent.communicationParams);
+    } else if (currentAgent.communicationParams) {
+      currentParams = currentAgent.communicationParams;
+    }
+  } catch (e) {
+    console.warn(chalk.yellow('⚠️  Could not parse current communication parameters, starting fresh'));
+    currentParams = {};
+  }
+  
+  // Handle JSON merge first (if provided)
+  if (hasJsonParams) {
+    try {
+      const jsonParams = JSON.parse(options.communicationParams);
+      currentParams = { ...currentParams, ...jsonParams };
+    } catch (e) {
+      console.error(chalk.red('❌ Invalid JSON for --communication-params'));
+      console.error(chalk.yellow('💡 Example: --communication-params \'{"connectionUrl": "https://agents.ensemble.codes"}\''));
+      process.exit(1);
+    }
+  }
+  
+  // Handle property update (override JSON if both provided)
+  if (hasPropUpdate) {
+    const propString = options.communicationParamsProp;
+    
+    if (!propString || !propString.includes('=')) {
+      console.error(chalk.red('❌ Invalid format for --communication-params-prop'));
+      console.error(chalk.yellow('💡 Example: --communication-params-prop connectionUrl=https://example.com'));
+      process.exit(1);
+    }
+    
+    const [key, ...valueParts] = propString.split('=');
+    const value = valueParts.join('='); // Rejoin in case value contains '='
+    
+    if (!key || !value) {
+      console.error(chalk.red('❌ Both key and value are required for --communication-params-prop'));
+      console.error(chalk.yellow('💡 Example: --communication-params-prop connectionUrl=https://example.com'));
+      process.exit(1);
+    }
+    
+    // Determine current or target communication type
+    const commType = options.communicationType || currentAgent.communicationType || 'eliza';
+    
+    // Validate and set the property based on communication type and key
+    await validateAndSetCommProperty(currentParams, key, value, commType);
+  }
+  
+  // Set the updated parameters as JSON string
+  updateData.communicationParams = JSON.stringify(currentParams);
+}
+
+/**
+ * Validate and set communication parameter property
+ */
+async function validateAndSetCommProperty(currentParams: any, key: string, value: string, commType: string): Promise<void> {
+  switch (key) {
+    case 'connectionUrl':
+    case 'websocketUrl':  // SDK will handle the migration
+      if (commType !== 'eliza' && commType !== 'websocket') {
+        console.error(chalk.red(`❌ Cannot set ${key} for communication type: ${commType}`));
+        process.exit(1);
+      }
+      if (!value.startsWith('ws://') && !value.startsWith('wss://') && !value.startsWith('http://') && !value.startsWith('https://')) {
+        console.error(chalk.red('❌ Connection URL must start with http://, https://, ws://, or wss://'));
+        process.exit(1);
+      }
+      currentParams[key] = value;
+      break;
+      
+    case 'agentId':
+      if (commType !== 'eliza' && commType !== 'websocket') {
+        console.error(chalk.red(`❌ Cannot set agentId for communication type: ${commType}`));
+        process.exit(1);
+      }
+      currentParams.agentId = value;
+      break;
+      
+    case 'version':
+      if (commType !== 'eliza' && commType !== 'websocket') {
+        console.error(chalk.red(`❌ Cannot set version for communication type: ${commType}`));
+        process.exit(1);
+      }
+      if (!['0.x', '1.x'].includes(value)) {
+        console.error(chalk.red('❌ Version must be either "0.x" or "1.x"'));
+        process.exit(1);
+      }
+      currentParams.version = value;
+      break;
+      
+    case 'env':
+      if (!['production', 'dev'].includes(value)) {
+        console.error(chalk.red('❌ Environment must be either "production" or "dev"'));
+        process.exit(1);
+      }
+      currentParams.env = value;
+      break;
+      
+    case 'address':
+      if (commType !== 'xmtp') {
+        console.error(chalk.red(`❌ Cannot set address for communication type: ${commType}`));
+        process.exit(1);
+      }
+      if (!/^0x[a-fA-F0-9]{40}$/.test(value)) {
+        console.error(chalk.red('❌ Address must be a valid Ethereum address'));
+        process.exit(1);
+      }
+      currentParams.address = value;
+      break;
+      
+    default:
+      // For unknown properties, just set them (allows for future extensibility)
+      console.warn(chalk.yellow(`⚠️  Setting unknown communication parameter: ${key}`));
+      currentParams[key] = value;
+      break;
+  }
+}
+
 // Add subcommand for updating single property
 updateAgentCommand
   .command('property <agent-address> <property> <value>')
@@ -322,7 +457,7 @@ updateAgentCommand
       const validProperties = [
         'name', 'description', 'category', 'imageURI', 'status',
         'attributes', 'instructions', 'prompts', 'socials',
-        'communicationType', 'communicationURL', 'communicationParams'
+        'communicationType', 'communicationParams'
       ];
 
       if (!validProperties.includes(property)) {
@@ -347,7 +482,7 @@ updateAgentCommand
       console.log(chalk.blue('📋 Property Update:'));
       console.log(`  Agent: ${agentAddress}`);
       console.log(`  Property: ${property}`);
-      console.log(`  New Value: ${JSON.stringify(parsedValue)}`);
+      console.log(`  New Value: ${typeof parsedValue === 'string' ? parsedValue : JSON.stringify(parsedValue)}`);
 
       // Confirmation
       if (!options.confirm) {
