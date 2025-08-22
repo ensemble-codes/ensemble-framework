@@ -6,6 +6,7 @@ import inquirer from 'inquirer';
 import ora from 'ora';
 import { createSDKInstance, createSignerFromPrivateKey } from '../../utils/sdk';
 import { validateAgentRecordYAML } from '../../utils/validation';
+import { validateUpdateParams } from '@ensemble-ai/sdk';
 import { getConfig } from '../../config/manager';
 import { AgentRecordYAML } from '../../types/config';
 import { WalletService } from '../../services/WalletService';
@@ -145,6 +146,16 @@ export const updateAgentCommand = new Command('update')
       if (Object.keys(updateData).length === 0) {
         console.log(chalk.yellow('⚠️  No updates specified'));
         return;
+      }
+
+      // Validate update data using SDK Zod validation
+      const validationResult = validateUpdateParams(updateData);
+      if (!validationResult.success) {
+        console.error(chalk.red('❌ Invalid update data:'));
+        validationResult.error.issues.forEach((issue: any) => {
+          console.error(chalk.red(`  • ${issue.path.join('.')}: ${issue.message}`));
+        });
+        process.exit(1);
       }
 
       // Show update summary with current vs new values
