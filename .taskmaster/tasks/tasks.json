@@ -306,12 +306,36 @@
           20
         ],
         "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Adjust CLI for SDK compatibility changes",
+            "description": "Updated CLI to work with SDK changes: new Zod validation, RegisterAgentParams type, removed openingGreeting and communicationURL fields, renamed websocket to socketio-eliza. Updated register.ts and update.ts commands, fixed config types, and resolved all TypeScript errors.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 23
+          }
+        ]
+      },
+      {
+        "id": 24,
+        "title": "CLI: Complete SDK compatibility updates",
+        "description": "Finalize CLI adjustments for recent SDK changes including Zod validation implementation, RegisterAgentParams type usage, removal of deprecated fields, and migration from websocket to socketio-eliza communication type.",
+        "details": "1. Update CLI to use latest SDK types and validation:\n   - Replace any legacy RegisterAgentParams usage with current SDK type definitions\n   - Implement Zod schema validation for all CLI input parameters and configuration files\n   - Update agent-record.yaml parsing to use Zod schemas for validation before SDK calls\n   - Ensure all CLI commands properly validate input data before passing to SDK methods\n\n2. Remove deprecated field handling:\n   - Remove openingGreeting field from agent registration and update commands\n   - Remove communicationURL field references from CLI options and configuration parsing\n   - Update help text and documentation to reflect removed fields\n   - Clean up any validation logic for deprecated fields\n\n3. Update communication type handling:\n   - Replace websocket communication type with socketio-eliza in all CLI commands\n   - Update default values and validation rules for communication-type parameter\n   - Modify agent configuration templates to use socketio-eliza as default\n   - Update CLI help text and examples to reflect new communication type\n\n4. Comprehensive CLI command updates:\n   - Update 'ensemble agents register' command to use new SDK validation and types\n   - Modify 'ensemble agents update' command to handle new field structure\n   - Ensure 'ensemble agents list' properly displays new field structure\n   - Update configuration file parsing and generation to match new SDK requirements\n\n5. Error handling and user experience:\n   - Implement proper error messages for validation failures using Zod error formatting\n   - Add migration warnings for users attempting to use deprecated fields\n   - Provide clear feedback when invalid communication types are specified\n   - Update CLI output formatting to handle new data structures",
+        "testStrategy": "1. Validation testing:\n   - Test Zod schema validation with valid and invalid input data for all CLI commands\n   - Verify proper error messages are displayed for validation failures\n   - Test agent-record.yaml parsing with various valid and invalid configurations\n\n2. Deprecated field handling:\n   - Test that CLI properly rejects configurations containing openingGreeting or communicationURL\n   - Verify helpful error messages guide users away from deprecated fields\n   - Test backward compatibility warnings and migration guidance\n\n3. Communication type testing:\n   - Test agent registration and updates with socketio-eliza communication type\n   - Verify rejection of websocket communication type with appropriate error messages\n   - Test default communication type assignment in new agent configurations\n\n4. End-to-end CLI functionality:\n   - Test complete agent registration workflow with new SDK types and validation\n   - Test agent update commands with new field structure\n   - Verify all agent commands work correctly with updated SDK API structure\n   - Test configuration file generation and parsing with new requirements\n\n5. Integration testing:\n   - Test CLI against testnet with real SDK calls using new types and validation\n   - Verify successful agent operations using updated communication types\n   - Test error scenarios with malformed data to ensure proper validation and error handling",
+        "status": "done",
+        "dependencies": [
+          21,
+          23
+        ],
+        "priority": "high",
         "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-08-02T09:37:11.595Z",
+      "updated": "2025-08-22T06:26:14.340Z",
       "description": "Tasks for master context"
     }
   }
