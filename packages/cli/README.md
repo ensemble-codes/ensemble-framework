@@ -31,11 +31,12 @@ npm install -g @ensemble-ai/cli
 ### Install from Source
 
 ```bash
-git clone https://github.com/ensemble-ai/ensemble-framework
-cd ensemble-framework/packages/cli
-pnpm install
-pnpm build
-npm link
+git clone https://github.com/ensemble-codes/ensemble-framework
+cd ensemble-framework
+pnpm install        # Install all workspace dependencies
+pnpm -r build       # Build all packages in correct order
+cd packages/cli
+npm link            # Optional: Make 'ensemble' command available globally otherwise run commands with pnpm dev
 ```
 
 ## Getting Started
@@ -389,7 +390,7 @@ ensemble --verbose agents list
 ## Support
 
 For issues, feature requests, or questions:
-- GitHub Issues: [ensemble-framework/issues](https://github.com/ensemble-ai/ensemble-framework/issues)
+- GitHub Issues: [ensemble-framework/issues](https://github.com/ensemble-codes/ensemble-framework/issues)
 - Documentation: [docs.ensemble.ai](https://docs.ensemble.ai)
 
 ## License
