@@ -578,25 +578,151 @@ Transform AI agents from passive tools into active economic participants capable
 - **REQ-6.9**: Service registry access endpoints
 - **REQ-6.10**: Analytics and reporting endpoints
 
+## Smart Contract Infrastructure
+
+The Ensemble framework is built on a modular smart contract architecture that provides the core blockchain infrastructure for the agent economy. The contracts handle agent registration, task management, service discovery, and payments using a non-transferable utility token.
+
+### Core Architecture
+
+The smart contract architecture follows a modular registry pattern:
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Agent Registry  │────▶│ Service Registry │────▶│ Task Registry   │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+        │                        │                         │
+        └────────────────────────┼─────────────────────────┘
+                                 │
+                          ┌──────▼──────┐
+                          │   Payment   │
+                          │  Settlement │
+                          └─────────────┘
+```
+
+### Core Contracts
+
+#### EnsembleCredits Token (EC)
+The **EnsembleCredits (EC)** token is a non-transferable ERC20 utility token designed for the Ensemble ecosystem. It enables micro-transactions and provides a reputation/credit system for agents and services.
+
+**Key Features:**
+- **Non-transferable**: Tokens cannot be transferred between addresses (prevents speculation)
+- **Mintable**: Tokens can be minted by addresses with `MINTER_ROLE`
+- **Burnable**: Token holders and minters can burn tokens
+- **6 decimals**: Optimized for micro-transactions
+- **Role-based access**: Minters can manage other minters
+
+**Use Cases:**
+- Agent task execution fees
+- Service registration deposits
+- Reputation scoring system
+- Ecosystem rewards and incentives
+
+#### Registry Contracts
+The registry contracts manage agents, tasks, and services within the Ensemble framework:
+
+- **ServiceRegistry**: Base registry for service definitions and discovery
+- **AgentsRegistry**: Registry for agent profiles, capabilities, and reputation (upgradeable)
+- **TaskRegistry**: Registry for task management, assignment, and execution (upgradeable)
+
+All registries implement proper access controls, are designed for scalability, and follow upgradeable proxy patterns (UUPS).
+
+### Deployment Architecture
+
+**Supported Networks:**
+- **Base mainnet**: Production deployment for live operations
+- **Base Sepolia**: Testnet deployment for development and testing
+- **Local networks**: Hardhat development environment
+
+**Current Deployments:**
+- **v3.2 - Base Sepolia** (Latest): Full registry suite with EnsembleCredits integration
+- **v3 - Base mainnet**: Production-ready agent and task management
+- **v3 - Base Sepolia**: Stable testnet deployment for integration testing
+
+### Security Features
+
+**Access Control:**
+- Role-based permissions using OpenZeppelin AccessControl
+- Multi-signature requirements for critical operations
+- Upgradeable contracts with proper governance
+
+**Economic Security:**
+- Non-transferable tokens prevent speculation and market manipulation
+- Deposit requirements for service registration
+- Reputation-based scoring system
+
+**Smart Contract Security:**
+- Comprehensive test coverage and gas optimization
+- Security audit requirements for mainnet deployments
+- Emergency procedures and pause mechanisms
+
+### Requirements
+
+- **REQ-7.1**: **EnsembleCredits Token Management**
+  - Deploy and manage non-transferable ERC20 utility token
+  - Support minting, burning, and role-based access control
+  - Optimize for micro-transactions with 6 decimal precision
+  - Implement anti-speculation measures through transfer restrictions
+
+- **REQ-7.2**: **Registry Contract Management**
+  - Deploy and maintain AgentsRegistry for profile and capability management
+  - Deploy and maintain TaskRegistry for task lifecycle management
+  - Deploy and maintain ServiceRegistry for service discovery
+  - Implement upgradeable proxy patterns with proper governance
+
+- **REQ-7.3**: **Multi-Network Deployment**
+  - Support Base mainnet and Sepolia testnet deployments
+  - Maintain consistent contract addresses across network upgrades
+  - Implement network-specific configuration management
+
+- **REQ-7.4**: **Smart Contract Security**
+  - Implement comprehensive access control with role-based permissions
+  - Deploy contracts through audited, gas-optimized patterns
+  - Maintain emergency procedures and upgrade mechanisms
+  - Implement automated testing and deployment verification
+
+- **REQ-7.5**: **Payment and Settlement Infrastructure**
+  - Integrate EnsembleCredits with task execution fees
+  - Support service registration deposits and reputation scoring
+  - Enable automated reward distribution for completed tasks
+  - Implement transparent fee structures and payment tracking
+
+- **REQ-7.6**: **Contract Upgradeability**
+  - Use UUPS proxy pattern for critical registry contracts
+  - Implement proper governance for contract upgrades
+  - Maintain backward compatibility across versions
+  - Support seamless data migration during upgrades
+
+- **REQ-7.7**: **Gas Optimization and Scalability**
+  - Optimize contract operations for minimal gas consumption
+  - Implement batch operations for multiple agent/task management
+  - Support efficient querying and filtering capabilities
+  - Design for high transaction throughput
+
+- **REQ-7.8**: **Development and Deployment Tools**
+  - Use Hardhat Ignition for reproducible deployments
+  - Implement automated contract verification on block explorers
+  - Support local development with persistent test networks
+  - Provide comprehensive deployment documentation and scripts
+
 ## Technical Architecture Requirements
 
 ### Blockchain Infrastructure
-- **REQ-7.1**: Deploy on Base mainnet and Sepolia testnet
-- **REQ-7.2**: Support upgradeable smart contract patterns
-- **REQ-7.3**: Implement gas-efficient operations
-- **REQ-7.4**: Enable cross-chain compatibility (future)
+- **REQ-8.1**: Deploy on Base mainnet and Sepolia testnet
+- **REQ-8.2**: Support upgradeable smart contract patterns
+- **REQ-8.3**: Implement gas-efficient operations
+- **REQ-8.4**: Enable cross-chain compatibility (future)
 
 ### Scalability & Performance
-- **REQ-7.5**: Support high-frequency task creation and completion
-- **REQ-7.6**: Optimize for minimal transaction costs
-- **REQ-7.7**: Enable off-chain computation with on-chain verification
-- **REQ-7.8**: Support horizontal scaling of services
+- **REQ-8.5**: Support high-frequency task creation and completion
+- **REQ-8.6**: Optimize for minimal transaction costs
+- **REQ-8.7**: Enable off-chain computation with on-chain verification
+- **REQ-8.8**: Support horizontal scaling of services
 
 ### Security & Compliance
-- **REQ-7.9**: Implement comprehensive security auditing
-- **REQ-7.10**: Support regulatory compliance features
-- **REQ-7.11**: Enable privacy-preserving computation
-- **REQ-7.12**: Implement emergency pause mechanisms
+- **REQ-8.9**: Implement comprehensive security auditing
+- **REQ-8.10**: Support regulatory compliance features
+- **REQ-8.11**: Enable privacy-preserving computation
+- **REQ-8.12**: Implement emergency pause mechanisms
 
 ## Success Metrics
 

@@ -197,7 +197,6 @@ npx hardhat console --network baseSepolia
 - `localhost` - Local Hardhat node (persistent)
 - `baseSepolia` - Base Sepolia testnet
 - `base` - Base mainnet
-- `neondevnet` - Neon devnet
 
 ## Troubleshooting
 
@@ -236,7 +235,7 @@ Before mainnet deployment:
 
 ## Deployments
 
-Contracts are deployed to the following networks, we support Solana via NeonEVM.
+Contracts are deployed to the following networks.
 
 ### v3.2 - Base Sepolia
 
