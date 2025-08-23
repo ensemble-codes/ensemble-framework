@@ -452,6 +452,169 @@ Transform AI agents from passive tools into active economic participants capable
     - `ensemble agents update-property 0x456...def attributes "ai,chatbot,helper" --format csv`
     - `ensemble agents update-property 0x456...def socials '{"twitter":"@newhandle","github":"newuser"}'`
 
+###### Wallet Management Commands
+- **ensemble wallets create [name]**: Create a new wallet with encrypted storage
+  - Usage: `ensemble wallets create [name] [options]`
+  - Options:
+    - `--type <type>`: Wallet type (mnemonic, private-key) (default: mnemonic)
+    - `--private-key <key>`: Private key for signing (or use env ENSEMBLE_PRIVATE_KEY)
+    - `--network <network>`: Network (mainnet, sepolia) (default: sepolia)
+    - `--verbose`: Enable verbose output with debug information
+  - Interactive Prompts:
+    - Wallet name (if not provided): Validates alphanumeric with underscores/hyphens
+    - Password: Minimum 8 characters with confirmation
+    - Displays mnemonic phrase (one-time only for security)
+  - Examples:
+    - `pnpm dev wallets create my-wallet`
+    - `pnpm dev wallets create agent-wallet --type private-key`
+    - `pnpm dev wallets create test-wallet --type mnemonic`
+
+- **ensemble wallets import [name]**: Import an existing wallet from external source
+  - Usage: `ensemble wallets import [name] [options]`
+  - Options:
+    - `--mnemonic`: Import from mnemonic phrase
+    - `--private-key`: Import from private key
+    - `--keystore <file>`: Import from keystore file (future enhancement)
+    - `--verbose`: Enable verbose output
+  - Interactive Prompts:
+    - Wallet name (if not provided)
+    - Import method selection (if not specified)
+    - Mnemonic phrase or private key input (masked)
+    - Password for wallet encryption (with confirmation)
+  - Examples:
+    - `pnpm dev wallets import my-imported-wallet --mnemonic`
+    - `pnpm dev wallets import legacy-wallet --private-key`
+    - `pnpm dev wallets import my-wallet` (interactive method selection)
+
+- **ensemble wallets list**: Display all available wallets with status indicators
+  - Usage: `ensemble wallets list [options]`
+  - Options:
+    - `--format <format>`: Output format (table, json, csv, yaml) (default: table)
+    - `--verbose`: Include additional wallet metadata
+    - `--quiet`: Suppress non-essential output
+  - Features:
+    - Shows active wallet with ✅ indicator
+    - Displays wallet addresses and creation dates
+    - Indicates wallet type (mnemonic, private-key)
+    - Provides guidance when no wallets exist
+  - Examples:
+    - `pnpm dev wallets list`
+    - `pnpm dev wallets list --format json`
+    - `pnpm dev wallets list --verbose`
+
+- **ensemble wallets current**: Show the currently active wallet information
+  - Usage: `ensemble wallets current [options]`
+  - Options:
+    - `--format <format>`: Output format (table, json, yaml) (default: table)
+    - `--verbose`: Include additional details
+  - Features:
+    - Displays active wallet name and address
+    - Handles case when no active wallet is set
+    - Auto-clears invalid active wallet references
+    - Provides guidance for setting active wallet
+  - Examples:
+    - `pnpm dev wallets current`
+    - `pnpm dev wallets current --format json`
+
+- **ensemble wallets balance [wallet]**: Check wallet balance for ETH and tokens
+  - Usage: `ensemble wallets balance [wallet] [options]`
+  - Options:
+    - `--wallet <name>`: Specific wallet (overrides active wallet)
+    - `--format <format>`: Output format (table, json, yaml) (default: table)
+    - `--network <network>`: Target network (mainnet, sepolia)
+    - `--verbose`: Show additional balance details
+  - Features:
+    - Uses active wallet if none specified
+    - Shows ETH balance and token balances
+    - Supports global --wallet option inheritance
+    - Real-time balance fetching from blockchain
+  - Examples:
+    - `pnpm dev wallets balance` (uses active wallet)
+    - `pnpm dev wallets balance my-wallet`
+    - `pnpm dev wallets balance --wallet test-wallet --format json`
+
+- **ensemble wallets use <name>**: Set the active wallet for CLI operations
+  - Usage: `ensemble wallets use <name> [options]`
+  - Parameters:
+    - `<name>`: Wallet name to set as active (required)
+  - Options:
+    - `--verbose`: Show detailed operation info
+  - Features:
+    - Validates wallet exists before setting as active
+    - Updates CLI configuration file
+    - Shows wallet address confirmation
+    - Provides helpful error messages for non-existent wallets
+  - Examples:
+    - `pnpm dev wallets use my-main-wallet`
+    - `pnpm dev wallets use production-wallet --verbose`
+
+- **ensemble wallets unset**: Clear the active wallet (enables testing without wallet)
+  - Usage: `ensemble wallets unset [options]`
+  - Options:
+    - `--verbose`: Show detailed operation info
+  - Features:
+    - Clears active wallet from configuration
+    - Shows previous active wallet name
+    - Enables testing of read-only CLI commands without wallet
+    - Provides guidance for re-setting active wallet
+    - Handles gracefully when no active wallet exists
+  - Examples:
+    - `pnpm dev wallets unset`
+    - `pnpm dev wallets unset --verbose`
+  - Use Cases:
+    - Testing CLI agent discovery without wallet setup
+    - Switching between different wallet configurations
+    - Temporary wallet disconnection for read-only operations
+
+- **ensemble wallets export <name>**: Export wallet data in various formats
+  - Usage: `ensemble wallets export <name> [options]`
+  - Parameters:
+    - `<name>`: Wallet name to export (required)
+  - Options:
+    - `--format <format>`: Export format (mnemonic, private-key, keystore) (default: mnemonic)
+    - `--output-file <file>`: Save export to file instead of displaying
+    - `--verbose`: Show detailed export process
+  - Security Features:
+    - Requires password verification for wallet access
+    - Displays sensitive data warnings
+    - For keystore format: prompts for output password
+    - One-time display of sensitive information
+  - Examples:
+    - `pnpm dev wallets export my-wallet`
+    - `pnpm dev wallets export my-wallet --format private-key`
+    - `pnpm dev wallets export my-wallet --format keystore --output-file backup.json`
+
+- **ensemble wallets delete <name>**: Permanently delete a wallet with confirmation
+  - Usage: `ensemble wallets delete <name> [options]`
+  - Parameters:
+    - `<name>`: Wallet name to delete (required)
+  - Options:
+    - `--confirm`: Skip interactive confirmation prompt
+    - `--verbose`: Show detailed deletion process
+  - Security Features:
+    - Two-step confirmation: interactive prompt + password verification
+    - Cannot be undone - permanent deletion warning
+    - Auto-clears active wallet if deleting current active wallet
+    - Password verification to confirm ownership
+  - Examples:
+    - `pnpm dev wallets delete old-wallet`
+    - `pnpm dev wallets delete test-wallet --confirm --verbose`
+
+###### Wallet Security & Storage
+- **Storage Location**: Wallets stored as encrypted JSON files in `~/.ensemble/wallets/`
+- **Encryption**: AES-256 encryption with salt and IV for each wallet
+- **Password Requirements**: Minimum 8 characters, confirmed during creation
+- **Active Wallet Management**: Stored in `~/.ensemble/config.json` as `activeWallet` field
+- **File Permissions**: Automatically set restrictive permissions on wallet files
+- **Backup Recommendations**: Export and securely store mnemonic phrases offline
+
+###### Wallet Integration with CLI Commands
+- **Global Wallet Option**: All CLI commands support `--wallet <name>` to override active wallet
+- **Wallet Priority**: Command argument > global option > active wallet > error
+- **Read-Only Operations**: Agent discovery and querying work without wallet
+- **Write Operations**: Agent registration, updates require wallet (active or specified)
+- **Environment Override**: `ENSEMBLE_ACTIVE_WALLET` environment variable supported
+
 ###### Configuration & Environment Commands
 - **ensemble config**: Manage CLI configuration and network settings
   - Usage: `ensemble config <command> [options]`
@@ -498,6 +661,7 @@ Transform AI agents from passive tools into active economic participants capable
 - `ENSEMBLE_GAS_PRICE`: Default gas price in gwei
 - `ENSEMBLE_CONFIG_DIR`: Custom configuration directory path
 - `ENSEMBLE_OUTPUT_FORMAT`: Default output format (table, json, csv)
+- `ENSEMBLE_ACTIVE_WALLET`: Default active wallet name
 
 ###### Configuration Files
 - Support for JSON and YAML configuration files for agent registration and updates

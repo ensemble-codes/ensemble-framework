@@ -503,6 +503,31 @@ walletCommand
     }
   });
 
+// Unset active wallet command
+walletCommand
+  .command('unset')
+  .description('Clear the active wallet (allows testing CLI without wallet)')
+  .action(async (_options, command) => {
+    try {
+      const activeWallet = await getActiveWallet();
+
+      if (!activeWallet) {
+        console.log(chalk.yellow('No active wallet is currently set'));
+        console.log(chalk.blue('💡 Use "ensemble wallets use <name>" to set an active wallet'));
+        return;
+      }
+
+      await clearActiveWallet();
+      console.log(chalk.green(`✅ Active wallet cleared (was: '${activeWallet}')`));
+      console.log(chalk.blue('💡 You can now test CLI commands without a wallet'));
+      console.log(chalk.blue('💡 Use "ensemble wallets use <name>" to set a new active wallet'));
+
+    } catch (error: any) {
+      handleWalletError(error, command.parent.parent.opts().verbose);
+      process.exit(1);
+    }
+  });
+
 // Delete wallet command
 walletCommand
   .command('delete <name>')
