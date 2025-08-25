@@ -18,8 +18,7 @@
   },
   "scripts": {
     "codegen": "graph codegen",
-    "prebuild": "graph codegen",
-    "build": "graph build",
+    "build": "graph codegen && graph build",
     "deploy": "graph deploy ensemble-v2",
     "create-local": "graph create --node http://localhost:8020/ ensemble-hub",
     "remove-local": "graph remove --node http://localhost:8020/ ensemble-hub",
