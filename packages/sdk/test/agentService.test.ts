@@ -32,9 +32,9 @@ describe("AgentService Tests", () => {
     // Create AgentService with mocked subgraph URL
     agentService = new AgentService(
       mockRegistry,
+      "https://mock-subgraph-url.com",
       mockSigner,
-      undefined,
-      "https://mock-subgraph-url.com"
+      undefined
     );
 
     // Mock the subgraph client
@@ -144,15 +144,6 @@ describe("AgentService Tests", () => {
       );
     });
 
-    it("should throw error when subgraph client is not initialized", async () => {
-      const agentServiceWithoutSubgraph = new AgentService(
-        mockRegistry,
-        mockSigner
-      );
-
-      await expect(agentServiceWithoutSubgraph.getAgentRecords())
-        .rejects.toThrow("Subgraph client is not initialized");
-    });
   });
 
   describe("getAgentsByOwner", () => {

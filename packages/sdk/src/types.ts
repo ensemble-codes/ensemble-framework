@@ -187,7 +187,7 @@ export interface EnsembleConfig {
   agentRegistryAddress: string;
   serviceRegistryAddress: string;
   network: NetworkConfig;
-  subgraphUrl?: string;
+  subgraphUrl: string;
 }
 
 

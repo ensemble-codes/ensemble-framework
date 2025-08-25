@@ -1,6 +1,6 @@
 {
   "name": "@ensemble-ai/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Command-line interface for Ensemble agent management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,22 @@
     "dist",
     "bin"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ensemble-codes/ensemble-framework.git",
+    "directory": "packages/cli"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/ensemble-codes/ensemble-framework/tree/main/packages/cli",
+  "bugs": {
+    "url": "https://github.com/ensemble-codes/ensemble-framework/issues"
+  },
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "tsc",
     "watch": "tsc --watch",
     "test": "jest --verbose",
@@ -50,6 +65,5 @@
     "blockchain",
     "web3"
   ],
-  "author": "Ensemble AI",
-  "license": "MIT"
+  "author": "Ensemble AI"
 }

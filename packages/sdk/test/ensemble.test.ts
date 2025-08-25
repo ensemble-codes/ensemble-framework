@@ -59,7 +59,8 @@ describe("Ensemble Unit Tests", () => {
       network: {
         chainId: 1,
         rpcUrl: "https://rpc-url.com", 
-      }
+      },
+      subgraphUrl: "https://test-subgraph.com"
     }
 
  
@@ -81,7 +82,8 @@ describe("Ensemble Unit Tests", () => {
       network: {
         chainId: 1,
         rpcUrl: "https://rpc-url.com", 
-      }
+      },
+      subgraphUrl: "https://test-subgraph.com"
     }
 
     // Create the instance without ipfsSDK

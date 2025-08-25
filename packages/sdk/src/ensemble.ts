@@ -83,7 +83,7 @@ export class Ensemble {
     );
 
     const serviceRegistryService = new ServiceRegistryService(serviceRegistry, signer);
-    const agentService = new AgentService(agentRegistry, signer, ipfsSDK, config.subgraphUrl);
+    const agentService = new AgentService(agentRegistry, config.subgraphUrl, signer, ipfsSDK);
     const taskService = new TaskService(taskRegistry, agentService);
 
     return new Ensemble(taskService, agentService, serviceRegistryService, signer);

@@ -20,6 +20,11 @@ export async function createSDKInstance(providedSigner?: ethers.Signer): Promise
     signer = ethers.Wallet.createRandom().connect(provider);
   }
 
+  // Validate required subgraphUrl
+  if (!config.subgraphUrl) {
+    throw new Error('subgraphUrl is required in CLI config. Please ensure your config includes a subgraphUrl.');
+  }
+
   // Create ensemble config
   const ensembleConfig = {
     taskRegistryAddress: config.contracts.taskRegistry,
