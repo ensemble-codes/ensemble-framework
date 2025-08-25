@@ -4,7 +4,22 @@
   "description": "MCP server for Ensemble agent matching",
   "main": "dist/src/index.js",
   "bin": "dist/src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ensemble-codes/ensemble-framework.git",
+    "directory": "packages/mcp-server"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/ensemble-codes/ensemble-framework/tree/main/packages/mcp-server",
+  "bugs": {
+    "url": "https://github.com/ensemble-codes/ensemble-framework/issues"
+  },
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "tsc",
     "dev": "ts-node src/index.ts",
     "start": "node dist/src/index.js",

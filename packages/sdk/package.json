@@ -1,13 +1,28 @@
 {
   "name": "@ensemble-ai/sdk",
   "version": "0.6.1",
-  "description": "TypeScript SDK for the Agentic Hub",
+  "description": "TypeScript SDK for the Ensemble Framework",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ensemble-codes/ensemble-framework.git",
+    "directory": "packages/sdk"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/ensemble-codes/ensemble-framework/tree/main/packages/sdk",
+  "bugs": {
+    "url": "https://github.com/ensemble-codes/ensemble-framework/issues"
+  },
   "scripts": {
+    "clean": "rm -rf dist typechain",
     "prebuild": "npm run typechain",
     "prepublish": "npm run typechain && npm run build",
     "build": "tsc",

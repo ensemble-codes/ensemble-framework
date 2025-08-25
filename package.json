@@ -1,0 +1,47 @@
+{
+  "name": "ensemble-framework",
+  "private": true,
+  "description": "Monorepo for Ensemble Framework packages",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:sdk": "pnpm --filter @ensemble-ai/sdk build",
+    "build:cli": "pnpm --filter @ensemble-ai/cli build",
+    "build:contracts": "pnpm --filter @ensemble-ai/contracts build",
+    "test": "pnpm -r test",
+    "test:sdk": "pnpm --filter @ensemble-ai/sdk test",
+    "test:cli": "pnpm --filter @ensemble-ai/cli test",
+    "typecheck": "pnpm -r typecheck",
+    "changeset": "changeset",
+    "changeset:status": "changeset status --verbose",
+    "changeset:version": "changeset version && pnpm install --no-frozen-lockfile",
+    "changeset:publish": "pnpm build && changeset publish",
+    "changeset:publish:alpha": "pnpm build && changeset publish --tag alpha",
+    "changeset:publish:beta": "pnpm build && changeset publish --tag beta",
+    "release": "pnpm run changeset:version && pnpm run changeset:publish",
+    "release:dry": "pnpm build && changeset publish --dry-run",
+    "clean": "pnpm -r --parallel exec rm -rf dist node_modules",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,md}\"",
+    "lint": "eslint packages/*/src --ext .ts,.tsx"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ensemble-codes/ensemble-framework.git"
+  },
+  "license": "MIT"
+}

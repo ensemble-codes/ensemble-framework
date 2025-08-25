@@ -1,0 +1,48 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Type check
+        run: pnpm typecheck
+      
+      - name: Build packages
+        run: pnpm build
+      
+      - name: Run tests
+        run: pnpm test
+      
+      - name: Check for changeset (skip for dependabot)
+        if: github.actor != 'dependabot[bot]'
+        run: |
+          if [ "$(pnpm changeset status --verbose | grep 'No changesets present')" ]; then
+            echo "::error::Please add a changeset by running 'pnpm changeset'"
+            echo "::error::This helps us track changes and generate release notes"
+            exit 1
+          else
+            echo "✅ Changeset found"
+          fi

@@ -1,6 +1,21 @@
 {
-  "name": "ensemble-ai",
-  "license": "UNLICENSED",
+  "name": "@ensemble-ai/subgraph",
+  "version": "0.1.0",
+  "description": "The Graph subgraph for indexing Ensemble Framework events",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ensemble-codes/ensemble-framework.git",
+    "directory": "packages/subgraph"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/ensemble-codes/ensemble-framework/tree/main/packages/subgraph",
+  "bugs": {
+    "url": "https://github.com/ensemble-codes/ensemble-framework/issues"
+  },
   "scripts": {
     "codegen": "graph codegen",
     "prebuild": "graph codegen",
