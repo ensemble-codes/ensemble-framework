@@ -895,7 +895,7 @@ export class AgentService {
           const ipfsHash = currentData.agentUri.replace('ipfs://', '');
           const response = await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsHash}`);
           if (response.ok) {
-            currentMetadata = await response.json();
+            currentMetadata = await response.json() as AgentMetadata;
           }
         } catch (error) {
           console.warn("Failed to fetch current metadata, proceeding with update:", error);
