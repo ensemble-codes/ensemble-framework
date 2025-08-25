@@ -69,7 +69,7 @@ interface AgentsQuery {
 
 
 export class AgentService {
-  private subgraphClient?: GraphQLClient;
+  private subgraphClient: GraphQLClient;
 
   /**
    * Helper function to convert SubgraphAgent to AgentRecord
@@ -107,13 +107,11 @@ export class AgentService {
 
   constructor(
     private readonly agentRegistry: AgentsRegistry,
+    subgraphUrl: string,
     private signer?: ethers.Signer,
-    private readonly ipfsSDK?: PinataSDK,
-    subgraphUrl?: string
+    private readonly ipfsSDK?: PinataSDK
   ) {
-    if (subgraphUrl) {
-      this.subgraphClient = new GraphQLClient(subgraphUrl);
-    }
+    this.subgraphClient = new GraphQLClient(subgraphUrl);
   }
 
   /**
@@ -657,9 +655,6 @@ export class AgentService {
    * @returns {Promise<AgentRecord[]>} A promise that resolves to an array of agent records.
    */
   async getAgentRecords(filters: AgentFilterParams = {}): Promise<AgentRecord[]> {
-    if (!this.subgraphClient) {
-      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
-    }
 
     // Build where clause based on filters
     const whereClause: string[] = [];
