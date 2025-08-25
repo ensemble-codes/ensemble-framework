@@ -1,6 +1,6 @@
 {
   "name": "@ensemble-ai/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Command-line interface for Ensemble agent management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -65,6 +65,5 @@
     "blockchain",
     "web3"
   ],
-  "author": "Ensemble AI",
-  "license": "MIT"
+  "author": "Ensemble AI"
 }
