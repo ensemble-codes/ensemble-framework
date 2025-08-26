@@ -140,6 +140,7 @@ const config = {
   taskRegistryAddress: process.env.TASK_REGISTRY_ADDRESS,
   agentRegistryAddress: process.env.AGENT_REGISTRY_ADDRESS,
   serviceRegistryAddress: process.env.SERVICE_REGISTRY_ADDRESS,
+  subgraphUrl: process.env.SUBGRAPH_URL, // Required for agent queries
   network: {
     chainId: parseInt(process.env.NETWORK_CHAIN_ID),
     name: process.env.NETWORK_NAME,

@@ -69,7 +69,7 @@ interface AgentsQuery {
 
 
 export class AgentService {
-  private subgraphClient?: GraphQLClient;
+  private subgraphClient: GraphQLClient;
 
   /**
    * Helper function to convert SubgraphAgent to AgentRecord
@@ -107,13 +107,11 @@ export class AgentService {
 
   constructor(
     private readonly agentRegistry: AgentsRegistry,
+    subgraphUrl: string,
     private signer?: ethers.Signer,
-    private readonly ipfsSDK?: PinataSDK,
-    subgraphUrl?: string
+    private readonly ipfsSDK?: PinataSDK
   ) {
-    if (subgraphUrl) {
-      this.subgraphClient = new GraphQLClient(subgraphUrl);
-    }
+    this.subgraphClient = new GraphQLClient(subgraphUrl);
   }
 
   /**
@@ -657,9 +655,6 @@ export class AgentService {
    * @returns {Promise<AgentRecord[]>} A promise that resolves to an array of agent records.
    */
   async getAgentRecords(filters: AgentFilterParams = {}): Promise<AgentRecord[]> {
-    if (!this.subgraphClient) {
-      throw new Error("Subgraph client is not initialized. Please provide a subgraphUrl in the config.");
-    }
 
     // Build where clause based on filters
     const whereClause: string[] = [];
@@ -900,7 +895,7 @@ export class AgentService {
           const ipfsHash = currentData.agentUri.replace('ipfs://', '');
           const response = await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsHash}`);
           if (response.ok) {
-            currentMetadata = await response.json();
+            currentMetadata = await response.json() as AgentMetadata;
           }
         } catch (error) {
           console.warn("Failed to fetch current metadata, proceeding with update:", error);

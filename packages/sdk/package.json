@@ -1,21 +1,34 @@
 {
   "name": "@ensemble-ai/sdk",
-  "version": "0.6.1",
-  "description": "TypeScript SDK for the Agentic Hub",
+  "version": "0.6.2",
+  "description": "TypeScript SDK for the Ensemble Framework",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ensemble-codes/ensemble-framework.git",
+    "directory": "packages/sdk"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/ensemble-codes/ensemble-framework/tree/main/packages/sdk",
+  "bugs": {
+    "url": "https://github.com/ensemble-codes/ensemble-framework/issues"
+  },
   "scripts": {
-    "prebuild": "npm run typechain",
-    "prepublish": "npm run typechain && npm run build",
-    "build": "tsc",
+    "clean": "rm -rf dist typechain",
+    "build": "npm run typechain && tsc",
     "watch": "tsc --watch",
-    "test": "jest --verbose",
-    "test:agent": "jest test/agentService.test.ts",
-    "test:integration": "npx tsx scripts/test-agent-methods.ts",
-    "typecheck": "tsc --noEmit",
+    "test": "npm run typechain && jest --verbose",
+    "test:agent": "npm run typechain && jest test/agentService.test.ts",
+    "test:integration": "npm run typechain && npx tsx scripts/test-agent-methods.ts",
+    "typecheck": "npm run typechain && tsc --noEmit",
     "docs": "typedoc",
     "upload-docs": "aws s3 cp ./docs s3://$ENSEMBLE_S3_BUCKET_NAME --recursive",
     "register-services": "ts-node ./scripts/register-services.ts",
