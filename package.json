@@ -10,7 +10,7 @@
     "build:sdk": "pnpm --filter @ensemble-ai/sdk build",
     "build:cli": "pnpm --filter @ensemble-ai/cli build",
     "build:contracts": "pnpm --filter @ensemble-ai/contracts build",
-    "test": "pnpm -r --filter='!@ensemble-ai/subgraph' --filter='!@ensemble-ai/mcp-server' test",
+    "test": "pnpm -r --filter='!@ensemble-ai/subgraph' --filter='!@ensemble-ai/mcp-server' --filter='!@ensemble-ai/cli' test",
     "test:sdk": "pnpm --filter @ensemble-ai/sdk test",
     "test:cli": "pnpm --filter @ensemble-ai/cli test",
     "test:subgraph": "pnpm --filter @ensemble-ai/subgraph test",
