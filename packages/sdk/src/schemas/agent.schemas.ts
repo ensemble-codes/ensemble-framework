@@ -313,3 +313,170 @@ export const parseCommunicationParamsFromString = (params: string | Communicatio
   }
   return params;
 };
+
+// ============================================================================
+// Service Schemas
+// ============================================================================
+
+/**
+ * Schema for service categories
+ */
+export const ServiceCategorySchema = z.enum([
+  'ai',
+  'data', 
+  'automation',
+  'defi',
+  'social',
+  'analytics',
+  'oracle',
+  'storage',
+  'compute',
+  'messaging'
+]);
+
+/**
+ * Schema for service methods
+ */
+export const ServiceMethodSchema = z.enum([
+  'HTTP_GET',
+  'HTTP_POST',
+  'HTTP_PUT',
+  'HTTP_DELETE'
+]);
+
+/**
+ * Schema for service status
+ */
+export const ServiceStatusSchema = z.enum(['active', 'inactive', 'deprecated']);
+
+/**
+ * Schema for service pricing models
+ */
+export const ServicePricingModelSchema = z.enum(['per_call', 'subscription', 'tiered', 'free']);
+
+/**
+ * Schema for service pricing
+ */
+export const ServicePricingSchema = z.object({
+  model: ServicePricingModelSchema,
+  price: BigNumberishSchema.optional(), // Optional for free services
+  tokenAddress: z.string().regex(ethereumAddressRegex).optional(),
+  freeQuota: z.number().int().min(0).optional() // Free calls before charging
+});
+
+/**
+ * Schema for JSON/object values
+ * Using z.record for flexible key-value pairs
+ */
+export const JsonSchema: z.ZodType<any> = z.lazy(() => 
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.record(z.string(), JsonSchema),
+    z.array(JsonSchema)
+  ])
+);
+
+/**
+ * Complete service schema
+ * Note: Secrets should NEVER be stored in the service definition.
+ * Use environment variables or secure key management systems instead.
+ */
+export const ServiceSchema = z.object({
+  id: z.string().uuid({ message: 'Service ID must be a valid UUID' }),
+  name: z.string().min(1, 'Service name is required').max(100),
+  category: ServiceCategorySchema,
+  description: z.string().min(1, 'Service description is required').max(500),
+  owner: z.string().regex(ethereumAddressRegex, 'Invalid owner address'),
+  agentAddress: z.string().regex(ethereumAddressRegex, 'Invalid agent address'),
+  endpointSchema: z.string().url({ message: 'Endpoint must be a valid URL' }),
+  method: ServiceMethodSchema,
+  parametersSchema: z.record(z.string(), JsonSchema).describe('Input parameters schema'),
+  resultSchema: z.record(z.string(), JsonSchema).describe('Expected output schema'),
+  status: ServiceStatusSchema,
+  pricing: ServicePricingSchema.optional()
+});
+
+/**
+ * Schema for creating a new service (some fields optional or auto-generated)
+ */
+export const CreateServiceSchema = ServiceSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+}).extend({
+  id: z.string().uuid({ message: 'Service ID must be a valid UUID' }).optional() // Allow client to provide ID or auto-generate
+});
+
+/**
+ * Schema for updating a service (all fields optional except id)
+ */
+export const UpdateServiceSchema = ServiceSchema.partial().required({
+  id: true
+});
+
+// ============================================================================
+// Service Type Exports
+// ============================================================================
+
+export type ServiceCategory = z.infer<typeof ServiceCategorySchema>;
+export type ServiceMethod = z.infer<typeof ServiceMethodSchema>;
+export type ServiceStatus = z.infer<typeof ServiceStatusSchema>;
+export type ServicePricingModel = z.infer<typeof ServicePricingModelSchema>;
+export type ServicePricing = z.infer<typeof ServicePricingSchema>;
+export type Service = z.infer<typeof ServiceSchema>;
+export type CreateService = z.infer<typeof CreateServiceSchema>;
+export type UpdateService = z.infer<typeof UpdateServiceSchema>;
+
+// ============================================================================
+// Service Validation Functions
+// ============================================================================
+
+/**
+ * Validates service data
+ * @returns Success with parsed data or failure with errors
+ */
+export const validateService = (data: unknown) => {
+  return ServiceSchema.safeParse(data);
+};
+
+/**
+ * Validates service creation parameters
+ * @returns Success with parsed data or failure with errors
+ */
+export const validateCreateService = (data: unknown) => {
+  return CreateServiceSchema.safeParse(data);
+};
+
+/**
+ * Validates service update parameters
+ * @returns Success with parsed data or failure with errors
+ */
+export const validateUpdateService = (data: unknown) => {
+  return UpdateServiceSchema.safeParse(data);
+};
+
+/**
+ * Parses and validates service data
+ * @throws ZodError if validation fails
+ */
+export const parseService = (data: unknown): Service => {
+  return ServiceSchema.parse(data);
+};
+
+/**
+ * Parses and validates service creation parameters
+ * @throws ZodError if validation fails
+ */
+export const parseCreateService = (data: unknown): CreateService => {
+  return CreateServiceSchema.parse(data);
+};
+
+/**
+ * Type guard for Service
+ */
+export const isService = (data: unknown): data is Service => {
+  return ServiceSchema.safeParse(data).success;
+};

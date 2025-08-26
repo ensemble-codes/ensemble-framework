@@ -80,6 +80,15 @@ export {
   RegisterAgentParams,
   UpdateableAgentRecord,
   AgentStatus,
+  // Service types
+  Service,
+  CreateService,
+  UpdateService,
+  ServiceCategory,
+  ServiceMethod,
+  ServiceStatus,
+  ServicePricingModel,
+  ServicePricing,
 } from './schemas/agent.schemas';
 
 // Type alias for serialized communication parameters (JSON string)
@@ -132,14 +141,6 @@ export interface Skill {
   name: string;
   level: number;
 }
-
-export interface Service {
-  name: string;
-  category: string;
-  description: string;
-}
-
-
 
 export interface AgentData {
   name: string;

@@ -15,7 +15,14 @@ export {
     validateCommunicationParams,
     parseAgentRecord,
     parseRegisterParams,
-    parseUpdateParams
+    parseUpdateParams,
+    // Service validation functions
+    validateService,
+    validateCreateService,
+    validateUpdateService,
+    parseService,
+    parseCreateService,
+    isService
 } from "./schemas/agent.schemas"
 
 export { 
