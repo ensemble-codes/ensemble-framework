@@ -115,13 +115,13 @@ export const ServiceSchema = z.object({
 );
 
 /**
- * Schema for creating a new service (omits generated fields)
+ * Schema for registering a new service (omits generated fields)
  */
 export const RegisterServiceParamsSchema = ServiceSchema.omit({
+  id: true,          // Generated on-chain
   createdAt: true,   // Generated
   updatedAt: true,   // Generated
 }).partial({
-  id: true,          // Optional - generated if not provided
   status: true,      // Defaults to 'draft'
 });
 

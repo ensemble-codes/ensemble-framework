@@ -73,11 +73,25 @@ export class ServiceRegistryService {
     const parsedParams = parseRegisterServiceParams(params);
     
     try {
-      // Generate UUID if not provided
-      const serviceId = parsedParams.id || crypto.randomUUID();
       const ownerAddress = await this.signer!.getAddress();
+
+      console.log(`Registering service: ${parsedParams.name}`);
+
+      // Register service on blockchain - this will return a service ID
+      const tx = await this.serviceRegistry.registerService(
+        parsedParams.name,
+        parsedParams.category,
+        parsedParams.description
+      );
       
-      // Create complete service object
+      const receipt = await tx.wait();
+      
+      // Extract service ID from blockchain transaction
+      const serviceId = this.extractServiceIdFromReceipt(receipt);
+      
+      console.log(`Service registered successfully: ${parsedParams.name} (ID: ${serviceId}, tx: ${receipt?.hash})`);
+      
+      // Create complete service object with blockchain-generated ID
       const service: Service = {
         ...parsedParams,
         id: serviceId,
@@ -92,22 +106,10 @@ export class ServiceRegistryService {
       const serviceValidation = validateService(service);
       if (!serviceValidation.success) {
         throw new ServiceValidationError(
-          "Service validation failed after creation",
+          "Service validation failed after blockchain registration",
           serviceValidation.error.issues
         );
       }
-
-      console.log(`Creating service: ${service.name} (ID: ${serviceId})`);
-
-      // Register service on blockchain (using existing method for now)
-      const tx = await this.serviceRegistry.registerService(
-        service.name,
-        service.category,
-        service.description
-      );
-      
-      const receipt = await tx.wait();
-      console.log(`Service created successfully: ${serviceId} (tx: ${receipt?.hash})`);
 
       return service;
     } catch (error: any) {
@@ -523,6 +525,42 @@ export class ServiceRegistryService {
   // ============================================================================
   // Private Helper Methods
   // ============================================================================
+
+  /**
+   * Extracts service ID from transaction receipt
+   * @param {any} receipt - Transaction receipt
+   * @returns {string} The service ID from the blockchain
+   * @throws {Error} If ServiceRegistered event not found
+   * @private
+   */
+  private extractServiceIdFromReceipt(receipt: any): string {
+    try {
+      // Look for ServiceRegistered event in the logs
+      const serviceRegisteredTopic = this.serviceRegistry.interface.getEvent('ServiceRegistered').topicHash;
+      const event = receipt.logs.find((log: any) => log.topics[0] === serviceRegisteredTopic);
+      
+      if (event) {
+        const parsed = this.serviceRegistry.interface.parseLog(event);
+        if (parsed && parsed.args && parsed.args.serviceId) {
+          // Convert BigInt to string for consistency with UUID format
+          return parsed.args.serviceId.toString();
+        }
+      }
+      
+      throw new Error('ServiceRegistered event not found in transaction receipt');
+    } catch (error) {
+      // Fallback: extract from receipt if event parsing fails
+      if (receipt.events && receipt.events.length > 0) {
+        const serviceEvent = receipt.events.find((event: any) => event.event === 'ServiceRegistered');
+        if (serviceEvent && serviceEvent.args && serviceEvent.args.serviceId) {
+          return serviceEvent.args.serviceId.toString();
+        }
+      }
+      
+      console.error('Failed to extract service ID from receipt:', error);
+      throw new Error('Could not extract service ID from blockchain transaction');
+    }
+  }
 
   /**
    * Verifies that the caller owns the specified service
