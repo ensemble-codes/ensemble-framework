@@ -1,49 +1,103 @@
-import { Service } from "../../src/types";
+import { RegisterServiceParams } from "../../src/types";
 
-export const servicesList: Service[] = [
+export const servicesList: RegisterServiceParams[] = [
 	{
 		name: 'Bull-Post',
-		category: 'Social',
-		description: 'Bull-Post service will explain your project to the world!'
+		metadata: {
+			category: 'social',
+			description: 'Bull-Post service will explain your project to the world!',
+			endpointSchema: 'https://api.example.com/bull-post',
+			method: 'HTTP_POST',
+			parametersSchema: {},
+			resultSchema: {}
+		}
 	},
 	{
 		name: 'Reply',
-		category: 'Social',
-		description: 'Reply agents are great for interaction and possibly farm airdrops/whitelist spots!'
+		metadata: {
+			category: 'social',
+			description: 'Reply agents are great for interaction and possibly farm airdrops/whitelist spots!',
+			endpointSchema: 'https://api.example.com/reply',
+			method: 'HTTP_POST',
+			parametersSchema: {},
+			resultSchema: {}
+		}
 	},
 	{
 		name: 'Campaign',
-		category: 'Social',
-		description: 'Agents will run a campaign on your behalf, ensuring attention and consistency'
+		metadata: {
+			category: 'social',
+			description: 'Agents will run a campaign on your behalf, ensuring attention and consistency',
+			endpointSchema: 'https://api.example.com/campaign',
+			method: 'HTTP_POST',
+			parametersSchema: {},
+			resultSchema: {}
+		}
 	},
 	{
 		name: 'Swap',
-		category: 'Defi',
-		description: 'Agent conducts a swap on your behalf using an optimal route with less fees'
+		metadata: {
+			category: 'defi',
+			description: 'Agent conducts a swap on your behalf using an optimal route with less fees',
+			endpointSchema: 'https://api.example.com/swap',
+			method: 'HTTP_POST',
+			parametersSchema: {},
+			resultSchema: {}
+		}
 	},
 	{
 		name: 'Bridge',
-		category: 'Defi',
-		description: 'Agent conducts a swap on your behalf using an optimal route with less fees'
+		metadata: {
+			category: 'defi',
+			description: 'Agent conducts a bridge on your behalf using an optimal route with less fees',
+			endpointSchema: 'https://api.example.com/bridge',
+			method: 'HTTP_POST',
+			parametersSchema: {},
+			resultSchema: {}
+		}
 	},
 	{
 		name: 'Provide LP',
-		category: 'Defi',
-		description: 'Agent conducts a swap on your behalf using an optimal route with less fees'
+		metadata: {
+			category: 'defi',
+			description: 'Agent provides liquidity on your behalf to earn fees and rewards',
+			endpointSchema: 'https://api.example.com/provide-lp',
+			method: 'HTTP_POST',
+			parametersSchema: {},
+			resultSchema: {}
+		}
 	},
 	{
 		name: 'Markets',
-		category: 'Research',
-		description: 'Perfect for analyzing market data and providing accurate information'
+		metadata: {
+			category: 'research',
+			description: 'Perfect for analyzing market data and providing accurate information',
+			endpointSchema: 'https://api.example.com/markets',
+			method: 'HTTP_GET',
+			parametersSchema: {},
+			resultSchema: {}
+		}
 	},
 	{
 		name: 'Trends',
-		category: 'Research',
-		description: 'Get up-tp-date with the latest trends in the Crypto world!'
+		metadata: {
+			category: 'research',
+			description: 'Get up-to-date with the latest trends in the Crypto world!',
+			endpointSchema: 'https://api.example.com/trends',
+			method: 'HTTP_GET',
+			parametersSchema: {},
+			resultSchema: {}
+		}
 	},
 	{
 		name: 'AI Agents',
-		category: 'Research',
-		description: 'Stay updated with the latest on AI Agents!'
+		metadata: {
+			category: 'research',
+			description: 'Stay updated with the latest on AI Agents!',
+			endpointSchema: 'https://api.example.com/ai-agents',
+			method: 'HTTP_GET',
+			parametersSchema: {},
+			resultSchema: {}
+		}
 	}
 ]

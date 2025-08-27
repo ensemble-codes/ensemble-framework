@@ -192,25 +192,63 @@ describe("Ensemble Unit Tests", () => {
   it("should successfully register a service", async () => {
     const service = {
       name: "Test Service",
-      category: "Utility",
-      description: "This is a test service.",
+      metadata: {
+        category: "other" as const,
+        description: "This is a test service.",
+        endpointSchema: "https://api.example.com/test",
+        method: "HTTP_POST" as const,
+        parametersSchema: {},
+        resultSchema: {}
+      }
     };
 
-    serviceRegistryService.registerService.mockResolvedValueOnce(true);
+    const mockServiceRecord = {
+      id: "test-service-id",
+      name: "Test Service",
+      owner: "0x123",
+      agentAddress: "0x456",
+      serviceUri: "ipfs://test",
+      status: "draft" as const,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...service.metadata
+    };
+
+    serviceRegistryService.registerService.mockResolvedValueOnce(mockServiceRecord);
 
     const response = await sdk.registerService(service);
 
-    expect(response).toEqual(true);
+    expect(response).toEqual(mockServiceRecord);
   });
 
   it("should fail to register the same service twice", async () => {
     const service = {
       name: "Test Service Failed",
-      category: "Utility",
-      description: "This is a test service.",
+      metadata: {
+        category: "other" as const,
+        description: "This is a test service.",
+        endpointSchema: "https://api.example.com/test",
+        method: "HTTP_POST" as const,
+        parametersSchema: {},
+        resultSchema: {}
+      }
     };
 
-    serviceRegistryService.registerService.mockResolvedValueOnce(true);
+    const mockServiceRecord = {
+      id: "test-service-id",
+      name: "Test Service Failed",
+      owner: "0x123",
+      agentAddress: "0x456",
+      serviceUri: "ipfs://test",
+      status: "draft" as const,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...service.metadata
+    };
+
+    serviceRegistryService.registerService.mockResolvedValueOnce(mockServiceRecord);
     serviceRegistryService.registerService.mockRejectedValueOnce(
       new ServiceAlreadyRegisteredError(service.name)
     );
@@ -487,8 +525,14 @@ describe("Ensemble Unit Tests", () => {
       it("should throw error when registerService called without signer", async () => {
         const service = {
           name: "Test Service",
-          category: "Utility",
-          description: "Test service description",
+          metadata: {
+            category: "other" as const,
+            description: "Test service description",
+            endpointSchema: "https://api.example.com/test",
+            method: "HTTP_POST" as const,
+            parametersSchema: {},
+            resultSchema: {}
+          }
         };
 
         await expect(ensemble.registerService(service)).rejects.toThrow(

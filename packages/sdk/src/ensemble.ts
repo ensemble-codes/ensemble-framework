@@ -9,7 +9,7 @@ import {
   EnsembleConfig,
   TaskData,
   TaskCreationParams,
-  Service,
+  ServiceRecord,
 } from "./types";
 import { TaskService } from "./services/TaskService";
 import { AgentService } from "./services/AgentService";
@@ -267,10 +267,10 @@ export class Ensemble {
   /**
    * Registers a new service.
    * @param {RegisterServiceParams} params - The service registration parameters.
-   * @returns {Promise<Service>} A promise that resolves to the registered service.
+   * @returns {Promise<ServiceRecord>} A promise that resolves to the registered service.
    * @requires signer
    */
-  async registerService(params: RegisterServiceParams): Promise<Service> {
+  async registerService(params: RegisterServiceParams): Promise<ServiceRecord> {
     this.requireSigner();
     return this.serviceRegistryService.registerService(params);
   }
@@ -278,9 +278,9 @@ export class Ensemble {
   /**
    * Gets a service by name.
    * @param {string} name - The name of the service.
-   * @returns {Promise<Service>} A promise that resolves to the service.
+   * @returns {Promise<ServiceRecord>} A promise that resolves to the service.
    */
-  async getService(name: string): Promise<Service> {
+  async getService(name: string): Promise<ServiceRecord> {
     return this.serviceRegistryService.getService(name);
   }
 
