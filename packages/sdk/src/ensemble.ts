@@ -6,10 +6,12 @@ import {
   AgentMetadata,
   RegisterAgentParams,
   RegisterServiceParams,
+  UpdateServiceParams,
   EnsembleConfig,
   TaskData,
   TaskCreationParams,
   ServiceRecord,
+  ServiceStatus,
 } from "./types";
 import { TaskService } from "./services/TaskService";
 import { AgentService } from "./services/AgentService";
@@ -37,6 +39,13 @@ export class Ensemble {
    */
   get agents(): AgentService {
     return this.agentService;
+  }
+
+  /**
+   * Get the service registry service instance
+   */
+  get services(): ServiceRegistryService {
+    return this.serviceRegistryService;
   }
 
   /**
@@ -83,7 +92,7 @@ export class Ensemble {
       provider
     );
 
-    const serviceRegistryService = new ServiceRegistryService(serviceRegistry, signer);
+    const serviceRegistryService = new ServiceRegistryService(serviceRegistry, signer, ipfsSDK);
     const agentService = new AgentService(agentRegistry, config.subgraphUrl, signer, ipfsSDK);
     const taskService = new TaskService(taskRegistry, agentService);
 
@@ -222,7 +231,7 @@ export class Ensemble {
 
   /**
    * Gets data for a specific agent.
-   * @param {string} agentAddress - The address of the agent.
+   * @param {string} agentId - The ID of the agent.
    * @returns {Promise<AgentRecord>} A promise that resolves to the agent record.
    */
   async getAgentRecord(agentId: string): Promise<AgentRecord> {
@@ -282,6 +291,60 @@ export class Ensemble {
    */
   async getService(name: string): Promise<ServiceRecord> {
     return this.serviceRegistryService.getService(name);
+  }
+
+  /**
+   * Gets a service by its ID.
+   * @param {string} serviceId - The ID of the service.
+   * @returns {Promise<ServiceRecord>} A promise that resolves to the service.
+   */
+  async getServiceById(serviceId: string): Promise<ServiceRecord> {
+    return this.serviceRegistryService.getServiceById(serviceId);
+  }
+
+  /**
+   * Updates an existing service.
+   * @param {string} serviceId - The ID of the service to update.
+   * @param {UpdateServiceParams} updates - The updates to apply to the service.
+   * @returns {Promise<ServiceRecord>} A promise that resolves to the updated service.
+   * @requires signer
+   */
+  async updateService(serviceId: string, updates: UpdateServiceParams): Promise<ServiceRecord> {
+    this.requireSigner();
+    return this.serviceRegistryService.updateService(serviceId, updates);
+  }
+
+  /**
+   * Deletes a service (soft delete - changes status to 'deleted').
+   * @param {string} serviceId - The ID of the service to delete.
+   * @returns {Promise<boolean>} A promise that resolves to true if successful.
+   * @requires signer
+   */
+  async deleteService(serviceId: string): Promise<boolean> {
+    this.requireSigner();
+    return this.serviceRegistryService.deleteService(serviceId);
+  }
+
+  /**
+   * Lists services with optional filtering and pagination.
+   * @param {object} options - Filter and pagination options.
+   * @param {string} options.owner - Filter by service owner address.
+   * @param {string} options.agentAddress - Filter by assigned agent address.
+   * @param {string} options.category - Filter by service category.
+   * @param {ServiceStatus[]} options.status - Filter by service status.
+   * @param {number} options.limit - Maximum number of results to return.
+   * @param {number} options.offset - Number of results to skip.
+   * @returns {Promise<ServiceRecord[]>} A promise that resolves to an array of services.
+   */
+  async listServices(options: {
+    owner?: string;
+    agentAddress?: string;
+    category?: string;
+    status?: ServiceStatus[];
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<ServiceRecord[]> {
+    return this.serviceRegistryService.listServices(options);
   }
 
   /**
