@@ -23,15 +23,22 @@ export {
 
 // Export service validation functions
 export {
-    validateService,
+    validateServiceRecord,
+    validateService, // deprecated alias
     validateRegisterServiceParams,
     validateUpdateServiceParams,
-    parseService,
+    validateServiceOnChain,
+    validateServiceMetadata,
+    parseServiceRecord,
+    parseService, // deprecated alias
     parseRegisterServiceParams,
     parseUpdateServiceParams,
-    isService,
+    isServiceRecord,
+    isService, // deprecated alias
     isRegisterServiceParams,
     isUpdateServiceParams,
+    isServiceOnChain,
+    isServiceMetadata,
     formatServiceValidationError
 } from "./schemas/service.schemas"
 

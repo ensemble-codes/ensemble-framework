@@ -1,6 +1,8 @@
 import { ethers } from "ethers";
 import { 
-  Service, 
+  ServiceRecord, 
+  ServiceOnChain,
+  ServiceMetadata,
   RegisterServiceParams, 
   UpdateServiceParams,
   ServiceStatus,
@@ -17,16 +19,20 @@ import {
 import { 
   validateRegisterServiceParams,
   validateUpdateServiceParams,
-  validateService,
+  validateServiceRecord,
   parseRegisterServiceParams,
   parseUpdateServiceParams
 } from "../schemas/service.schemas";
 import { ServiceRegistry } from "../../typechain";
 
+// TODO: Add proper IPFS SDK type when available
+type PinataSDK = any;
+
 export class ServiceRegistryService {
   constructor(
     private readonly serviceRegistry: ServiceRegistry,
-    private signer?: ethers.Signer
+    private signer?: ethers.Signer,
+    private readonly ipfsSDK?: PinataSDK
   ) {}
 
   /**
@@ -58,7 +64,7 @@ export class ServiceRegistryService {
    * @throws {ServiceValidationError} If validation fails
    * @throws {ServiceAlreadyRegisteredError} If service name already exists
    */
-  async registerService(params: RegisterServiceParams): Promise<Service> {
+  async registerService(params: RegisterServiceParams): Promise<ServiceRecord> {
     this.requireSigner();
     
     // Validate input parameters
@@ -77,11 +83,21 @@ export class ServiceRegistryService {
 
       console.log(`Registering service: ${parsedParams.name}`);
 
-      // Register service on blockchain - this will return a service ID
+      // Upload metadata to IPFS first
+      let serviceUri: string;
+      if (this.ipfsSDK) {
+        const uploadResponse = await this.ipfsSDK.upload.json(parsedParams.metadata);
+        serviceUri = `ipfs://${uploadResponse.IpfsHash}`;
+      } else {
+        // Fallback for testing without IPFS - store as data URI
+        serviceUri = `data:application/json;base64,${Buffer.from(JSON.stringify(parsedParams.metadata)).toString('base64')}`;
+      }
+
+      // Register service on blockchain with minimal data
       const tx = await this.serviceRegistry.registerService(
         parsedParams.name,
-        parsedParams.category,
-        parsedParams.description
+        serviceUri,
+        parsedParams.agentAddress || ethers.ZeroAddress
       );
       
       const receipt = await tx.wait();
@@ -91,19 +107,25 @@ export class ServiceRegistryService {
       
       console.log(`Service registered successfully: ${parsedParams.name} (ID: ${serviceId}, tx: ${receipt?.hash})`);
       
-      // Create complete service object with blockchain-generated ID
-      const service: Service = {
-        ...parsedParams,
+      // Create complete service record combining on-chain and off-chain data
+      const serviceRecord: ServiceRecord = {
+        // On-chain fields
         id: serviceId,
+        name: parsedParams.name,
         owner: ownerAddress,
         agentAddress: parsedParams.agentAddress || ethers.ZeroAddress,
+        serviceUri,
         status: 'draft' as ServiceStatus,
+        version: 1,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        
+        // Off-chain fields from metadata
+        ...parsedParams.metadata
       };
       
-      // Validate complete service
-      const serviceValidation = validateService(service);
+      // Validate complete service record
+      const serviceValidation = validateServiceRecord(serviceRecord);
       if (!serviceValidation.success) {
         throw new ServiceValidationError(
           "Service validation failed after blockchain registration",
@@ -111,7 +133,7 @@ export class ServiceRegistryService {
         );
       }
 
-      return service;
+      return serviceRecord;
     } catch (error: any) {
       console.error(`Error creating service ${parsedParams.name}:`, error);
       if (error.reason === "Service already registered") {
@@ -130,7 +152,7 @@ export class ServiceRegistryService {
    * @throws {ServiceOwnershipError} If caller doesn't own the service
    * @throws {ServiceValidationError} If validation fails
    */
-  async updateService(serviceId: string, updates: UpdateServiceParams): Promise<Service> {
+  async updateService(serviceId: string, updates: UpdateServiceParams): Promise<ServiceRecord> {
     this.requireSigner();
     
     // Validate update parameters
@@ -152,7 +174,7 @@ export class ServiceRegistryService {
       await this.verifyServiceOwnership(currentService, await this.signer!.getAddress());
       
       // Merge updates with current service
-      const updatedService: Service = {
+      const updatedService: ServiceRecord = {
         ...currentService,
         ...parsedUpdates,
         id: serviceId, // Ensure ID cannot be changed
@@ -161,7 +183,7 @@ export class ServiceRegistryService {
       };
       
       // Validate updated service
-      const serviceValidation = validateService(updatedService);
+      const serviceValidation = validateServiceRecord(updatedService);
       if (!serviceValidation.success) {
         throw new ServiceValidationError(
           "Updated service validation failed",
@@ -208,7 +230,7 @@ export class ServiceRegistryService {
       await this.verifyServiceOwnership(service, await this.signer!.getAddress());
       
       // Check if service can be deleted (not active)
-      if (service.status === 'active') {
+      if (service.status === 'published') {
         throw new ServiceStatusError(
           serviceId, 
           service.status, 
@@ -235,7 +257,7 @@ export class ServiceRegistryService {
    * @returns {Promise<Service>} The service data
    * @throws {ServiceNotFoundError} If service doesn't exist
    */
-  async getServiceById(serviceId: string): Promise<Service> {
+  async getServiceById(serviceId: string): Promise<ServiceRecord> {
     try {
       // This is a placeholder implementation - will need smart contract support
       // For now, falling back to the existing getService method
@@ -266,7 +288,7 @@ export class ServiceRegistryService {
     status?: ServiceStatus[];
     limit?: number;
     offset?: number;
-  } = {}): Promise<Service[]> {
+  } = {}): Promise<ServiceRecord[]> {
     try {
       console.log("Listing services with options:", options);
       
@@ -293,7 +315,7 @@ export class ServiceRegistryService {
    * @throws {ServiceNotFoundError} If service doesn't exist
    * @throws {ServiceOwnershipError} If caller doesn't own the service
    */
-  async transferServiceOwnership(serviceId: string, newOwner: string): Promise<Service> {
+  async transferServiceOwnership(serviceId: string, newOwner: string): Promise<ServiceRecord> {
     this.requireSigner();
     
     try {
@@ -311,7 +333,7 @@ export class ServiceRegistryService {
       console.log(`Transferring service ownership: ${serviceId} to ${newOwner}`);
 
       // Update service owner
-      const updatedService: Service = {
+      const updatedService: ServiceRecord = {
         ...service,
         owner: newOwner,
         updatedAt: new Date().toISOString()
@@ -349,7 +371,7 @@ export class ServiceRegistryService {
    * @throws {ServiceNotFoundError} If service doesn't exist
    * @throws {ServiceOwnershipError} If caller doesn't own the service
    */
-  async updateServiceStatus(serviceId: string, status: ServiceStatus): Promise<Service> {
+  async updateServiceStatus(serviceId: string, status: ServiceStatus): Promise<ServiceRecord> {
     this.requireSigner();
     
     try {
@@ -365,7 +387,7 @@ export class ServiceRegistryService {
       console.log(`Updating service status: ${serviceId} from ${service.status} to ${status}`);
 
       // Update service
-      const updatedService: Service = {
+      const updatedService: ServiceRecord = {
         ...service,
         status,
         updatedAt: new Date().toISOString()
@@ -382,12 +404,12 @@ export class ServiceRegistryService {
   }
 
   /**
-   * Activates a service (changes status to 'active')
+   * Activates a service (changes status to 'published')
    * @param {string} serviceId - The service ID
    * @returns {Promise<Service>} The updated service
    */
-  async activateService(serviceId: string): Promise<Service> {
-    return this.updateServiceStatus(serviceId, 'active' as ServiceStatus);
+  async activateService(serviceId: string): Promise<ServiceRecord> {
+    return this.updateServiceStatus(serviceId, 'published' as ServiceStatus);
   }
 
   /**
@@ -395,7 +417,7 @@ export class ServiceRegistryService {
    * @param {string} serviceId - The service ID  
    * @returns {Promise<Service>} The updated service
    */
-  async deactivateService(serviceId: string): Promise<Service> {
+  async deactivateService(serviceId: string): Promise<ServiceRecord> {
     return this.updateServiceStatus(serviceId, 'inactive' as ServiceStatus);
   }
 
@@ -404,7 +426,7 @@ export class ServiceRegistryService {
    * @param {string} serviceId - The service ID
    * @returns {Promise<Service>} The updated service
    */
-  async archiveService(serviceId: string): Promise<Service> {
+  async archiveService(serviceId: string): Promise<ServiceRecord> {
     return this.updateServiceStatus(serviceId, 'archived' as ServiceStatus);
   }
 
@@ -419,7 +441,7 @@ export class ServiceRegistryService {
    * @returns {Promise<Service>} The updated service
    * @throws {ServiceAgentAssignmentError} If assignment fails
    */
-  async assignAgentToService(serviceId: string, agentAddress: string): Promise<Service> {
+  async assignAgentToService(serviceId: string, agentAddress: string): Promise<ServiceRecord> {
     this.requireSigner();
     
     try {
@@ -450,7 +472,7 @@ export class ServiceRegistryService {
       console.log(`Assigning agent to service: ${agentAddress} -> ${serviceId}`);
 
       // Update service with agent assignment
-      const updatedService: Service = {
+      const updatedService: ServiceRecord = {
         ...service,
         agentAddress,
         updatedAt: new Date().toISOString()
@@ -471,7 +493,7 @@ export class ServiceRegistryService {
    * @param {string} serviceId - The service ID
    * @returns {Promise<Service>} The updated service
    */
-  async unassignAgentFromService(serviceId: string): Promise<Service> {
+  async unassignAgentFromService(serviceId: string): Promise<ServiceRecord> {
     this.requireSigner();
     
     try {
@@ -493,7 +515,7 @@ export class ServiceRegistryService {
       console.log(`Unassigning agent from service: ${service.agentAddress} <- ${serviceId}`);
 
       // Update service to remove agent assignment
-      const updatedService: Service = {
+      const updatedService: ServiceRecord = {
         ...service,
         agentAddress: ethers.ZeroAddress,
         updatedAt: new Date().toISOString()
@@ -514,7 +536,7 @@ export class ServiceRegistryService {
    * @param {string} agentAddress - The agent's address
    * @returns {Promise<Service[]>} Array of services assigned to the agent
    */
-  async getServicesByAgent(agentAddress: string): Promise<Service[]> {
+  async getServicesByAgent(agentAddress: string): Promise<ServiceRecord[]> {
     if (!ethers.isAddress(agentAddress)) {
       throw new ServiceValidationError(`Invalid agent address: ${agentAddress}`);
     }
@@ -569,7 +591,7 @@ export class ServiceRegistryService {
    * @throws {ServiceOwnershipError} If ownership verification fails
    * @private
    */
-  private async verifyServiceOwnership(service: Service, callerAddress: string): Promise<void> {
+  private async verifyServiceOwnership(service: ServiceRecord, callerAddress: string): Promise<void> {
     if (service.owner.toLowerCase() !== callerAddress.toLowerCase()) {
       throw new ServiceOwnershipError(service.id, service.owner, callerAddress);
     }
@@ -584,10 +606,9 @@ export class ServiceRegistryService {
    */
   private validateStatusTransition(currentStatus: ServiceStatus, newStatus: ServiceStatus): void {
     const validTransitions: Record<ServiceStatus, ServiceStatus[]> = {
-      'draft': ['active', 'deleted'],
-      'active': ['inactive', 'archived', 'deleted'],
-      'inactive': ['active', 'archived', 'deleted'],
-      'archived': ['active', 'deleted'],  // Allow reactivation from archive
+      'draft': ['published', 'deleted'],
+      'published': ['archived', 'deleted'],
+      'archived': ['published', 'deleted'],  // Allow reactivation from archive
       'deleted': [] // No transitions from deleted state
     };
     
@@ -609,23 +630,24 @@ export class ServiceRegistryService {
    * Legacy method: Register a service (V1 compatibility)
    * @deprecated Use registerService() with RegisterServiceParams instead
    */
-  async registerServiceLegacy(service: Service): Promise<boolean> {
+  async registerServiceLegacy(service: ServiceRecord): Promise<boolean> {
     console.warn("registerServiceLegacy() is deprecated. Use registerService() with RegisterServiceParams instead.");
     
     try {
-      // Convert Service to RegisterServiceParams format for compatibility
+      // Convert ServiceRecord to RegisterServiceParams format for compatibility
       const createParams: RegisterServiceParams = {
         name: service.name,
-        description: service.description,
-        category: service.category,
-        owner: service.owner,
         agentAddress: service.agentAddress,
-        endpointSchema: service.endpointSchema,
-        method: service.method,
-        parametersSchema: service.parametersSchema,
-        resultSchema: service.resultSchema,
-        pricing: service.pricing,
-        tags: service.tags
+        metadata: {
+          description: service.description,
+          category: service.category,
+          endpointSchema: service.endpointSchema,
+          method: service.method,
+          parametersSchema: service.parametersSchema,
+          resultSchema: service.resultSchema,
+          pricing: service.pricing,
+          tags: service.tags
+        }
       };
       
       await this.registerService(createParams);
@@ -639,28 +661,31 @@ export class ServiceRegistryService {
    * Legacy method: Get service by name (V1 compatibility)
    * @deprecated Use getServiceById() instead
    */
-  async getService(name: string): Promise<Service> {
+  async getService(name: string): Promise<ServiceRecord> {
     console.warn("getService() by name is deprecated. Use getServiceById() instead.");
     
     // This is a placeholder - in reality we'd need a name->ID mapping
     const contractResult = await this.serviceRegistry.getService(name);
     
-    // Convert contract result to Service type (incomplete - needs proper mapping)
-    const service: Service = {
+    // Convert contract result to ServiceRecord type (incomplete - needs proper mapping)
+    const service: ServiceRecord = {
       id: crypto.randomUUID(), // Placeholder - should come from contract
       name: contractResult.name,
-      category: contractResult.category as any,
-      description: contractResult.description,
       owner: ethers.ZeroAddress, // Placeholder - should come from contract
       agentAddress: ethers.ZeroAddress, // Placeholder - should come from contract
+      serviceUri: "data://placeholder", // Placeholder - should come from contract
+      status: "draft" as any, // Placeholder - should come from contract
+      version: 1, // Placeholder - should come from contract
+      createdAt: new Date().toISOString(), // Placeholder
+      updatedAt: new Date().toISOString(), // Placeholder
+      // Off-chain metadata fields
+      description: contractResult.description,
+      category: contractResult.category as any,
       endpointSchema: "", // Placeholder - should come from metadata
       method: "HTTP_POST" as any, // Placeholder - should come from metadata
       parametersSchema: {}, // Placeholder - should come from metadata
       resultSchema: {}, // Placeholder - should come from metadata
-      status: "active" as any, // Placeholder - should come from contract
       pricing: undefined, // Placeholder - should come from metadata
-      createdAt: new Date().toISOString(), // Placeholder
-      updatedAt: new Date().toISOString() // Placeholder
     };
     
     return service;

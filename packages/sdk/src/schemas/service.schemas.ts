@@ -38,9 +38,10 @@ export const ServiceMethodSchema = z.enum([
 ]);
 
 /**
- * Schema for service status
+ * Schema for service status (on-chain)
+ * Represents the lifecycle state of the service
  */
-export const ServiceStatusSchema = z.enum(['draft', 'active', 'inactive', 'archived', 'deleted']);
+export const ServiceStatusSchema = z.enum(['draft', 'published', 'archived', 'deleted']);
 
 /**
  * Schema for service pricing models
@@ -58,21 +59,33 @@ export const ServicePricingSchema = z.object({
 });
 
 /**
- * Complete service schema with all fields
- * Note: Secrets should NEVER be stored in the service definition.
- * Use environment variables or secure key management systems instead.
+ * Schema for operational status (stored off-chain)
  */
-export const ServiceSchema = z.object({
-  // Core identity fields (required)
-  id: UUIDSchema,
+export const ServiceOperationalStatusSchema = z.enum(['healthy', 'degraded', 'unhealthy', 'maintenance']);
+
+/**
+ * Schema for on-chain service data
+ * Minimal data stored on blockchain for gas efficiency
+ */
+export const ServiceOnChainSchema = z.object({
+  id: z.string().describe('Auto-incremented service ID from blockchain'),
   name: z.string().min(1, 'Service name is required').max(100, 'Service name too long'),
+  owner: EthereumAddressSchema,
+  agentAddress: z.string().regex(ethereumAddressRegex, 'Invalid agent address format').optional(),
+  serviceUri: z.string().describe('IPFS URI for service metadata'),
+  status: ServiceStatusSchema,
+  version: z.number().int().min(0).describe('Version for cache invalidation'),
+  createdAt: OptionalDateTimeSchema,
+  updatedAt: OptionalDateTimeSchema
+});
+
+/**
+ * Schema for off-chain service metadata (stored in IPFS)
+ */
+export const ServiceMetadataSchema = z.object({
+  // Descriptive information
   description: z.string().min(1, 'Service description is required').max(500, 'Service description too long'),
   category: ServiceCategorySchema,
-  owner: EthereumAddressSchema,
-  status: ServiceStatusSchema,
-  
-  // Agent assignment (optional but required for service to go live)
-  agentAddress: z.string().regex(ethereumAddressRegex, 'Invalid agent address format').optional(),
   
   // Technical specification
   endpointSchema: URLSchema,
@@ -86,22 +99,16 @@ export const ServiceSchema = z.object({
   // Business and operational
   pricing: ServicePricingSchema.optional().describe('Service pricing configuration'),
   
-  // Timestamps
-  createdAt: OptionalDateTimeSchema,
-  updatedAt: OptionalDateTimeSchema
+  // Operational status (updated by monitoring)
+  operational: z.object({
+    status: ServiceOperationalStatusSchema,
+    health: z.number().min(0).max(100).optional().describe('Health percentage'),
+    lastCheck: OptionalDateTimeSchema,
+    uptime: z.number().optional().describe('Uptime percentage'),
+    responseTime: z.number().optional().describe('Average response time in ms'),
+    errorRate: z.number().optional().describe('Error rate percentage')
+  }).optional()
 }).refine(
-  // Services with 'active' status must have an agent assigned
-  (data) => {
-    if (data.status === 'active') {
-      return data.agentAddress && data.agentAddress !== '0x0000000000000000000000000000000000000000';
-    }
-    return true;
-  },
-  {
-    message: 'Active services must have an agent assigned',
-    path: ['agentAddress']
-  }
-).refine(
   // Validate tag uniqueness
   (data) => {
     if (!data.tags) return true;
@@ -115,23 +122,72 @@ export const ServiceSchema = z.object({
 );
 
 /**
- * Schema for registering a new service (omits generated fields)
+ * Complete service record combining on-chain and off-chain data
+ * This is the primary interface that SDK users work with
  */
-export const RegisterServiceParamsSchema = ServiceSchema.omit({
-  id: true,          // Generated on-chain
-  createdAt: true,   // Generated
-  updatedAt: true,   // Generated
+export const ServiceRecordSchema = ServiceOnChainSchema.merge(
+  ServiceMetadataSchema.omit({ operational: true })
+).extend({
+  // Include operational status as optional at the top level
+  operational: ServiceMetadataSchema.shape.operational.optional()
+}).refine(
+  // Services with 'published' status must have an agent assigned
+  (data) => {
+    if (data.status === 'published') {
+      return data.agentAddress && data.agentAddress !== '0x0000000000000000000000000000000000000000';
+    }
+    return true;
+  },
+  {
+    message: 'Published services must have an agent assigned',
+    path: ['agentAddress']
+  }
+);
+
+/**
+ * Legacy alias for backwards compatibility
+ * @deprecated Use ServiceRecordSchema instead
+ */
+export const ServiceSchema = ServiceRecordSchema;
+
+/**
+ * Schema for registering a new service
+ * Combines minimal on-chain fields with full metadata for IPFS
+ */
+export const RegisterServiceParamsSchema = z.object({
+  // On-chain fields
+  name: z.string().min(1, 'Service name is required').max(100, 'Service name too long'),
+  agentAddress: z.string().regex(ethereumAddressRegex, 'Invalid agent address format').optional(),
+  
+  // Off-chain metadata (will be stored in IPFS)
+  metadata: ServiceMetadataSchema.omit({ operational: true })
 }).partial({
-  status: true,      // Defaults to 'draft'
+  agentAddress: true  // Optional until service is published
 });
 
 /**
  * Schema for updating an existing service
- * All fields optional except ID
+ * Allows updating on-chain fields and/or metadata
  */
-export const UpdateServiceParamsSchema = ServiceSchema.partial().required({
-  id: true
-});
+export const UpdateServiceParamsSchema = z.object({
+  id: z.string().describe('Service ID to update'),
+  
+  // On-chain updates (optional)
+  name: z.string().min(1).max(100).optional(),
+  agentAddress: z.string().regex(ethereumAddressRegex).optional(),
+  status: ServiceStatusSchema.optional(),
+  
+  // Off-chain metadata updates (optional)
+  metadata: ServiceMetadataSchema.omit({ operational: true }).partial().optional()
+}).refine(
+  (data) => {
+    // At least one field must be provided for update
+    return data.name || data.agentAddress || data.status || data.metadata;
+  },
+  {
+    message: 'At least one field must be provided for update'
+  }
+);
 
 // ============================================================================
 // Type Exports
@@ -140,24 +196,36 @@ export const UpdateServiceParamsSchema = ServiceSchema.partial().required({
 export type ServiceCategory = z.infer<typeof ServiceCategorySchema>;
 export type ServiceMethod = z.infer<typeof ServiceMethodSchema>;
 export type ServiceStatus = z.infer<typeof ServiceStatusSchema>;
+export type ServiceOperationalStatus = z.infer<typeof ServiceOperationalStatusSchema>;
 export type ServicePricingModel = z.infer<typeof ServicePricingModelSchema>;
 export type ServicePricing = z.infer<typeof ServicePricingSchema>;
-export type Service = z.infer<typeof ServiceSchema>;
+export type ServiceOnChain = z.infer<typeof ServiceOnChainSchema>;
+export type ServiceMetadata = z.infer<typeof ServiceMetadataSchema>;
+export type ServiceRecord = z.infer<typeof ServiceRecordSchema>;
 export type RegisterServiceParams = z.infer<typeof RegisterServiceParamsSchema>;
 export type UpdateServiceParams = z.infer<typeof UpdateServiceParamsSchema>;
+
+// Legacy type alias for backwards compatibility
+export type Service = ServiceRecord;
 
 // ============================================================================
 // Service Validation Functions
 // ============================================================================
 
 /**
- * Validates service data against the Service schema
+ * Validates service record data against the ServiceRecord schema
  * @param data - The data to validate
  * @returns Validation result with success flag and data/error
  */
-export const validateService = (data: unknown) => {
-  return ServiceSchema.safeParse(data);
+export const validateServiceRecord = (data: unknown) => {
+  return ServiceRecordSchema.safeParse(data);
 };
+
+/**
+ * Legacy validation function for backwards compatibility
+ * @deprecated Use validateServiceRecord instead
+ */
+export const validateService = validateServiceRecord;
 
 /**
  * Validates service registration parameters
@@ -177,18 +245,42 @@ export const validateUpdateServiceParams = (data: unknown) => {
   return UpdateServiceParamsSchema.safeParse(data);
 };
 
+/**
+ * Validates service on-chain data
+ * @param data - The on-chain data to validate
+ * @returns Validation result
+ */
+export const validateServiceOnChain = (data: unknown) => {
+  return ServiceOnChainSchema.safeParse(data);
+};
+
+/**
+ * Validates service metadata
+ * @param data - The metadata to validate
+ * @returns Validation result
+ */
+export const validateServiceMetadata = (data: unknown) => {
+  return ServiceMetadataSchema.safeParse(data);
+};
+
 // ============================================================================
 // Service Parsing Functions
 // ============================================================================
 
 /**
- * Parses and validates service data
+ * Parses and validates service record data
  * @param data - The data to parse
  * @throws ZodError if validation fails
  */
-export const parseService = (data: unknown): Service => {
-  return ServiceSchema.parse(data);
+export const parseServiceRecord = (data: unknown): ServiceRecord => {
+  return ServiceRecordSchema.parse(data);
 };
+
+/**
+ * Legacy parsing function for backwards compatibility
+ * @deprecated Use parseServiceRecord instead
+ */
+export const parseService = parseServiceRecord;
 
 /**
  * Parses and validates service registration parameters
@@ -237,13 +329,19 @@ export const parseUpdateServiceParams = (data: unknown): UpdateServiceParams => 
 // ============================================================================
 
 /**
- * Type guard for Service
+ * Type guard for ServiceRecord
  * @param data - Data to check
- * @returns True if data matches Service schema
+ * @returns True if data matches ServiceRecord schema
  */
-export const isService = (data: unknown): data is Service => {
-  return ServiceSchema.safeParse(data).success;
+export const isServiceRecord = (data: unknown): data is ServiceRecord => {
+  return ServiceRecordSchema.safeParse(data).success;
 };
+
+/**
+ * Legacy type guard for backwards compatibility
+ * @deprecated Use isServiceRecord instead
+ */
+export const isService = isServiceRecord;
 
 /**
  * Type guard for RegisterServiceParams
@@ -255,12 +353,30 @@ export const isRegisterServiceParams = (data: unknown): data is RegisterServiceP
 };
 
 /**
- * Type guard for UpdateService
+ * Type guard for UpdateServiceParams
  * @param data - Data to check
- * @returns True if data matches UpdateService schema
+ * @returns True if data matches UpdateServiceParams schema
  */
 export const isUpdateServiceParams = (data: unknown): data is UpdateServiceParams => {
   return UpdateServiceParamsSchema.safeParse(data).success;
+};
+
+/**
+ * Type guard for ServiceOnChain
+ * @param data - Data to check
+ * @returns True if data matches ServiceOnChain schema
+ */
+export const isServiceOnChain = (data: unknown): data is ServiceOnChain => {
+  return ServiceOnChainSchema.safeParse(data).success;
+};
+
+/**
+ * Type guard for ServiceMetadata
+ * @param data - Data to check
+ * @returns True if data matches ServiceMetadata schema
+ */
+export const isServiceMetadata = (data: unknown): data is ServiceMetadata => {
+  return ServiceMetadataSchema.safeParse(data).success;
 };
 
 /**

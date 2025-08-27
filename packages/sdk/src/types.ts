@@ -84,12 +84,16 @@ export {
 
 // Re-export service types from service schemas
 export {
-  Service,
+  ServiceRecord,
+  Service, // deprecated alias for ServiceRecord
+  ServiceOnChain,
+  ServiceMetadata,
   RegisterServiceParams,
   UpdateServiceParams,
   ServiceCategory,
   ServiceMethod,
   ServiceStatus,
+  ServiceOperationalStatus,
   ServicePricingModel,
   ServicePricing,
 } from './schemas/service.schemas';
