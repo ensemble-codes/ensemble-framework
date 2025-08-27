@@ -83,14 +83,21 @@ export class ServiceRegistryService {
 
       console.log(`Registering service: ${parsedParams.name}`);
 
+      // Add timestamps to metadata before upload
+      const metadataWithTimestamps = {
+        ...parsedParams.metadata,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
       // Upload metadata to IPFS first
       let serviceUri: string;
       if (this.ipfsSDK) {
-        const uploadResponse = await this.ipfsSDK.upload.json(parsedParams.metadata);
+        const uploadResponse = await this.ipfsSDK.upload.json(metadataWithTimestamps);
         serviceUri = `ipfs://${uploadResponse.IpfsHash}`;
       } else {
         // Fallback for testing without IPFS - store as data URI
-        serviceUri = `data:application/json;base64,${Buffer.from(JSON.stringify(parsedParams.metadata)).toString('base64')}`;
+        serviceUri = `data:application/json;base64,${Buffer.from(JSON.stringify(metadataWithTimestamps)).toString('base64')}`;
       }
 
       // Register service on blockchain with minimal data
@@ -117,11 +124,9 @@ export class ServiceRegistryService {
         serviceUri,
         status: 'draft' as ServiceStatus,
         version: 1,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
         
-        // Off-chain fields from metadata
-        ...parsedParams.metadata
+        // Off-chain fields from metadata (including timestamps)
+        ...metadataWithTimestamps
       };
       
       // Validate complete service record
@@ -173,13 +178,13 @@ export class ServiceRegistryService {
       // Check ownership
       await this.verifyServiceOwnership(currentService, await this.signer!.getAddress());
       
-      // Merge updates with current service
+      // Merge updates with current service and update timestamp
       const updatedService: ServiceRecord = {
         ...currentService,
         ...parsedUpdates,
         id: serviceId, // Ensure ID cannot be changed
         owner: currentService.owner, // Ensure owner cannot be changed here
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString() // Always update timestamp on any change
       };
       
       // Validate updated service

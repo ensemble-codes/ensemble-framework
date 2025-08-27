@@ -400,11 +400,25 @@
             "testStrategy": "Test advanced filtering and search functionality with various query combinations. Validate pagination and sorting with large datasets. Test CLI commands with interactive wizards and configuration file parsing. Verify bulk operations and error handling."
           }
         ]
+      },
+      {
+        "id": 26,
+        "title": "SDK: Refactor to Service-Based API Architecture",
+        "description": "Refactor the TypeScript SDK to eliminate duplicate wrapper methods from the Ensemble class and implement a clean service-based architecture with organized modules (ensemble.services.*, ensemble.agents.*, ensemble.tasks.*).",
+        "details": "1. Architecture Analysis and Planning:\n   - Audit existing Ensemble class to identify duplicate wrapper methods and redundant functionality\n   - Design new service-based architecture with clear separation of concerns\n   - Create module structure: ensemble.services.* (core services), ensemble.agents.* (agent-specific operations), ensemble.tasks.* (task management)\n   - Define interfaces and contracts for each service module to ensure consistency\n\n2. Service Module Implementation:\n   - Create BaseService abstract class with common functionality (error handling, validation, logging)\n   - Implement ensemble.services.registry for core blockchain registry operations\n   - Implement ensemble.services.payment for payment and transaction management\n   - Implement ensemble.services.storage for IPFS and data persistence operations\n   - Implement ensemble.services.websocket for real-time communication handling\n\n3. Agent Module Refactoring:\n   - Create ensemble.agents.manager for agent lifecycle management (register, update, delete)\n   - Implement ensemble.agents.discovery for agent search and filtering capabilities\n   - Create ensemble.agents.validator for agent data validation and schema enforcement\n   - Implement ensemble.agents.metadata for agent profile and attribute management\n\n4. Task Module Implementation:\n   - Create ensemble.tasks.manager for task creation, assignment, and lifecycle management\n   - Implement ensemble.tasks.discovery for task search and matching algorithms\n   - Create ensemble.tasks.execution for task execution monitoring and status tracking\n   - Implement ensemble.tasks.proposals for proposal submission and evaluation\n\n5. Ensemble Class Refactoring:\n   - Remove duplicate wrapper methods and consolidate functionality into appropriate services\n   - Implement dependency injection pattern for service composition\n   - Create factory methods for service instantiation with proper configuration\n   - Maintain backward compatibility through deprecation warnings and adapter patterns\n   - Update all method signatures to use service-based approach while preserving existing API contracts\n\n6. Configuration and Initialization:\n   - Implement centralized configuration management for all services\n   - Create service registry for dependency resolution and lifecycle management\n   - Add environment-specific configuration support (development, staging, production)\n   - Implement proper error handling and logging across all service modules",
+        "testStrategy": "1. Unit Testing:\n   - Test each service module independently with comprehensive mocking of dependencies\n   - Verify BaseService abstract class functionality and inheritance patterns\n   - Test service factory methods and dependency injection mechanisms\n   - Validate configuration management and environment-specific settings\n   - Test backward compatibility adapters and deprecation warning systems\n\n2. Integration Testing:\n   - Test service composition and inter-service communication patterns\n   - Verify proper error propagation between service layers\n   - Test service lifecycle management and cleanup procedures\n   - Validate configuration loading and service initialization sequences\n   - Test real blockchain interactions through refactored service architecture\n\n3. Migration Testing:\n   - Create comprehensive test suite comparing old Ensemble class behavior with new service-based implementation\n   - Test all existing SDK consumers (CLI, agents) to ensure no breaking changes\n   - Verify performance characteristics remain consistent or improve after refactoring\n   - Test memory usage and resource cleanup in new architecture\n   - Validate WebSocket connections and real-time features work correctly through new service structure\n\n4. End-to-End Testing:\n   - Test complete agent registration workflow through new service architecture\n   - Verify task discovery and execution flows work correctly\n   - Test payment processing and blockchain transaction handling\n   - Validate IPFS storage operations and metadata management\n   - Test error scenarios and recovery mechanisms across all service modules",
+        "status": "pending",
+        "dependencies": [
+          3,
+          25
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-08-26T14:18:39.372Z",
+      "updated": "2025-08-27T17:49:46.813Z",
       "description": "Tasks for master context"
     }
   }

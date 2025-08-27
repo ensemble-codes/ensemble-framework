@@ -39,9 +39,9 @@ Transform AI agents from passive tools into active economic participants capable
     - Service URI (IPFS hash for metadata storage)
     - Status (draft, published, archived, deleted)
     - Version number (for cache invalidation)
-    - Creation and update timestamps
   - **Off-chain metadata** (stored in IPFS):
     - Service description and detailed information
+    - Creation and update timestamps (for gas efficiency)
     - Category and tags for discovery
     - Technical specifications (endpoint URLs, HTTP methods, parameter/result schemas)
     - Business configurations (pricing models, rate limits)

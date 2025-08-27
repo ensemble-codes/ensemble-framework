@@ -74,9 +74,7 @@ export const ServiceOnChainSchema = z.object({
   agentAddress: z.string().regex(ethereumAddressRegex, 'Invalid agent address format').optional(),
   serviceUri: z.string().describe('IPFS URI for service metadata'),
   status: ServiceStatusSchema,
-  version: z.number().int().min(0).describe('Version for cache invalidation'),
-  createdAt: OptionalDateTimeSchema,
-  updatedAt: OptionalDateTimeSchema
+  version: z.number().int().min(0).describe('Version for cache invalidation')
 });
 
 /**
@@ -98,6 +96,10 @@ export const ServiceMetadataSchema = z.object({
   
   // Business and operational
   pricing: ServicePricingSchema.optional().describe('Service pricing configuration'),
+  
+  // Timestamps (stored off-chain for gas efficiency)
+  createdAt: OptionalDateTimeSchema.describe('Service creation timestamp'),
+  updatedAt: OptionalDateTimeSchema.describe('Service last update timestamp'),
   
   // Operational status (updated by monitoring)
   operational: z.object({
@@ -160,7 +162,7 @@ export const RegisterServiceParamsSchema = z.object({
   agentAddress: z.string().regex(ethereumAddressRegex, 'Invalid agent address format').optional(),
   
   // Off-chain metadata (will be stored in IPFS)
-  metadata: ServiceMetadataSchema.omit({ operational: true })
+  metadata: ServiceMetadataSchema.omit({ operational: true, createdAt: true, updatedAt: true })
 }).partial({
   agentAddress: true  // Optional until service is published
 });
@@ -178,7 +180,7 @@ export const UpdateServiceParamsSchema = z.object({
   status: ServiceStatusSchema.optional(),
   
   // Off-chain metadata updates (optional)
-  metadata: ServiceMetadataSchema.omit({ operational: true }).partial().optional()
+  metadata: ServiceMetadataSchema.omit({ operational: true, createdAt: true, updatedAt: true }).partial().optional()
 }).refine(
   (data) => {
     // At least one field must be provided for update
