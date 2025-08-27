@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { 
   Service, 
   RegisterServiceParams, 
-  UpdateService,
+  UpdateServiceParams,
   ServiceStatus,
   TransactionResult
 } from "../types";
@@ -16,10 +16,10 @@ import {
 } from "../errors";
 import { 
   validateRegisterServiceParams,
-  validateUpdateService,
+  validateUpdateServiceParams,
   validateService,
   parseRegisterServiceParams,
-  parseUpdateService
+  parseUpdateServiceParams
 } from "../schemas/service.schemas";
 import { ServiceRegistry } from "../../typechain";
 
@@ -124,17 +124,17 @@ export class ServiceRegistryService {
   /**
    * Updates an existing service with ownership and validation checks
    * @param {string} serviceId - The service ID to update
-   * @param {UpdateService} updates - Fields to update
+   * @param {UpdateServiceParams} updates - Fields to update
    * @returns {Promise<Service>} The updated service
    * @throws {ServiceNotFoundError} If service doesn't exist
    * @throws {ServiceOwnershipError} If caller doesn't own the service
    * @throws {ServiceValidationError} If validation fails
    */
-  async updateService(serviceId: string, updates: UpdateService): Promise<Service> {
+  async updateService(serviceId: string, updates: UpdateServiceParams): Promise<Service> {
     this.requireSigner();
     
     // Validate update parameters
-    const validationResult = validateUpdateService({ ...updates, id: serviceId });
+    const validationResult = validateUpdateServiceParams({ ...updates, id: serviceId });
     if (!validationResult.success) {
       throw new ServiceValidationError(
         "Invalid service update parameters", 
@@ -142,7 +142,7 @@ export class ServiceRegistryService {
       );
     }
     
-    const parsedUpdates = parseUpdateService({ ...updates, id: serviceId });
+    const parsedUpdates = parseUpdateServiceParams({ ...updates, id: serviceId });
     
     try {
       // Get current service

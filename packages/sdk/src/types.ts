@@ -68,7 +68,7 @@ export interface TaskStatusChangedEvent {
   status: TaskStatus;
 }
 
-// Re-export types from schemas
+// Re-export agent types from schemas
 export {
   AgentSocials,
   AgentCommunicationType,
@@ -80,16 +80,19 @@ export {
   RegisterAgentParams,
   UpdateableAgentRecord,
   AgentStatus,
-  // Service types
+} from './schemas/agent.schemas';
+
+// Re-export service types from service schemas
+export {
   Service,
   RegisterServiceParams,
-  UpdateService,
+  UpdateServiceParams,
   ServiceCategory,
   ServiceMethod,
   ServiceStatus,
   ServicePricingModel,
   ServicePricing,
-} from './schemas/agent.schemas';
+} from './schemas/service.schemas';
 
 // Type alias for serialized communication parameters (JSON string)
 export type SerializedCommunicationParams = string;

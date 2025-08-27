@@ -25,13 +25,13 @@ export {
 export {
     validateService,
     validateRegisterServiceParams,
-    validateUpdateService,
+    validateUpdateServiceParams,
     parseService,
     parseRegisterServiceParams,
-    parseUpdateService,
+    parseUpdateServiceParams,
     isService,
     isRegisterServiceParams,
-    isUpdateService,
+    isUpdateServiceParams,
     formatServiceValidationError
 } from "./schemas/service.schemas"
 

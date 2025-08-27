@@ -129,7 +129,7 @@ export const RegisterServiceParamsSchema = ServiceSchema.omit({
  * Schema for updating an existing service
  * All fields optional except ID
  */
-export const UpdateServiceSchema = ServiceSchema.partial().required({
+export const UpdateServiceParamsSchema = ServiceSchema.partial().required({
   id: true
 });
 
@@ -144,7 +144,7 @@ export type ServicePricingModel = z.infer<typeof ServicePricingModelSchema>;
 export type ServicePricing = z.infer<typeof ServicePricingSchema>;
 export type Service = z.infer<typeof ServiceSchema>;
 export type RegisterServiceParams = z.infer<typeof RegisterServiceParamsSchema>;
-export type UpdateService = z.infer<typeof UpdateServiceSchema>;
+export type UpdateServiceParams = z.infer<typeof UpdateServiceParamsSchema>;
 
 // ============================================================================
 // Service Validation Functions
@@ -173,8 +173,8 @@ export const validateRegisterServiceParams = (data: unknown) => {
  * @param data - The update parameters to validate
  * @returns Validation result
  */
-export const validateUpdateService = (data: unknown) => {
-  return UpdateServiceSchema.safeParse(data);
+export const validateUpdateServiceParams = (data: unknown) => {
+  return UpdateServiceParamsSchema.safeParse(data);
 };
 
 // ============================================================================
@@ -216,9 +216,9 @@ export const parseRegisterServiceParams = (data: unknown): RegisterServiceParams
  * @param data - The update parameters to parse
  * @throws ZodError if validation fails with enhanced error messages
  */
-export const parseUpdateService = (data: unknown): UpdateService => {
+export const parseUpdateServiceParams = (data: unknown): UpdateServiceParams => {
   try {
-    return UpdateServiceSchema.parse(data);
+    return UpdateServiceParamsSchema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new z.ZodError([
@@ -259,8 +259,8 @@ export const isRegisterServiceParams = (data: unknown): data is RegisterServiceP
  * @param data - Data to check
  * @returns True if data matches UpdateService schema
  */
-export const isUpdateService = (data: unknown): data is UpdateService => {
-  return UpdateServiceSchema.safeParse(data).success;
+export const isUpdateServiceParams = (data: unknown): data is UpdateServiceParams => {
+  return UpdateServiceParamsSchema.safeParse(data).success;
 };
 
 /**
