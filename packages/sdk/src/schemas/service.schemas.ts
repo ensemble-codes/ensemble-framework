@@ -18,16 +18,13 @@ import {
  * Defines the types of services available in the ecosystem
  */
 export const ServiceCategorySchema = z.enum([
-  'ai',           // AI/ML services
   'data',         // Data processing and analytics
-  'automation',   // Task automation
+  'research',     // Research and analysis
   'defi',         // DeFi services
   'social',       // Social media integration
-  'analytics',    // Analytics and reporting
-  'oracle',       // Blockchain oracles
-  'storage',      // Data storage
-  'compute',      // Computational services
-  'messaging'     // Communication services
+  'security',     // Security services
+  'vibes',        // Vibes services
+  'other'         // Other services
 ]);
 
 /**
