@@ -5,7 +5,10 @@ import { ContractService } from "./services/ContractService"
 import { ServiceRegistryService } from "./services/ServiceRegistryService"
 
 // Export all types and interfaces
-export * from "./types"
+export * from "./types";
+
+// Export base schemas
+export * from "./schemas/base.schemas";
 
 // Export validation functions
 export {
@@ -15,15 +18,22 @@ export {
     validateCommunicationParams,
     parseAgentRecord,
     parseRegisterParams,
-    parseUpdateParams,
-    // Service validation functions
+    parseUpdateParams
+} from "./schemas/agent.schemas";
+
+// Export service validation functions
+export {
     validateService,
-    validateCreateService,
+    validateRegisterServiceParams,
     validateUpdateService,
     parseService,
-    parseCreateService,
-    isService
-} from "./schemas/agent.schemas"
+    parseRegisterServiceParams,
+    parseUpdateService,
+    isService,
+    isRegisterServiceParams,
+    isUpdateService,
+    formatServiceValidationError
+} from "./schemas/service.schemas"
 
 export { 
     Ensemble, 

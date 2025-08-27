@@ -82,7 +82,7 @@ export {
   AgentStatus,
   // Service types
   Service,
-  CreateService,
+  RegisterServiceParams,
   UpdateService,
   ServiceCategory,
   ServiceMethod,

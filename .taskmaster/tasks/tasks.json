@@ -352,7 +352,7 @@
             "description": "Enhance the existing ServiceRegistryService class with comprehensive CRUD operations, ownership model, and service lifecycle management capabilities.",
             "dependencies": [],
             "details": "Extend the ServiceRegistryService class to include: createService(), updateService(), deleteService(), getService(), listServices() methods with proper error handling and validation. Implement ownership model with transferOwnership(), getServiceOwner(), and ownership validation methods. Add service lifecycle management with status tracking (draft, active, paused, archived, deleted). Include proper TypeScript interfaces and error handling for all operations. Ensure backward compatibility with existing service registry functionality.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit tests for all CRUD operations with mocked blockchain interactions. Test ownership model operations including transfers and permission checks. Validate service lifecycle state transitions and status management."
           },
           {
@@ -363,7 +363,7 @@
               "25.1"
             ],
             "details": "Create ServiceSchema interface with required fields: id, name, description, category, owner, status, createdAt, updatedAt. Add optional fields: tags, metadata, pricing, requirements, capabilities, assignedAgents. Implement Zod validation schemas for service creation, updates, and queries. Support nested schema validation for complex service configurations. Create type-safe validation functions that can be used across the SDK. Include proper error messages and validation feedback for invalid schemas.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Validate ServiceSchema Zod validation with valid and invalid service data structures. Test nested schema validation for complex configurations. Verify type safety and error message clarity."
           },
           {
@@ -404,7 +404,7 @@
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-08-26T13:57:12.098Z",
+      "updated": "2025-08-26T14:18:39.372Z",
       "description": "Tasks for master context"
     }
   }

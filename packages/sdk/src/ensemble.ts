@@ -5,6 +5,7 @@ import {
   AgentRecord,
   AgentMetadata,
   RegisterAgentParams,
+  RegisterServiceParams,
   EnsembleConfig,
   TaskData,
   TaskCreationParams,
@@ -265,13 +266,13 @@ export class Ensemble {
 
   /**
    * Registers a new service.
-   * @param {Service} service - The service to register.
-   * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if the service is registered.
+   * @param {RegisterServiceParams} params - The service registration parameters.
+   * @returns {Promise<Service>} A promise that resolves to the registered service.
    * @requires signer
    */
-  async registerService(service: Service): Promise<boolean> {
+  async registerService(params: RegisterServiceParams): Promise<Service> {
     this.requireSigner();
-    return this.serviceRegistryService.registerService(service);
+    return this.serviceRegistryService.registerService(params);
   }
 
   /**
