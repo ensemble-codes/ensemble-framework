@@ -136,6 +136,8 @@ contract ServiceRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUp
         serviceExists(serviceId) 
         onlyServiceOwner(serviceId) 
     {
+        require(bytes(serviceUri).length > 0, "Service URI required");
+        
         Service storage service = services[serviceId];
         require(service.status != ServiceStatus.DELETED, "Cannot update deleted service");
         
@@ -144,27 +146,38 @@ contract ServiceRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUp
         
         emit ServiceUpdated(serviceId, serviceUri, service.version);
     }
-
+    
     /**
-     * @dev Updates the status of a service.
+     * @dev Sets the status of a service with validation.
      * @param serviceId The ID of the service.
      * @param newStatus The new status for the service.
      */
-    function updateServiceStatus(uint256 serviceId, ServiceStatus newStatus) 
-        external 
-        serviceExists(serviceId) 
-        onlyServiceOwner(serviceId) 
+    function setServiceStatus(uint256 serviceId, ServiceStatus newStatus)
+        external
+        serviceExists(serviceId)
+        onlyServiceOwner(serviceId)
     {
         Service storage service = services[serviceId];
         ServiceStatus oldStatus = service.status;
         
-        require(oldStatus != ServiceStatus.DELETED, "Cannot change status of deleted service");
-        require(_isValidStatusTransition(oldStatus, newStatus), "Invalid status transition");
+        // Validate status transitions
+        if (newStatus == ServiceStatus.PUBLISHED) {
+            require(service.agentAddress != address(0), "Service must have agent to be published");
+            require(oldStatus == ServiceStatus.DRAFT || oldStatus == ServiceStatus.ARCHIVED, 
+                    "Can only publish from DRAFT or ARCHIVED");
+        } else if (newStatus == ServiceStatus.DELETED) {
+            revert("Invalid status transition");
+        } else if (newStatus == ServiceStatus.ARCHIVED) {
+            require(oldStatus == ServiceStatus.PUBLISHED || oldStatus == ServiceStatus.DRAFT,
+                    "Can only archive from PUBLISHED or DRAFT");
+        }
         
         service.status = newStatus;
+        service.version++;
         
         emit ServiceStatusChanged(serviceId, oldStatus, newStatus);
     }
+
 
     /**
      * @dev Soft deletes a service by setting its status to DELETED.
@@ -266,6 +279,7 @@ contract ServiceRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUp
         
         Service storage service = services[serviceId];
         address oldAgent = service.agentAddress;
+        ServiceStatus oldStatus = service.status;
         
         require(oldAgent != address(0), "No agent assigned");
         
@@ -276,7 +290,7 @@ contract ServiceRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUp
         _removeFromAgentServices(oldAgent, serviceId);
         
         emit ServiceAgentUnassigned(serviceId, oldAgent);
-        emit ServiceStatusChanged(serviceId, service.status, newStatus);
+        emit ServiceStatusChanged(serviceId, oldStatus, newStatus);
     }
 
     // ============================================================================
