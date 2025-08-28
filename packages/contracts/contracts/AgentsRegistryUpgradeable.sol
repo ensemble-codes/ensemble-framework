@@ -39,6 +39,8 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
     ServiceRegistryUpgradeable public serviceRegistry;
 
     mapping(address => AgentData) public agents;
+    // Mapping to track if a user has already rated an agent: agent => rater => hasRated
+    mapping(address => mapping(address => bool)) public hasRated;
 
     modifier onlyAgentOwner(address agent) {
         require(
@@ -137,7 +139,7 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
     }
 
     /**
-     * @dev Adds a rating to an agent (for external integration).
+     * @dev Adds a rating to an agent (one rating per user).
      * @param agent The address of the agent.
      * @param _rating The rating value (0-100).
      * @return The new reputation score.
@@ -147,9 +149,22 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         uint256 _rating
     ) public returns (uint256) {
         require(
+            agents[agent].agent != address(0),
+            "Agent not registered"
+        );
+        require(
+            !hasRated[agent][msg.sender],
+            "User has already rated this agent"
+        );
+        require(
             _rating >= 0 && _rating <= 100,
             "Rating must be between 0 and 100"
         );
+        
+        // Mark that this user has rated this agent
+        hasRated[agent][msg.sender] = true;
+        
+        // Update agent reputation
         agents[agent].totalRatings += 1;
         agents[agent].reputation =
             (agents[agent].reputation *
@@ -168,6 +183,16 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
      */
     function getReputation(address agent) external view returns (uint256) {
         return agents[agent].reputation;
+    }
+
+    /**
+     * @dev Checks if a user has already rated an agent.
+     * @param agent The address of the agent.
+     * @param rater The address of the rater.
+     * @return True if the rater has already rated the agent.
+     */
+    function hasUserRated(address agent, address rater) external view returns (bool) {
+        return hasRated[agent][rater];
     }
 
     /**

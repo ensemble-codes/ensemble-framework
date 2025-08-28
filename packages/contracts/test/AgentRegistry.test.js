@@ -186,7 +186,7 @@ describe("AgentsRegistryUpgradeable V2 - Without Proposals", function () {
 
         it("Should add rating to agent", async function () {
             const rating = 85;
-            const tx = await agentsRegistry.addRating(agentAddr1.address, rating);
+            const tx = await agentsRegistry.connect(addr2).addRating(agentAddr1.address, rating);
 
             await expect(tx)
                 .to.emit(agentsRegistry, "ReputationUpdated")
@@ -197,12 +197,31 @@ describe("AgentsRegistryUpgradeable V2 - Without Proposals", function () {
 
             const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
             expect(agentData.totalRatings).to.equal(1);
+            
+            // Check that the user has rated
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr2.address)).to.be.true;
         });
 
-        it("Should calculate average reputation correctly", async function () {
-            await agentsRegistry.addRating(agentAddr1.address, 80);
-            await agentsRegistry.addRating(agentAddr1.address, 90);
-            await agentsRegistry.addRating(agentAddr1.address, 100);
+        it("Should prevent duplicate ratings from same user", async function () {
+            // First rating should succeed
+            await agentsRegistry.connect(addr1).addRating(agentAddr1.address, 80);
+            
+            // Second rating from same user should fail
+            await expect(
+                agentsRegistry.connect(addr1).addRating(agentAddr1.address, 90)
+            ).to.be.revertedWith("User has already rated this agent");
+            
+            // Check that only one rating was recorded
+            const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
+            expect(agentData.totalRatings).to.equal(1);
+            expect(agentData.reputation).to.equal(80);
+        });
+
+        it("Should calculate average reputation correctly with different users", async function () {
+            // Different users rating the same agent
+            await agentsRegistry.connect(addr1).addRating(agentAddr1.address, 80);
+            await agentsRegistry.connect(addr2).addRating(agentAddr1.address, 90);
+            await agentsRegistry.connect(owner).addRating(agentAddr1.address, 100);
 
             const reputation = await agentsRegistry.getReputation(agentAddr1.address);
             expect(reputation).to.equal(90); // (80 + 90 + 100) / 3 = 90
@@ -211,20 +230,46 @@ describe("AgentsRegistryUpgradeable V2 - Without Proposals", function () {
             expect(agentData.totalRatings).to.equal(3);
         });
 
+        it("Should reject rating for non-existent agent", async function () {
+            await expect(
+                agentsRegistry.connect(addr1).addRating(agentAddr2.address, 80)
+            ).to.be.revertedWith("Agent not registered");
+        });
+
         it("Should reject invalid ratings", async function () {
             await expect(
-                agentsRegistry.addRating(agentAddr1.address, 101)
+                agentsRegistry.connect(addr2).addRating(agentAddr1.address, 101)
             ).to.be.revertedWith("Rating must be between 0 and 100");
         });
 
         it("Should handle edge case ratings", async function () {
-            await agentsRegistry.addRating(agentAddr1.address, 0);
+            await agentsRegistry.connect(addr1).addRating(agentAddr1.address, 0);
             let reputation = await agentsRegistry.getReputation(agentAddr1.address);
             expect(reputation).to.equal(0);
 
-            await agentsRegistry.addRating(agentAddr1.address, 100);
+            await agentsRegistry.connect(addr2).addRating(agentAddr1.address, 100);
             reputation = await agentsRegistry.getReputation(agentAddr1.address);
             expect(reputation).to.equal(50); // (0 + 100) / 2 = 50
+        });
+
+        it("Should track rating status correctly", async function () {
+            // Check initial state
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr1.address)).to.be.false;
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr2.address)).to.be.false;
+            
+            // Add rating from addr1
+            await agentsRegistry.connect(addr1).addRating(agentAddr1.address, 75);
+            
+            // Check updated state
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr1.address)).to.be.true;
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr2.address)).to.be.false;
+            
+            // Add rating from addr2
+            await agentsRegistry.connect(addr2).addRating(agentAddr1.address, 85);
+            
+            // Check final state
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr1.address)).to.be.true;
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr2.address)).to.be.true;
         });
     });
 
@@ -346,7 +391,7 @@ describe("AgentsRegistryUpgradeable V2 - Without Proposals", function () {
                 AGENT_NAME_1,
                 AGENT_URI_1
             );
-            await agentsRegistry.addRating(agentAddr1.address, 75);
+            await agentsRegistry.connect(addr2).addRating(agentAddr1.address, 75);
         });
 
         it("Should retrieve complete agent data", async function () {
