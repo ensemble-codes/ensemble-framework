@@ -37,7 +37,6 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
 
     IAgentRegistryV1 public agentRegistryV1;
     ServiceRegistryUpgradeable public serviceRegistry;
-    address public taskRegistry;
 
     mapping(address => AgentData) public agents;
 
@@ -87,14 +86,6 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         address indexed owner
     );
 
-    /**
-     * @dev Sets the address of the TaskRegistry contract.
-     * @param _taskRegistry The address of the TaskRegistry contract.
-     */
-    function setTaskRegistry(address _taskRegistry) external onlyOwner {
-        require(_taskRegistry != address(0), "Invalid address");
-        taskRegistry = _taskRegistry;
-    }
 
     /**
      * @dev Sets the address of the ServiceRegistry contract.
@@ -146,7 +137,7 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
     }
 
     /**
-     * @dev Adds a rating to an agent (called by TaskRegistry).
+     * @dev Adds a rating to an agent (for external integration).
      * @param agent The address of the agent.
      * @param _rating The rating value (0-100).
      * @return The new reputation score.
@@ -155,7 +146,6 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         address agent,
         uint256 _rating
     ) public returns (uint256) {
-        require(msg.sender == taskRegistry, "Not the TaskRegistry contract");
         require(
             _rating >= 0 && _rating <= 100,
             "Rating must be between 0 and 100"

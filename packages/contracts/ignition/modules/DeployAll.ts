@@ -2,16 +2,17 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import EnsembleCreditsModule from "./EnsembleCredits";
 import ServiceRegistryUpgradeableModule from "./ServiceRegistryUpgradeable";
 import AgentsRegistryUpgradeableModule from "./AgentsRegistryUpgradeable";
-import TaskRegistryUpgradeableModule from "./TaskRegistryUpgradeable";
 
 /**
- * Master deployment module for the entire Ensemble Framework
+ * Master deployment module for the Ensemble Framework V2
  * 
  * This module orchestrates the deployment of all contracts in the correct order:
  * 1. EnsembleCredits (independent ERC20 token)
- * 2. ServiceRegistry (base registry)
- * 3. AgentsRegistry (depends on ServiceRegistry)
- * 4. TaskRegistry (depends on ServiceRegistry and can integrate with EnsembleCredits)
+ * 2. ServiceRegistry (base registry for service management)
+ * 3. AgentsRegistry (agent management with reputation system)
+ * 
+ * Note: TaskRegistry has been removed as it's now legacy.
+ * Services and agents are managed independently through their respective registries.
  * 
  * Parameters (all optional & overridable via CLI / ignition.json):
  *  - tokenName        (string)  : ERC20 name for credits (default: "Ensemble Credits")
@@ -30,20 +31,11 @@ export default buildModule("DeployAllModule", (m) => {
   // Deploy ServiceRegistry (base dependency)
   const { serviceRegistry } = m.useModule(ServiceRegistryUpgradeableModule);
   
-  // Deploy AgentsRegistry (depends on ServiceRegistry)
+  // Deploy AgentsRegistry (depends on ServiceRegistry for V1 migration only)
   const { agentsRegistry, agentsRegistryProxy, agentsRegistryImpl } = m.useModule(AgentsRegistryUpgradeableModule);
-  
-  // Deploy TaskRegistry (depends on ServiceRegistry)
-  const { taskRegistry, taskRegistryProxy, taskRegistryImpl } = m.useModule(TaskRegistryUpgradeableModule);
 
   // Optional: Set up initial integrations between contracts
   // Note: These are commented out as they depend on your specific business logic
-  
-  // Example: Grant minter role to TaskRegistry for automatic reward distribution
-  // m.call(ensembleCredits, "grantRole", [
-  //   m.staticCall(ensembleCredits, "MINTER_ROLE"),
-  //   taskRegistry
-  // ], { id: "GrantMinterRoleToTaskRegistry" });
 
   return {
     // ERC20 Token
@@ -52,14 +44,11 @@ export default buildModule("DeployAllModule", (m) => {
     // Registry Contracts (Proxy Instances)
     serviceRegistry,
     agentsRegistry,
-    taskRegistry,
     
     // Proxy Addresses (for upgrades)
     agentsRegistryProxy,
-    taskRegistryProxy,
     
     // Implementation Addresses (for verification)
-    agentsRegistryImpl,
-    taskRegistryImpl
+    agentsRegistryImpl
   };
-}); 
+});
