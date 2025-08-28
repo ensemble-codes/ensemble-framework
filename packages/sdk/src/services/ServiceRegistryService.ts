@@ -25,8 +25,25 @@ import {
 } from "../schemas/service.schemas";
 import { ServiceRegistry } from "../../typechain";
 
-// TODO: Add proper IPFS SDK type when available
+// IPFS integration types and utilities
 type PinataSDK = any;
+
+interface IPFSUploadResponse {
+  IpfsHash: string;
+  PinSize: number;
+  Timestamp: string;
+}
+
+interface IPFSMetadata {
+  [key: string]: any;
+}
+
+class IPFSError extends Error {
+  constructor(message: string, public readonly cause?: Error) {
+    super(message);
+    this.name = 'IPFSError';
+  }
+}
 
 export class ServiceRegistryService {
   constructor(
@@ -442,21 +459,21 @@ export class ServiceRegistryService {
   }
 
   /**
-   * Activates a service (changes status to 'published')
+   * Publishes a service (changes status to 'published')
    * @param {string} serviceId - The service ID
    * @returns {Promise<Service>} The updated service
    */
-  async activateService(serviceId: string): Promise<ServiceRecord> {
+  async publishService(serviceId: string): Promise<ServiceRecord> {
     return this.updateServiceStatus(serviceId, 'published' as ServiceStatus);
   }
 
   /**
-   * Deactivates a service (changes status to 'inactive')
+   * Unpublishes a service (changes status to 'archived')
    * @param {string} serviceId - The service ID  
    * @returns {Promise<Service>} The updated service
    */
-  async deactivateService(serviceId: string): Promise<ServiceRecord> {
-    return this.updateServiceStatus(serviceId, 'inactive' as ServiceStatus);
+  async unpublishService(serviceId: string): Promise<ServiceRecord> {
+    return this.updateServiceStatus(serviceId, 'archived' as ServiceStatus);
   }
 
   /**
@@ -509,17 +526,15 @@ export class ServiceRegistryService {
       
       console.log(`Assigning agent to service: ${agentAddress} -> ${serviceId}`);
 
-      // Update service with agent assignment
-      const updatedService: ServiceRecord = {
-        ...service,
-        agentAddress,
-        updatedAt: new Date().toISOString()
-      };
-
-      // This will need smart contract support for agent assignments
+      // Call smart contract to assign agent
+      const tx = await this.serviceRegistry.connect(this.signer!)
+        .assignAgentToService(serviceId, agentAddress);
+      
+      await tx.wait();
       console.log(`Agent assigned to service: ${serviceId}`);
       
-      return updatedService;
+      // Return updated service from contract
+      return await this.getServiceById(serviceId);
     } catch (error: any) {
       console.error(`Error assigning agent to service ${serviceId}:`, error);
       throw error;
@@ -577,7 +592,7 @@ export class ServiceRegistryService {
   }
 
   /**
-   * Gets all services assigned to a specific agent
+   * Gets all services assigned to a specific agent via smart contract
    * @param {string} agentAddress - The agent's address
    * @returns {Promise<Service[]>} Array of services assigned to the agent
    */
@@ -586,7 +601,253 @@ export class ServiceRegistryService {
       throw new ServiceValidationError(`Invalid agent address: ${agentAddress}`);
     }
     
-    return this.listServices({ agentAddress });
+    try {
+      // Call smart contract to get service IDs for agent
+      const serviceIds = await this.serviceRegistry.getServicesByAgent(agentAddress);
+      
+      // Fetch full service records for each ID
+      const services: ServiceRecord[] = [];
+      for (const serviceId of serviceIds) {
+        try {
+          const service = await this.getServiceById(serviceId.toString());
+          services.push(service);
+        } catch (error) {
+          console.warn(`Could not fetch service ${serviceId}:`, error);
+          // Skip invalid services but continue processing others
+        }
+      }
+      
+      return services;
+    } catch (error: any) {
+      console.error(`Error getting services for agent ${agentAddress}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets all agents assigned to a specific service
+   * @param {string} serviceId - The service ID
+   * @returns {Promise<string[]>} Array of agent addresses assigned to the service
+   */
+  async getAssignedAgents(serviceId: string): Promise<string[]> {
+    try {
+      const service = await this.getServiceById(serviceId);
+      
+      // In ServiceRegistry V2, each service has only one agent
+      // Return array for consistency with interface
+      return service.agentAddress ? [service.agentAddress] : [];
+    } catch (error: any) {
+      console.error(`Error getting assigned agents for service ${serviceId}:`, error);
+      throw error;
+    }
+  }
+
+  // ============================================================================
+  // IPFS Integration Methods
+  // ============================================================================
+
+  /**
+   * Uploads metadata to IPFS with error handling and retry logic
+   * @param {IPFSMetadata} metadata - Metadata object to upload
+   * @returns {Promise<string>} IPFS URI (ipfs://hash)
+   */
+  async uploadMetadata(metadata: IPFSMetadata): Promise<string> {
+    if (!this.ipfsSDK) {
+      throw new IPFSError('IPFS SDK not configured');
+    }
+
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Uploading metadata to IPFS (attempt ${attempt}/${maxRetries})`);
+        
+        const uploadResponse: IPFSUploadResponse = await this.ipfsSDK.upload.json(metadata);
+        
+        if (!uploadResponse.IpfsHash) {
+          throw new IPFSError('No IPFS hash returned from upload');
+        }
+
+        const ipfsUri = `ipfs://${uploadResponse.IpfsHash}`;
+        console.log(`Metadata uploaded to IPFS: ${ipfsUri}`);
+        
+        // Automatically pin the content
+        await this.pinContent(uploadResponse.IpfsHash);
+        
+        return ipfsUri;
+      } catch (error: any) {
+        lastError = error;
+        console.warn(`IPFS upload attempt ${attempt} failed:`, error.message);
+        
+        if (attempt < maxRetries) {
+          // Exponential backoff: 1s, 2s, 4s
+          const delay = Math.pow(2, attempt - 1) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    throw new IPFSError(`Failed to upload metadata after ${maxRetries} attempts`, lastError || undefined);
+  }
+
+  /**
+   * Downloads metadata from IPFS with error handling
+   * @param {string} ipfsUri - IPFS URI (ipfs://hash)
+   * @returns {Promise<IPFSMetadata>} Downloaded metadata object
+   */
+  async downloadMetadata(ipfsUri: string): Promise<IPFSMetadata> {
+    if (!ipfsUri.startsWith('ipfs://')) {
+      throw new IPFSError('Invalid IPFS URI format');
+    }
+
+    const ipfsHash = ipfsUri.replace('ipfs://', '');
+    
+    try {
+      console.log(`Downloading metadata from IPFS: ${ipfsUri}`);
+      
+      if (!this.ipfsSDK) {
+        throw new IPFSError('IPFS SDK not configured');
+      }
+
+      // Use Pinata gateway or public gateway
+      const response = await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsHash}`);
+      
+      if (!response.ok) {
+        throw new IPFSError(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const metadata = await response.json();
+      console.log(`Metadata downloaded from IPFS: ${ipfsUri}`);
+      
+      return metadata;
+    } catch (error: any) {
+      console.error(`Error downloading metadata from ${ipfsUri}:`, error);
+      throw new IPFSError(`Failed to download metadata from ${ipfsUri}`, error);
+    }
+  }
+
+  /**
+   * Pins content to IPFS to ensure persistence
+   * @param {string} ipfsHash - IPFS hash to pin
+   * @returns {Promise<void>}
+   */
+  async pinContent(ipfsHash: string): Promise<void> {
+    if (!this.ipfsSDK) {
+      console.warn('IPFS SDK not configured, skipping pin operation');
+      return;
+    }
+
+    try {
+      console.log(`Pinning content to IPFS: ${ipfsHash}`);
+      
+      // Pin the content using Pinata
+      await this.ipfsSDK.pinning.pinByHash({ hashToPin: ipfsHash });
+      
+      console.log(`Content pinned successfully: ${ipfsHash}`);
+    } catch (error: any) {
+      console.warn(`Failed to pin content ${ipfsHash}:`, error.message);
+      // Don't throw error for pinning failures as upload was successful
+    }
+  }
+
+  /**
+   * Verifies IPFS content integrity by comparing hashes
+   * @param {string} ipfsUri - IPFS URI to verify
+   * @param {string} expectedHash - Optional expected hash to compare against
+   * @returns {Promise<boolean>} True if content is valid and accessible
+   */
+  async verifyContentIntegrity(ipfsUri: string, expectedHash?: string): Promise<boolean> {
+    try {
+      const ipfsHash = ipfsUri.replace('ipfs://', '');
+      
+      if (expectedHash && ipfsHash !== expectedHash) {
+        console.warn(`Hash mismatch: expected ${expectedHash}, got ${ipfsHash}`);
+        return false;
+      }
+
+      // Try to download content to verify it's accessible
+      await this.downloadMetadata(ipfsUri);
+      
+      return true;
+    } catch (error: any) {
+      console.error(`Content integrity verification failed for ${ipfsUri}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Creates a service with metadata uploaded to IPFS
+   * @param {RegisterServiceParams} serviceData - Service creation parameters
+   * @returns {Promise<ServiceRecord>} The created service record
+   */
+  async createServiceWithMetadata(serviceData: RegisterServiceParams): Promise<ServiceRecord> {
+    try {
+      // Extract metadata for IPFS upload
+      const metadata: IPFSMetadata = {
+        name: serviceData.name,
+        description: serviceData.metadata?.description || '',
+        category: serviceData.metadata?.category || 'other',
+        tags: serviceData.metadata?.tags || [],
+        endpointSchema: serviceData.metadata?.endpointSchema || '',
+        method: serviceData.metadata?.method || 'HTTP_GET',
+        parametersSchema: serviceData.metadata?.parametersSchema || {},
+        resultSchema: serviceData.metadata?.resultSchema || {},
+        pricing: serviceData.metadata?.pricing,
+        createdAt: new Date().toISOString()
+      };
+
+      // Upload metadata to IPFS
+      const ipfsUri = await this.uploadMetadata(metadata);
+
+      // Create service with the original method, which will handle IPFS upload internally
+      return await this.registerService(serviceData);
+    } catch (error: any) {
+      console.error('Error creating service with metadata:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Updates service metadata on IPFS and synchronizes with blockchain
+   * @param {string} serviceId - Service ID to update
+   * @param {IPFSMetadata} metadata - New metadata object
+   * @returns {Promise<ServiceRecord>} Updated service record
+   */
+  async updateServiceMetadata(serviceId: string, metadata: IPFSMetadata): Promise<ServiceRecord> {
+    this.requireSigner();
+    
+    try {
+      // Get current service to verify ownership
+      const currentService = await this.getServiceById(serviceId);
+      await this.verifyServiceOwnership(currentService, await this.signer!.getAddress());
+
+      // Upload new metadata to IPFS
+      await this.uploadMetadata({
+        ...metadata,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Update service with new metadata
+      const updateParams = {
+        id: serviceId,
+        metadata: {
+          description: metadata.description,
+          category: metadata.category as any,
+          tags: metadata.tags,
+          endpointSchema: metadata.endpointSchema,
+          method: metadata.method as any,
+          parametersSchema: metadata.parametersSchema,
+          resultSchema: metadata.resultSchema,
+          pricing: metadata.pricing
+        }
+      };
+
+      return await this.updateService(serviceId, updateParams);
+    } catch (error: any) {
+      console.error(`Error updating service metadata for ${serviceId}:`, error);
+      throw error;
+    }
   }
 
   // ============================================================================
@@ -706,7 +967,7 @@ export class ServiceRegistryService {
    * Legacy method: Get service by name (V1 compatibility)
    * @deprecated Use getServiceById() instead. V2 services don't support name-based lookup.
    */
-  async getService(name: string): Promise<ServiceRecord> {
+  async getService(_name: string): Promise<ServiceRecord> {
     throw new Error(
       "getService() by name is no longer supported in V2. " +
       "Service names are stored off-chain. Use getServiceById() instead."

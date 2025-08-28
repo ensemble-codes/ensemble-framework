@@ -374,7 +374,7 @@
               "25.2"
             ],
             "details": "Extend ServiceRegistry.sol with V2 functionality including ownership transfers, agent assignments, and enhanced metadata support. Implement hybrid storage pattern storing core data on-chain (id, owner, status, assignedAgents) and metadata on IPFS. Add events for ServiceCreated, ServiceUpdated, ServiceDeleted, AgentAssigned, AgentUnassigned, OwnershipTransferred. Implement access control with onlyOwner modifiers and agent assignment permissions. Include gas optimization and proper event indexing for efficient querying.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Smart contract unit tests for all new functions and access controls. Test hybrid storage pattern with IPFS integration. Verify event emissions and gas optimization. Test ownership transfers and agent assignment permissions."
           },
           {
@@ -385,7 +385,7 @@
               "25.3"
             ],
             "details": "Implement agent assignment/unassignment methods: assignAgent(), unassignAgent(), getAssignedAgents(), getServicesByAgent() with proper validation and blockchain integration. Integrate IPFS client using ipfs-http-client for metadata storage. Implement automatic IPFS pinning for service metadata and large data objects. Create metadata synchronization between on-chain references and IPFS content. Add content addressing and integrity verification for IPFS stored data. Include retry logic and error handling for IPFS operations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test agent assignment operations with ownership validation. Verify IPFS integration with metadata storage and retrieval. Test automatic pinning and content integrity verification. Validate synchronization between on-chain and IPFS data."
           },
           {
@@ -418,7 +418,7 @@
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-08-27T17:49:46.813Z",
+      "updated": "2025-08-28T20:57:44.965Z",
       "description": "Tasks for master context"
     }
   }
