@@ -932,36 +932,6 @@ export class ServiceRegistryService {
   // Legacy Methods (for backward compatibility)
   // ============================================================================
 
-  /**
-   * Legacy method: Register a service (V1 compatibility)
-   * @deprecated Use registerService() with RegisterServiceParams instead
-   */
-  async registerServiceLegacy(service: ServiceRecord): Promise<boolean> {
-    console.warn("registerServiceLegacy() is deprecated. Use registerService() with RegisterServiceParams instead.");
-    
-    try {
-      // Convert ServiceRecord to RegisterServiceParams format for compatibility
-      const createParams: RegisterServiceParams = {
-        name: service.name,
-        agentAddress: service.agentAddress,
-        metadata: {
-          description: service.description,
-          category: service.category,
-          endpointSchema: service.endpointSchema,
-          method: service.method,
-          parametersSchema: service.parametersSchema,
-          resultSchema: service.resultSchema,
-          pricing: service.pricing,
-          tags: service.tags
-        }
-      };
-      
-      await this.registerService(createParams);
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
 
   /**
    * Legacy method: Get service by name (V1 compatibility)
