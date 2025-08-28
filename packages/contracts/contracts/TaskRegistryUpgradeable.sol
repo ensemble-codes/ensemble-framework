@@ -4,17 +4,16 @@ pragma solidity ^0.8.22;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./interfaces/IProposalStruct.sol";
 import "./AgentsRegistryUpgradeable.sol";
 import "./lib/TransferHelper.sol";
 
 /**
  * @title TaskRegistryUpgradeable
  * @author leonprou
- * @notice A smart contract that stores information about the tasks issued for the agent service providers.
- * @dev Upgradeable version using UUPS proxy pattern
+ * @notice A smart contract that manages task creation and completion between users and agents.
+ * @dev Upgradeable version using UUPS proxy pattern for Task Management V2
  */
-contract TaskRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgradeable, IProposalStruct {
+contract TaskRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     enum TaskStatus { CREATED, ASSIGNED, COMPLETED, CANCELED }
 
@@ -24,7 +23,8 @@ contract TaskRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgra
         address issuer;
         TaskStatus status;
         address assignee;
-        uint256 proposalId;
+        uint256 price;
+        address tokenAddress;
         string result;
         uint8 rating;
     }
@@ -39,6 +39,11 @@ contract TaskRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgra
         _;
     }
 
+    modifier onlyTaskAssignee(uint256 taskId) {
+        require(msg.sender == tasks[taskId].assignee, "Not the assignee of the task");
+        _;
+    }
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -49,138 +54,148 @@ contract TaskRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgra
      * @param _initialTaskId The starting task ID
      * @param _agentRegistry The address of the agent registry
      */
-    function initialize(
-        uint256 _initialTaskId, 
-        AgentsRegistryUpgradeable _agentRegistry
-    ) public initializer {
+    function initialize(uint256 _initialTaskId, AgentsRegistryUpgradeable _agentRegistry) public initializer {
         __Ownable_init(msg.sender);
         __UUPSUpgradeable_init();
-        
         nextTaskId = _initialTaskId;
         agentRegistry = _agentRegistry;
     }
-    
-    event TaskCreated(address indexed issuer, address indexed assignee, uint256 taskId, uint256 proposalId, string prompt);
-    event TaskStatusChanged(uint256 indexed taskId, TaskStatus status);
-    event TaskAssigned(uint256 indexed taskId, address indexed agent);
-    event TaskCanceled(uint256 indexed taskId);
-    event ProposalApproved(uint256 indexed taskId, ServiceProposal proposal);
+
+    event TaskCreated(
+        address indexed issuer, 
+        address indexed assignee, 
+        uint256 taskId, 
+        string prompt,
+        uint256 price,
+        address tokenAddress
+    );
     event TaskCompleted(uint256 indexed taskId, string result);
     event TaskRated(uint256 indexed taskId, uint8 rating);
+    event TaskCanceled(uint256 indexed taskId);
 
     /**
-    * @dev Creates a new task with the given prompt and task type.
-    * @param prompt The description or prompt of the task.
-    * @return taskId The ID of the newly created task.
-    */
+     * @dev Creates a new task and assigns it to an agent.
+     * @param assignee The address of the agent to assign the task to.
+     * @param prompt The task description/prompt.
+     * @param price The payment amount for the task.
+     * @param tokenAddress The token address for payment (address(0) for ETH).
+     */
     function createTask(
+        address assignee,
         string memory prompt,
-        uint256 proposalId
-    ) external payable returns (TaskData memory) {
-        ServiceProposal memory proposal = agentRegistry.getProposal(proposalId);
-        require(proposal.issuer != address(0), "ServiceProposal not found");
-        
-        if (proposal.tokenAddress == address(0)) {
-            require(proposal.price == msg.value, "Invalid price");
+        uint256 price,
+        address tokenAddress
+    ) external payable {
+        require(assignee != address(0), "Invalid assignee address");
+        require(bytes(prompt).length > 0, "Prompt cannot be empty");
+
+        // Handle payment
+        if (tokenAddress == address(0)) {
+            require(msg.value == price, "Invalid ETH amount");
         } else {
-            require(msg.value == 0, "No ETH should be sent for ERC20 payments");
-            TransferHelper.safeTransferFrom(proposal.tokenAddress, msg.sender, address(this), proposal.price);
+            require(msg.value == 0, "ETH not accepted for token payments");
+            TransferHelper.safeTransferFrom(tokenAddress, msg.sender, address(this), price);
         }
 
+        nextTaskId++;
         TaskData storage task = tasks[nextTaskId];
         task.id = nextTaskId;
         task.prompt = prompt;
         task.issuer = msg.sender;
-        task.proposalId = proposalId;
-        task.assignee = proposal.issuer;
-        issuerTasks[msg.sender].push(nextTaskId);
         task.status = TaskStatus.ASSIGNED;
-        emit TaskCreated(msg.sender, proposal.issuer, nextTaskId, proposal.proposalId, prompt);
+        task.assignee = assignee;
+        task.price = price;
+        task.tokenAddress = tokenAddress;
 
-        nextTaskId++;
-        return task;
+        issuerTasks[msg.sender].push(nextTaskId);
+
+        emit TaskCreated(msg.sender, assignee, nextTaskId, prompt, price, tokenAddress);
     }
 
     /**
-    * @dev Completes a task with the given result.
-    * @param taskId The ID of the task.
-    * @param result The result or output of the completed task.
-    */
-    function completeTask(uint256 taskId, string memory result) external {
+     * @dev Completes a task and releases payment to the assignee.
+     * @param taskId The ID of the task to complete.
+     * @param result The task completion result/output.
+     */
+    function completeTask(uint256 taskId, string memory result) external onlyTaskAssignee(taskId) {
         TaskData storage task = tasks[taskId];
-        require(msg.sender == task.assignee, "Not authorized");
-        require(task.status == TaskStatus.ASSIGNED, "Invalid task status");
+        require(task.status == TaskStatus.ASSIGNED, "Task is not in assigned state");
 
-        task.status = TaskStatus.COMPLETED;
         task.result = result;
-        ServiceProposal memory proposal = agentRegistry.getProposal(task.proposalId);
-        
-        if (proposal.tokenAddress == address(0)) {
-            TransferHelper.safeTransferETH(task.issuer, proposal.price);
+        task.status = TaskStatus.COMPLETED;
+
+        // Release payment
+        if (task.tokenAddress == address(0)) {
+            TransferHelper.safeTransferETH(task.assignee, task.price);
         } else {
-            TransferHelper.safeTransfer(proposal.tokenAddress, task.issuer, proposal.price);
+            TransferHelper.safeTransfer(task.tokenAddress, task.assignee, task.price);
         }
-        
-        emit TaskStatusChanged(taskId, task.status);
+
         emit TaskCompleted(taskId, result);
     }
 
     /**
-    * @dev Rated a completed task, called by the task issuer
-    * @param taskId The ID of the task.
-    * @param rating task rating from 0 to 100.
-    */    
-    function rateTask(uint256 taskId, uint8 rating) onlyTaskIssuer(taskId) external {
+     * @dev Rates a completed task.
+     * @param taskId The ID of the task to rate.
+     * @param rating The rating value (0-100).
+     */
+    function rateTask(uint256 taskId, uint8 rating) external onlyTaskIssuer(taskId) {
         TaskData storage task = tasks[taskId];
-
         require(task.status == TaskStatus.COMPLETED, "Task is not completed");
-        require(task.rating == 0, "Task got rating already");
-        require(rating >= 0 && rating <= 100, "Rating must be between 0 and 100");
-        
-        task.rating = rating;
-        ServiceProposal memory proposal = agentRegistry.getProposal(task.proposalId);
+        require(rating <= 100, "Rating must be between 0 and 100");
 
-        agentRegistry.addRating(proposal.issuer, rating);
+        task.rating = rating;
+
+        // Add rating to agent's reputation
+        agentRegistry.addRating(task.assignee, rating);
 
         emit TaskRated(taskId, rating);
     }
 
     /**
-    * @dev Cancels a task that is in ASSIGNED status and refunds the payment.
-    * @param taskId The ID of the task to cancel.
-    */
+     * @dev Cancels a task and refunds payment to the issuer.
+     * @param taskId The ID of the task to cancel.
+     */
     function cancelTask(uint256 taskId) external onlyTaskIssuer(taskId) {
         TaskData storage task = tasks[taskId];
-        require(task.status != TaskStatus.COMPLETED && task.status != TaskStatus.CANCELED, "Task cannot be canceled");
-        
+        require(task.status == TaskStatus.ASSIGNED, "Task cannot be canceled");
+
         task.status = TaskStatus.CANCELED;
-        ServiceProposal memory proposal = agentRegistry.getProposal(task.proposalId);
-        
-        // Refund the payment to the issuer
-        if (proposal.tokenAddress == address(0)) {
-            TransferHelper.safeTransferETH(task.issuer, proposal.price);
+
+        // Refund payment
+        if (task.tokenAddress == address(0)) {
+            TransferHelper.safeTransferETH(task.issuer, task.price);
         } else {
-            TransferHelper.safeTransfer(proposal.tokenAddress, task.issuer, proposal.price);
+            TransferHelper.safeTransfer(task.tokenAddress, task.issuer, task.price);
         }
-        
-        emit TaskStatusChanged(taskId, task.status);
+
         emit TaskCanceled(taskId);
     }
 
-    function getTasksByIssuer(address issuer) external view returns (uint256[] memory) {
-        return issuerTasks[issuer];
-    }
-
+    /**
+     * @dev Gets task data by ID.
+     * @param taskId The ID of the task.
+     * @return TaskData The task data.
+     */
     function getTask(uint256 taskId) external view returns (TaskData memory) {
         return tasks[taskId];
     }
 
-    function getStatus(uint256 taskId) external view returns (TaskStatus) {
-        return tasks[taskId].status;
+    /**
+     * @dev Gets tasks created by a specific issuer.
+     * @param issuer The address of the task issuer.
+     * @return Array of task IDs.
+     */
+    function getTasksByIssuer(address issuer) external view returns (uint256[] memory) {
+        return issuerTasks[issuer];
     }
-    
-    function getAssignee(uint256 taskId) external view returns (address) {
-        return tasks[taskId].assignee;
+
+    /**
+     * @dev Gets the next task ID.
+     * @return The next task ID.
+     */
+    function getNextTaskId() external view returns (uint256) {
+        return nextTaskId + 1;
     }
 
     /**
@@ -193,4 +208,4 @@ contract TaskRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgra
      * @dev Storage gap for future upgrades
      */
     uint256[50] private __gap;
-} 
+}

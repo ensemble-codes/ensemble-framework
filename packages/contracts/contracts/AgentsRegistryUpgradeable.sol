@@ -5,7 +5,6 @@ import "./ServiceRegistryUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./interfaces/IProposalStruct.sol";
 import "./interfaces/IAgentRegistryV1.sol";
 
 // Interface for V1 ServiceRegistry compatibility
@@ -23,10 +22,10 @@ interface IServiceRegistryV1 {
 /**
  * @title AgentsRegistryUpgradeable
  * @author leonprou
- * @notice A smart contract that stores information about the agents, and the services proposals provided by the agents.
- * @dev Upgradeable version using UUPS proxy pattern
+ * @notice A smart contract that manages agent registration and reputation.
+ * @dev Upgradeable version using UUPS proxy pattern for Agent Management V2
  */
-contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgradeable, IProposalStruct {
+contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     struct AgentData {
         string name;
         string agentUri;
@@ -41,8 +40,6 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
     address public taskRegistry;
 
     mapping(address => AgentData) public agents;
-    mapping(uint256 => ServiceProposal) public proposals;
-    uint256 public nextProposalId;
 
     modifier onlyAgentOwner(address agent) {
         require(
@@ -71,7 +68,6 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         
         agentRegistryV1 = _agentRegistryV1;
         serviceRegistry = _serviceRegistry;
-        nextProposalId = 1;
     }
 
     event AgentRegistered(
@@ -81,28 +77,11 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         string agentUri
     );
     event ReputationUpdated(address indexed agent, uint256 newReputation);
-
-    event ProposalAdded(
-        address indexed agent,
-        uint256 proposalId,
-        string name,
-        uint256 price,
-        address tokenAddress
-    );
-    event ProposalRemoved(address indexed agent, uint256 proposalId);
-
-    event ProposalUpdated(
-        address indexed agent,
-        uint256 proposalId,
-        uint256 price,
-        address tokenAddress
-    );
     event AgentDataUpdated(
         address indexed agent,
         string name,
         string agentUri
     );
-
     event AgentRemoved(
         address indexed agent,
         address indexed owner
@@ -149,70 +128,8 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         _createAgent(agent, name, agentUri, msg.sender, 0);
     }
 
-    // V2: registerAgentWithService removed - agents and services are managed independently
-    // Use registerAgent() followed by service assignment through ServiceRegistry
-
     /**
-     * @dev Adds a new proposal for an agent.
-     * @param agent The address of the agent.
-     * @param serviceName The name of the service.
-     * @param servicePrice The price of the service.
-     *
-     * Requirements:
-     *
-     * - The caller must be the owner of the agent.
-     * - The agent must be registered.
-     * - The service must be registered.
-     *
-     * Emits a {ProposalAdded} event.
-     */
-    function addProposal(
-        address agent,
-        string memory serviceName,
-        uint256 servicePrice,
-        address tokenAddress
-    ) public onlyAgentOwner(agent) {
-        // V2: Service validation removed - services use IDs and are managed independently
-        // require(
-        //     serviceRegistry.isServiceRegistered(serviceName),
-        //     "Service not registered"
-        // );
-
-        _createProposal(agent, serviceName, servicePrice, tokenAddress);
-    }
-
-    /**
-     * @dev Removes a proposal for an agent.
-     * @param agent The address of the agent.
-     * @param proposalId The ID of the proposal to remove.
-     * @return true if the proposal was removed successfully, false otherwise.
-     *
-     * Requirements:
-     *
-     * - The caller must be the owner of the agent.
-     * - The agent must be registered.
-     * - The proposal must exist.
-     *
-     * Emits a {ProposalRemoved} event.
-     */
-    function removeProposal(
-        address agent,
-        uint256 proposalId
-    ) external onlyAgentOwner(agent) returns (bool) {
-        require(
-            proposals[proposalId].issuer == agent,
-            "ServiceProposal not found"
-        );
-
-        delete proposals[proposalId];
-
-        emit ProposalRemoved(agent, proposalId);
-
-        return true;
-    }
-
-    /**
-     * @dev Migrates an agent.
+     * @dev Migrates an agent from V1 registry.
      * @param agent The address of the agent.
      */
     function migrateAgent(address agent) external {
@@ -226,10 +143,14 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         );
 
         _createAgent(agent, v1AgentData.name, v1AgentData.agentUri, v1AgentData.owner, v1AgentData.reputation);
-
-        _migrateAgentProposals(agent);
     }
 
+    /**
+     * @dev Adds a rating to an agent (called by TaskRegistry).
+     * @param agent The address of the agent.
+     * @param _rating The rating value (0-100).
+     * @return The new reputation score.
+     */
     function addRating(
         address agent,
         uint256 _rating
@@ -250,6 +171,11 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         return agents[agent].reputation;
     }
 
+    /**
+     * @dev Gets the reputation of an agent.
+     * @param agent The address of the agent.
+     * @return The reputation score.
+     */
     function getReputation(address agent) external view returns (uint256) {
         return agents[agent].reputation;
     }
@@ -264,12 +190,6 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
     ) external view returns (AgentData memory) {
         AgentData storage data = agents[_agent];
         return data;
-    }
-
-    function getProposal(
-        uint256 proposalId
-    ) external view returns (ServiceProposal memory) {
-        return proposals[proposalId];
     }
 
     /**
@@ -299,7 +219,7 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
     }
 
     /**
-     * @dev Removes an existing agent and removes all associated proposals.
+     * @dev Removes an existing agent.
      * @param agent The address of the agent to remove.
      *
      * Requirements:
@@ -307,15 +227,12 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
      * - The caller must be the owner of the agent.
      * - The agent must be registered.
      *
-     * Emits an {AgentRemoved} event and {ProposalRemoved} events for each removed proposal.
+     * Emits an {AgentRemoved} event.
      */
     function removeAgent(address agent) external onlyAgentOwner(agent) {
         require(agents[agent].agent != address(0), "Agent not registered");
         
         address agentOwner = agents[agent].owner;
-        
-        // Remove all active proposals for this agent
-        _removeAllAgentProposals(agent);
         
         // Clear agent data
         delete agents[agent];
@@ -323,6 +240,9 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         emit AgentRemoved(agent, agentOwner);
     }
 
+    /**
+     * @dev Internal function to create an agent.
+     */
     function _createAgent(
         address agent,
         string memory name,
@@ -340,69 +260,6 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         emit AgentRegistered(agent, owner, name, agentUri);
     }
 
-    function _createProposal(
-        address agent,
-        string memory serviceName,
-        uint256 servicePrice,
-        address tokenAddress
-    ) private {
-        ServiceProposal memory newProposal = ServiceProposal(
-            agent,
-            serviceName,
-            servicePrice,
-            tokenAddress,
-            nextProposalId,
-            true
-        );
-
-        proposals[nextProposalId] = newProposal;
-
-        emit ProposalAdded(agent, nextProposalId, serviceName, servicePrice, tokenAddress);
-
-        nextProposalId++;
-    }
-
-    // V2: Migration function disabled - services now use different structure
-    function _ensureServiceRegistered(string memory serviceName) private {
-        // V2: Disabled - ServiceRegistry V2 uses IDs and different parameters
-        // The new registerService takes (name, serviceUri, agentAddress)
-        // This migration logic would need complete rewrite for V2
-    }
-
-    function _migrateAgentProposals(address agent) private {
-        uint256 numProposalsRegistered = IAgentRegistryV1(agentRegistryV1)
-            .nextProposalId();
-
-        for (uint256 i = 0; i < numProposalsRegistered; i++) {
-            IAgentRegistryV1.Proposal memory proposal = IAgentRegistryV1(
-                agentRegistryV1
-            ).getProposal(i);
-
-            if (proposal.issuer != agent || !proposal.isActive) {
-                continue;
-            }
-
-            // V2: Service migration disabled
-            // _ensureServiceRegistered(proposal.serviceName);
-
-            _createProposal(agent, proposal.serviceName, proposal.price, address(0));
-        }
-    }
-
-    /**
-     * @dev Internal function to remove all proposals associated with an agent.
-     * @param agent The address of the agent whose proposals should be removed.
-     */
-    function _removeAllAgentProposals(address agent) private {
-        // Iterate through all proposals to find and remove agent's proposals
-        for (uint256 i = 1; i < nextProposalId; i++) {
-            if (proposals[i].issuer == agent && proposals[i].isActive) {
-                delete proposals[i];
-                emit ProposalRemoved(agent, i);
-            }
-        }
-    }
-
     /**
      * @dev Function that should revert when `msg.sender` is not authorized to upgrade the contract.
      * @param newImplementation Address of the new implementation
@@ -413,4 +270,4 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
      * @dev Storage gap for future upgrades
      */
     uint256[50] private __gap;
-} 
+}
