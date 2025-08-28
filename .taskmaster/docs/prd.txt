@@ -33,14 +33,14 @@ Transform AI agents from passive tools into active economic participants capable
 - **REQ-1.2**: Implement hybrid on-chain/off-chain architecture for optimal gas efficiency:
   - **On-chain data** (stored in ServiceRegistry contract):
     - Service ID (auto-increment from blockchain)
-    - Service name (for basic discovery)
     - Owner address (service creator/maintainer)
     - Agent address (assigned executor, optional)
     - Service URI (IPFS hash for metadata storage)
     - Status (draft, published, archived, deleted)
     - Version number (for cache invalidation)
   - **Off-chain metadata** (stored in IPFS):
-    - Service description and detailed information
+    - Service name and detailed information
+    - Service description and technical specifications
     - Creation and update timestamps (for gas efficiency)
     - Category and tags for discovery
     - Technical specifications (endpoint URLs, HTTP methods, parameter/result schemas)

@@ -149,39 +149,8 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         _createAgent(agent, name, agentUri, msg.sender, 0);
     }
 
-    /**
-     * @dev Registers a new agent with the given details and the proposal.
-     * @param name The name of the agent.
-     * @param agentUri The URI pointing to the agent's metadata.
-     * @param agent The address of the agent.
-     * @param serviceName The name of the service.
-     * @param servicePrice The price of the service.
-     *
-     * Requirements:
-     *
-     * - The agent must not already be registered.
-     * - The caller will be set as the owner of the agent.
-     *
-     * Emits an {AgentRegistered} event.
-     */
-    function registerAgentWithService(
-        address agent,
-        string memory name,
-        string memory agentUri,
-        string memory serviceName,
-        uint256 servicePrice,
-        address tokenAddress
-    ) external {
-        require(agents[agent].agent == address(0), "Agent already registered");
-        require(
-            serviceRegistry.isServiceRegistered(serviceName),
-            "Service not registered"
-        );
-
-        _createAgent(agent, name, agentUri, msg.sender, 0);
-
-        _createProposal(agent, serviceName, servicePrice, tokenAddress);
-    }
+    // V2: registerAgentWithService removed - agents and services are managed independently
+    // Use registerAgent() followed by service assignment through ServiceRegistry
 
     /**
      * @dev Adds a new proposal for an agent.
@@ -203,10 +172,11 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         uint256 servicePrice,
         address tokenAddress
     ) public onlyAgentOwner(agent) {
-        require(
-            serviceRegistry.isServiceRegistered(serviceName),
-            "Service not registered"
-        );
+        // V2: Service validation removed - services use IDs and are managed independently
+        // require(
+        //     serviceRegistry.isServiceRegistered(serviceName),
+        //     "Service not registered"
+        // );
 
         _createProposal(agent, serviceName, servicePrice, tokenAddress);
     }
@@ -392,24 +362,11 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
         nextProposalId++;
     }
 
+    // V2: Migration function disabled - services now use different structure
     function _ensureServiceRegistered(string memory serviceName) private {
-        if (!serviceRegistry.isServiceRegistered(serviceName)) {
-            address serviceRegistryV1Addr = IAgentRegistryV1(agentRegistryV1)
-                .serviceRegistry();
-
-            IServiceRegistryV1 serviceRegistryV1 = IServiceRegistryV1(
-                serviceRegistryV1Addr
-            );
-
-            IServiceRegistryV1.Service memory service = serviceRegistryV1
-                .getService(serviceName);
-
-            serviceRegistry.registerService(
-                service.name,
-                service.category,
-                service.description
-            );
-        }
+        // V2: Disabled - ServiceRegistry V2 uses IDs and different parameters
+        // The new registerService takes (name, serviceUri, agentAddress)
+        // This migration logic would need complete rewrite for V2
     }
 
     function _migrateAgentProposals(address agent) private {
@@ -425,7 +382,8 @@ contract AgentsRegistryUpgradeable is Initializable, OwnableUpgradeable, UUPSUpg
                 continue;
             }
 
-            _ensureServiceRegistered(proposal.serviceName);
+            // V2: Service migration disabled
+            // _ensureServiceRegistered(proposal.serviceName);
 
             _createProposal(agent, proposal.serviceName, proposal.price, address(0));
         }

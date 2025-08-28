@@ -69,7 +69,6 @@ export const ServiceOperationalStatusSchema = z.enum(['healthy', 'degraded', 'un
  */
 export const ServiceOnChainSchema = z.object({
   id: z.string().describe('Auto-incremented service ID from blockchain'),
-  name: z.string().min(1, 'Service name is required').max(100, 'Service name too long'),
   owner: EthereumAddressSchema,
   agentAddress: z.string().regex(ethereumAddressRegex, 'Invalid agent address format').optional(),
   serviceUri: z.string().describe('IPFS URI for service metadata'),
@@ -82,6 +81,7 @@ export const ServiceOnChainSchema = z.object({
  */
 export const ServiceMetadataSchema = z.object({
   // Descriptive information
+  name: z.string().min(1, 'Service name is required').max(100, 'Service name too long'),
   description: z.string().min(1, 'Service description is required').max(500, 'Service description too long'),
   category: ServiceCategorySchema,
   
@@ -162,7 +162,7 @@ export const RegisterServiceParamsSchema = z.object({
   agentAddress: z.string().regex(ethereumAddressRegex, 'Invalid agent address format').optional(),
   
   // Off-chain metadata (will be stored in IPFS)
-  metadata: ServiceMetadataSchema.omit({ operational: true, createdAt: true, updatedAt: true })
+  metadata: ServiceMetadataSchema.omit({ name: true, operational: true, createdAt: true, updatedAt: true })
 }).partial({
   agentAddress: true  // Optional until service is published
 });
@@ -180,7 +180,7 @@ export const UpdateServiceParamsSchema = z.object({
   status: ServiceStatusSchema.optional(),
   
   // Off-chain metadata updates (optional)
-  metadata: ServiceMetadataSchema.omit({ operational: true, createdAt: true, updatedAt: true }).partial().optional()
+  metadata: ServiceMetadataSchema.omit({ name: true, operational: true, createdAt: true, updatedAt: true }).partial().optional()
 }).refine(
   (data) => {
     // At least one field must be provided for update

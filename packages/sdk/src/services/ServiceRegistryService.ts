@@ -83,9 +83,10 @@ export class ServiceRegistryService {
 
       console.log(`Registering service: ${parsedParams.name}`);
 
-      // Add timestamps to metadata before upload
+      // Add name and timestamps to metadata before upload
       const metadataWithTimestamps = {
         ...parsedParams.metadata,
+        name: parsedParams.name,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -102,7 +103,6 @@ export class ServiceRegistryService {
 
       // Register service on blockchain with minimal data
       const tx = await this.serviceRegistry.registerService(
-        parsedParams.name,
         serviceUri,
         parsedParams.agentAddress || ethers.ZeroAddress
       );
@@ -118,14 +118,13 @@ export class ServiceRegistryService {
       const serviceRecord: ServiceRecord = {
         // On-chain fields
         id: serviceId,
-        name: parsedParams.name,
         owner: ownerAddress,
         agentAddress: parsedParams.agentAddress || ethers.ZeroAddress,
         serviceUri,
         status: 'draft' as ServiceStatus,
         version: 1,
         
-        // Off-chain fields from metadata (including timestamps)
+        // Off-chain fields from metadata (including name and timestamps)
         ...metadataWithTimestamps
       };
       
@@ -198,12 +197,46 @@ export class ServiceRegistryService {
 
       console.log(`Updating service: ${serviceId}`);
 
-      // Update service on blockchain
-      // Note: This will need to be updated when smart contract supports V2 operations
+      // Update service metadata on IPFS and blockchain
+      let serviceUri: string;
+      if (this.ipfsSDK) {
+        const metadataToUpload = {
+          name: updatedService.name,
+          description: updatedService.description,
+          category: updatedService.category,
+          endpointSchema: updatedService.endpointSchema,
+          method: updatedService.method,
+          parametersSchema: updatedService.parametersSchema,
+          resultSchema: updatedService.resultSchema,
+          pricing: updatedService.pricing,
+          tags: updatedService.tags,
+          createdAt: updatedService.createdAt,
+          updatedAt: updatedService.updatedAt
+        };
+        const uploadResponse = await this.ipfsSDK.upload.json(metadataToUpload);
+        serviceUri = `ipfs://${uploadResponse.IpfsHash}`;
+      } else {
+        // Fallback for testing without IPFS
+        const metadata = {
+          name: updatedService.name,
+          description: updatedService.description,
+          category: updatedService.category,
+          endpointSchema: updatedService.endpointSchema,
+          method: updatedService.method,
+          parametersSchema: updatedService.parametersSchema,
+          resultSchema: updatedService.resultSchema,
+          pricing: updatedService.pricing,
+          tags: updatedService.tags,
+          createdAt: updatedService.createdAt,
+          updatedAt: updatedService.updatedAt
+        };
+        serviceUri = `data:application/json;base64,${Buffer.from(JSON.stringify(metadata)).toString('base64')}`;
+      }
+
+      // Update service on blockchain with new IPFS URI
       const tx = await this.serviceRegistry.updateService(
-        updatedService.name,
-        updatedService.category,
-        updatedService.description
+        serviceId,
+        serviceUri
       );
       
       const receipt = await tx.wait();
@@ -494,14 +527,20 @@ export class ServiceRegistryService {
   }
 
   /**
-   * Unassigns the current agent from a service
+   * Unassigns the current agent from a service and sets the service status
    * @param {string} serviceId - The service ID
+   * @param {ServiceStatus} newStatus - The new status for the service (draft or archived)
    * @returns {Promise<Service>} The updated service
    */
-  async unassignAgentFromService(serviceId: string): Promise<ServiceRecord> {
+  async unassignAgentFromService(serviceId: string, newStatus: ServiceStatus): Promise<ServiceRecord> {
     this.requireSigner();
     
     try {
+      // Validate status parameter
+      if (newStatus !== 'draft' && newStatus !== 'archived') {
+        throw new ServiceValidationError('Status must be either "draft" or "archived"');
+      }
+      
       // Get current service
       const service = await this.getServiceById(serviceId);
       
@@ -517,19 +556,20 @@ export class ServiceRegistryService {
         );
       }
       
-      console.log(`Unassigning agent from service: ${service.agentAddress} <- ${serviceId}`);
+      console.log(`Unassigning agent from service: ${service.agentAddress} <- ${serviceId} (status: ${newStatus})`);
 
-      // Update service to remove agent assignment
-      const updatedService: ServiceRecord = {
-        ...service,
-        agentAddress: ethers.ZeroAddress,
-        updatedAt: new Date().toISOString()
-      };
-
-      // This will need smart contract support for agent unassignment
-      console.log(`Agent unassigned from service: ${serviceId}`);
+      // Call smart contract to unassign agent and set status
+      const tx = await this.serviceRegistry.unassignAgentFromService(
+        BigInt(serviceId),
+        newStatus === 'draft' ? 0 : 2 // DRAFT = 0, ARCHIVED = 2
+      );
       
-      return updatedService;
+      await tx.wait();
+      
+      console.log(`Agent unassigned from service: ${serviceId} with status: ${newStatus}`);
+      
+      // Return updated service
+      return this.getServiceById(serviceId);
     } catch (error: any) {
       console.error(`Error unassigning agent from service ${serviceId}:`, error);
       throw error;
@@ -664,35 +704,12 @@ export class ServiceRegistryService {
 
   /**
    * Legacy method: Get service by name (V1 compatibility)
-   * @deprecated Use getServiceById() instead
+   * @deprecated Use getServiceById() instead. V2 services don't support name-based lookup.
    */
   async getService(name: string): Promise<ServiceRecord> {
-    console.warn("getService() by name is deprecated. Use getServiceById() instead.");
-    
-    // This is a placeholder - in reality we'd need a name->ID mapping
-    const contractResult = await this.serviceRegistry.getService(name);
-    
-    // Convert contract result to ServiceRecord type (incomplete - needs proper mapping)
-    const service: ServiceRecord = {
-      id: crypto.randomUUID(), // Placeholder - should come from contract
-      name: contractResult.name,
-      owner: ethers.ZeroAddress, // Placeholder - should come from contract
-      agentAddress: ethers.ZeroAddress, // Placeholder - should come from contract
-      serviceUri: "data://placeholder", // Placeholder - should come from contract
-      status: "draft" as any, // Placeholder - should come from contract
-      version: 1, // Placeholder - should come from contract
-      createdAt: new Date().toISOString(), // Placeholder
-      updatedAt: new Date().toISOString(), // Placeholder
-      // Off-chain metadata fields
-      description: contractResult.description,
-      category: contractResult.category as any,
-      endpointSchema: "", // Placeholder - should come from metadata
-      method: "HTTP_POST" as any, // Placeholder - should come from metadata
-      parametersSchema: {}, // Placeholder - should come from metadata
-      resultSchema: {}, // Placeholder - should come from metadata
-      pricing: undefined, // Placeholder - should come from metadata
-    };
-    
-    return service;
+    throw new Error(
+      "getService() by name is no longer supported in V2. " +
+      "Service names are stored off-chain. Use getServiceById() instead."
+    );
   }
 }
