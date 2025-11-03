@@ -172,3 +172,10 @@ task-master add-task  # DON'T DO THIS
 cd /Users/leon/workspace/ensemble/ensemble-framework
 task-master add-task --prompt="CLI: Add new command for..."
 ```
+
+## Project Documentation
+
+### PRD File Location
+The Project Requirements Document (PRD) is located at: `.taskmaster/docs/prd.txt`
+
+When updating project specifications, features, or requirements, update the PRD file to maintain alignment between implementation and documentation.

@@ -331,11 +331,94 @@
         ],
         "priority": "high",
         "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "SDK: Implement Service Management System V2 with comprehensive CRUD operations, ownership model, and agent assignment capabilities",
+        "description": "Implement a comprehensive Service Management System V2 in the TypeScript SDK with full CRUD operations, ownership model, agent assignment capabilities, hybrid storage (on-chain + IPFS), and advanced discovery/filtering as specified in the PRD.",
+        "details": "1. ServiceRegistryService Enhancement:\n   - Extend existing ServiceRegistryService class with V2 capabilities\n   - Implement comprehensive CRUD operations: createService(), updateService(), deleteService(), getService(), listServices()\n   - Add ownership model with transferOwnership(), getServiceOwner(), and ownership validation\n   - Implement agent assignment/unassignment: assignAgent(), unassignAgent(), getAssignedAgents(), getServicesByAgent()\n   - Add service lifecycle management with status tracking (draft, active, paused, archived, deleted)\n\n2. ServiceSchema Integration:\n   - Create comprehensive ServiceSchema interface with required fields: id, name, description, category, owner, status, createdAt, updatedAt\n   - Add optional fields: tags, metadata, pricing, requirements, capabilities, assignedAgents\n   - Implement Zod validation schemas for all service operations\n   - Support nested schema validation for complex service configurations\n\n3. Smart Contract Updates:\n   - Extend ServiceRegistry.sol with V2 functionality including ownership transfers, agent assignments, and enhanced metadata\n   - Implement hybrid storage pattern: core data on-chain (id, owner, status, assignedAgents) and metadata on IPFS\n   - Add events for ServiceCreated, ServiceUpdated, ServiceDeleted, AgentAssigned, AgentUnassigned, OwnershipTransferred\n   - Implement access control with onlyOwner modifiers and agent assignment permissions\n\n4. Hybrid Storage Implementation:\n   - Integrate IPFS client for metadata storage using ipfs-http-client\n   - Implement automatic IPFS pinning for service metadata and large data objects\n   - Create metadata synchronization between on-chain references and IPFS content\n   - Add content addressing and integrity verification for IPFS stored data\n\n5. Advanced Discovery and Filtering:\n   - Implement advanced search with filters: category, status, owner, assignedAgent, tags, dateRange\n   - Add pagination support with cursor-based navigation for large result sets\n   - Implement sorting options: createdAt, updatedAt, name, category, status\n   - Create full-text search capabilities for service names and descriptions\n   - Add geolocation-based filtering if location metadata is available\n\n6. CLI Service Commands Integration:\n   - Create 'ensemble services' command group with subcommands: create, list, get, update, delete, assign, unassign, transfer\n   - Implement service-record.yaml configuration file support similar to agent-record.yaml\n   - Add interactive service creation wizard with step-by-step guidance\n   - Support bulk operations for service management and agent assignments",
+        "testStrategy": "1. Unit Testing:\n   - Test all ServiceRegistryService methods with mocked blockchain interactions and IPFS operations\n   - Validate ServiceSchema Zod validation with valid and invalid service data structures\n   - Test ownership model operations including transfers and permission checks\n   - Verify agent assignment/unassignment logic with various scenarios (single/multiple agents)\n   - Test hybrid storage operations with mocked IPFS client responses\n\n2. Integration Testing:\n   - Deploy updated smart contracts to testnet and test all V2 functionality end-to-end\n   - Test IPFS integration with real IPFS nodes and verify metadata storage/retrieval\n   - Validate service lifecycle management across different status transitions\n   - Test advanced discovery and filtering with large datasets (1000+ services)\n   - Verify CLI commands integration with real SDK operations\n\n3. Performance Testing:\n   - Benchmark service creation/update operations with large metadata objects\n   - Test pagination performance with datasets of varying sizes (100, 1K, 10K services)\n   - Measure IPFS upload/download times for different metadata sizes\n   - Test concurrent agent assignment operations and verify data consistency\n\n4. Security Testing:\n   - Verify ownership validation prevents unauthorized service modifications\n   - Test agent assignment permissions and access control mechanisms\n   - Validate IPFS content integrity and prevent metadata tampering\n   - Test smart contract upgrade scenarios and data migration safety\n\n5. End-to-End Testing:\n   - Create complete service management workflows from CLI to blockchain\n   - Test service discovery through various filtering combinations\n   - Verify ownership transfers maintain data integrity and agent assignments\n   - Test service deletion and cleanup of associated IPFS metadata",
+        "status": "pending",
+        "dependencies": [
+          1,
+          3,
+          21
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Extend ServiceRegistryService with V2 CRUD Operations and Ownership Model",
+            "description": "Enhance the existing ServiceRegistryService class with comprehensive CRUD operations, ownership model, and service lifecycle management capabilities.",
+            "dependencies": [],
+            "details": "Extend the ServiceRegistryService class to include: createService(), updateService(), deleteService(), getService(), listServices() methods with proper error handling and validation. Implement ownership model with transferOwnership(), getServiceOwner(), and ownership validation methods. Add service lifecycle management with status tracking (draft, active, paused, archived, deleted). Include proper TypeScript interfaces and error handling for all operations. Ensure backward compatibility with existing service registry functionality.",
+            "status": "done",
+            "testStrategy": "Unit tests for all CRUD operations with mocked blockchain interactions. Test ownership model operations including transfers and permission checks. Validate service lifecycle state transitions and status management."
+          },
+          {
+            "id": 2,
+            "title": "Create ServiceSchema Interface and Zod Validation",
+            "description": "Design and implement comprehensive ServiceSchema interface with required and optional fields, along with Zod validation schemas for all service operations.",
+            "dependencies": [
+              "25.1"
+            ],
+            "details": "Create ServiceSchema interface with required fields: id, name, description, category, owner, status, createdAt, updatedAt. Add optional fields: tags, metadata, pricing, requirements, capabilities, assignedAgents. Implement Zod validation schemas for service creation, updates, and queries. Support nested schema validation for complex service configurations. Create type-safe validation functions that can be used across the SDK. Include proper error messages and validation feedback for invalid schemas.",
+            "status": "done",
+            "testStrategy": "Validate ServiceSchema Zod validation with valid and invalid service data structures. Test nested schema validation for complex configurations. Verify type safety and error message clarity."
+          },
+          {
+            "id": 3,
+            "title": "Update Smart Contracts with V2 Functionality and Hybrid Storage",
+            "description": "Extend ServiceRegistry.sol smart contract with V2 functionality including ownership transfers, agent assignments, and hybrid storage pattern implementation.",
+            "dependencies": [
+              "25.2"
+            ],
+            "details": "Extend ServiceRegistry.sol with V2 functionality including ownership transfers, agent assignments, and enhanced metadata support. Implement hybrid storage pattern storing core data on-chain (id, owner, status, assignedAgents) and metadata on IPFS. Add events for ServiceCreated, ServiceUpdated, ServiceDeleted, AgentAssigned, AgentUnassigned, OwnershipTransferred. Implement access control with onlyOwner modifiers and agent assignment permissions. Include gas optimization and proper event indexing for efficient querying.",
+            "status": "done",
+            "testStrategy": "Smart contract unit tests for all new functions and access controls. Test hybrid storage pattern with IPFS integration. Verify event emissions and gas optimization. Test ownership transfers and agent assignment permissions."
+          },
+          {
+            "id": 4,
+            "title": "Implement Agent Assignment and IPFS Integration",
+            "description": "Add agent assignment capabilities and integrate IPFS client for metadata storage with automatic pinning and content verification.",
+            "dependencies": [
+              "25.3"
+            ],
+            "details": "Implement agent assignment/unassignment methods: assignAgent(), unassignAgent(), getAssignedAgents(), getServicesByAgent() with proper validation and blockchain integration. Integrate IPFS client using ipfs-http-client for metadata storage. Implement automatic IPFS pinning for service metadata and large data objects. Create metadata synchronization between on-chain references and IPFS content. Add content addressing and integrity verification for IPFS stored data. Include retry logic and error handling for IPFS operations.",
+            "status": "done",
+            "testStrategy": "Test agent assignment operations with ownership validation. Verify IPFS integration with metadata storage and retrieval. Test automatic pinning and content integrity verification. Validate synchronization between on-chain and IPFS data."
+          },
+          {
+            "id": 5,
+            "title": "Implement Advanced Discovery, Filtering, and CLI Integration",
+            "description": "Create advanced search and filtering capabilities with pagination, and integrate CLI service commands with interactive wizards and bulk operations.",
+            "dependencies": [
+              "25.4"
+            ],
+            "details": "Implement advanced search with filters: category, status, owner, assignedAgent, tags, dateRange. Add pagination support with cursor-based navigation for large result sets. Implement sorting options: createdAt, updatedAt, name, category, status. Create full-text search capabilities for service names and descriptions. Add geolocation-based filtering if location metadata is available. Create 'ensemble services' command group with subcommands: create, list, get, update, delete, assign, unassign, transfer. Implement service-record.yaml configuration file support. Add interactive service creation wizard and support bulk operations.",
+            "status": "pending",
+            "testStrategy": "Test advanced filtering and search functionality with various query combinations. Validate pagination and sorting with large datasets. Test CLI commands with interactive wizards and configuration file parsing. Verify bulk operations and error handling."
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "title": "SDK: Refactor to Service-Based API Architecture",
+        "description": "Refactor the TypeScript SDK to eliminate duplicate wrapper methods from the Ensemble class and implement a clean service-based architecture with organized modules (ensemble.services.*, ensemble.agents.*, ensemble.tasks.*).",
+        "details": "1. Architecture Analysis and Planning:\n   - Audit existing Ensemble class to identify duplicate wrapper methods and redundant functionality\n   - Design new service-based architecture with clear separation of concerns\n   - Create module structure: ensemble.services.* (core services), ensemble.agents.* (agent-specific operations), ensemble.tasks.* (task management)\n   - Define interfaces and contracts for each service module to ensure consistency\n\n2. Service Module Implementation:\n   - Create BaseService abstract class with common functionality (error handling, validation, logging)\n   - Implement ensemble.services.registry for core blockchain registry operations\n   - Implement ensemble.services.payment for payment and transaction management\n   - Implement ensemble.services.storage for IPFS and data persistence operations\n   - Implement ensemble.services.websocket for real-time communication handling\n\n3. Agent Module Refactoring:\n   - Create ensemble.agents.manager for agent lifecycle management (register, update, delete)\n   - Implement ensemble.agents.discovery for agent search and filtering capabilities\n   - Create ensemble.agents.validator for agent data validation and schema enforcement\n   - Implement ensemble.agents.metadata for agent profile and attribute management\n\n4. Task Module Implementation:\n   - Create ensemble.tasks.manager for task creation, assignment, and lifecycle management\n   - Implement ensemble.tasks.discovery for task search and matching algorithms\n   - Create ensemble.tasks.execution for task execution monitoring and status tracking\n   - Implement ensemble.tasks.proposals for proposal submission and evaluation\n\n5. Ensemble Class Refactoring:\n   - Remove duplicate wrapper methods and consolidate functionality into appropriate services\n   - Implement dependency injection pattern for service composition\n   - Create factory methods for service instantiation with proper configuration\n   - Maintain backward compatibility through deprecation warnings and adapter patterns\n   - Update all method signatures to use service-based approach while preserving existing API contracts\n\n6. Configuration and Initialization:\n   - Implement centralized configuration management for all services\n   - Create service registry for dependency resolution and lifecycle management\n   - Add environment-specific configuration support (development, staging, production)\n   - Implement proper error handling and logging across all service modules",
+        "testStrategy": "1. Unit Testing:\n   - Test each service module independently with comprehensive mocking of dependencies\n   - Verify BaseService abstract class functionality and inheritance patterns\n   - Test service factory methods and dependency injection mechanisms\n   - Validate configuration management and environment-specific settings\n   - Test backward compatibility adapters and deprecation warning systems\n\n2. Integration Testing:\n   - Test service composition and inter-service communication patterns\n   - Verify proper error propagation between service layers\n   - Test service lifecycle management and cleanup procedures\n   - Validate configuration loading and service initialization sequences\n   - Test real blockchain interactions through refactored service architecture\n\n3. Migration Testing:\n   - Create comprehensive test suite comparing old Ensemble class behavior with new service-based implementation\n   - Test all existing SDK consumers (CLI, agents) to ensure no breaking changes\n   - Verify performance characteristics remain consistent or improve after refactoring\n   - Test memory usage and resource cleanup in new architecture\n   - Validate WebSocket connections and real-time features work correctly through new service structure\n\n4. End-to-End Testing:\n   - Test complete agent registration workflow through new service architecture\n   - Verify task discovery and execution flows work correctly\n   - Test payment processing and blockchain transaction handling\n   - Validate IPFS storage operations and metadata management\n   - Test error scenarios and recovery mechanisms across all service modules",
+        "status": "pending",
+        "dependencies": [
+          3,
+          25
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-20T10:42:18.955Z",
-      "updated": "2025-08-22T06:26:14.340Z",
+      "updated": "2025-08-28T20:57:44.965Z",
       "description": "Tasks for master context"
     }
   }

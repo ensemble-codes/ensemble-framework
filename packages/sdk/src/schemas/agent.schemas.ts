@@ -1,13 +1,13 @@
 import { z } from 'zod';
+import { 
+  ethereumAddressRegex, 
+  BigNumberishSchema, 
+  EthereumAddressSchema,
+  URLSchema 
+} from './base.schemas';
 
-// ============================================================================
-// Base Schemas
-// ============================================================================
-
-/**
- * Ethereum address validation regex
- */
-const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+// Re-export all Service schemas from service.schemas.ts
+export * from './service.schemas';
 
 /**
  * Schema for agent social media links
@@ -83,15 +83,6 @@ export const FlexibleCommunicationParamsSchema = z.union([
 // ============================================================================
 // Agent Schemas
 // ============================================================================
-
-/**
- * Schema for BigNumberish type (ethers.js compatible)
- */
-export const BigNumberishSchema = z.union([
-  z.bigint(),
-  z.string(),
-  z.number()
-]);
 
 /**
  * Schema for agent status

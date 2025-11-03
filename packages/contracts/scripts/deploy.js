@@ -29,14 +29,8 @@ async function main() {
     await agentsRegistry.waitForDeployment();
     console.log("AgentsRegistryUpgradeable deployed to:", await agentsRegistry.getAddress());
 
-    // Deploy TaskRegistryUpgradeable
-    const TaskRegistry = await ethers.getContractFactory("TaskRegistryUpgradeable");
-    const taskRegistry = await upgrades.deployProxy(TaskRegistry, [1, await agentsRegistry.getAddress()], {
-        initializer: "initialize",
-        kind: "uups"
-    });
-    await taskRegistry.waitForDeployment();
-    console.log("TaskRegistryUpgradeable deployed to:", await taskRegistry.getAddress());
+    console.log("\nNote: TaskRegistry has been removed as it's now legacy.");
+    console.log("Services and agents are managed independently through their respective registries.");
 }
 
 main()

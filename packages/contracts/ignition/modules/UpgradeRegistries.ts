@@ -14,7 +14,6 @@ const UpgradeRegistriesModule = buildModule("UpgradeRegistriesModule", (m) => {
     // Get existing proxy addresses (should be provided as parameters)
     const serviceRegistryProxyAddress = m.getParameter("serviceRegistryProxy");
     const agentsRegistryProxyAddress = m.getParameter("agentsRegistryProxy");
-    const taskRegistryProxyAddress = m.getParameter("taskRegistryProxy");
 
     // Deploy new implementation contracts
     const newServiceRegistryImpl = m.contract("ServiceRegistryUpgradeable", [], {
@@ -25,9 +24,6 @@ const UpgradeRegistriesModule = buildModule("UpgradeRegistriesModule", (m) => {
         id: "NewAgentsRegistryImpl"
     });
     
-    const newTaskRegistryImpl = m.contract("TaskRegistryUpgradeable", [], {
-        id: "NewTaskRegistryImpl"
-    });
 
     // Get contract instances for existing proxies
     const serviceRegistryProxy = m.contractAt("ServiceRegistryUpgradeable", serviceRegistryProxyAddress, {
@@ -38,9 +34,6 @@ const UpgradeRegistriesModule = buildModule("UpgradeRegistriesModule", (m) => {
         id: "ExistingAgentsRegistryProxy"
     });
     
-    const taskRegistryProxy = m.contractAt("TaskRegistryUpgradeable", taskRegistryProxyAddress, {
-        id: "ExistingTaskRegistryProxy"
-    });
 
     // Perform upgrades by calling upgradeToAndCall on each proxy with empty data
     // Note: Only the proxy owner can perform these upgrades
@@ -53,17 +46,12 @@ const UpgradeRegistriesModule = buildModule("UpgradeRegistriesModule", (m) => {
         id: "UpgradeAgentsRegistry"
     });
     
-    m.call(taskRegistryProxy, "upgradeToAndCall", [newTaskRegistryImpl, "0x"], {
-        id: "UpgradeTaskRegistry"
-    });
 
     return {
         newServiceRegistryImpl,
         newAgentsRegistryImpl,
-        newTaskRegistryImpl,
         serviceRegistryProxy,
-        agentsRegistryProxy,
-        taskRegistryProxy
+        agentsRegistryProxy
     };
 });
 

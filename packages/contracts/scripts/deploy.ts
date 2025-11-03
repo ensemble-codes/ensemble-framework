@@ -37,34 +37,13 @@ async function main(): Promise<void> {
     const agentRegistryAddress = await agentsRegistry.getAddress();
     console.log(`AGENT_REGISTRY_ADDRESS=${agentRegistryAddress}`);
 
-    // Deploy TaskRegistryUpgradeable (depends on AgentsRegistry)
-    console.log("Deploying TaskRegistryUpgradeable...");
-    const TaskRegistry = await hre.ethers.getContractFactory("TaskRegistryUpgradeable");
-    const taskRegistry = await upgrades.deployProxy(TaskRegistry, [1, agentRegistryAddress], {
-        initializer: "initialize",
-        kind: "uups"
-    });
-    await taskRegistry.waitForDeployment();
-    const taskRegistryAddress = await taskRegistry.getAddress();
-    console.log(`TASK_REGISTRY_ADDRESS=${taskRegistryAddress}`);
-
     console.log("\n=== Deployment Summary ===");
     console.log(`ServiceRegistry: ${serviceRegistryAddress}`);
     console.log(`AgentsRegistry: ${agentRegistryAddress}`);
-    console.log(`TaskRegistry: ${taskRegistryAddress}`);
     console.log(`Mock V1 Registry: ${mockV1Address}`);
-
-    // Uncomment the lines below if you want to create tasks for testing
-    /*
-    const tx1 = await taskRegistry.createTask("Do X for me", 0);
-    console.log(`First task created in tx: ${tx1.hash}`);
-
-    const tx2 = await taskRegistry.createTask("Do Y for me", 0);
-    console.log(`Second task created in tx: ${tx2.hash}`);
-
-    const tasks = await taskRegistry.getTasksByOwner(deployer.address);
-    console.log("Tasks created by deployer:", tasks);
-    */
+    
+    console.log("\nNote: TaskRegistry has been removed as it's now legacy.");
+    console.log("Services and agents are managed independently through their respective registries.");
 }
 
 // Error handling and process exit

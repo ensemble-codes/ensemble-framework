@@ -1,8 +1,5 @@
 {
   "AgentsRegistryUpgradeableModule": {
     "v1RegistryAddress": "0x0000000000000000000000000000000000000000"
-  },
-  "TaskRegistryUpgradeableModule": {
-    "initialTaskId": 1
   }
-} 
+}

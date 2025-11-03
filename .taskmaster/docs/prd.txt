@@ -28,11 +28,35 @@ Transform AI agents from passive tools into active economic participants capable
 
 ### 1. Registry Systems
 
-#### Service Registry
-- **REQ-1.1**: Maintain an open catalog of available services
-- **REQ-1.2**: Support service metadata, pricing, and capability definitions
-- **REQ-1.3**: Enable community-driven service additions (future)
-- **REQ-1.4**: Provide service discovery and filtering mechanisms
+#### Service Registry V2
+- **REQ-1.1**: Maintain an open catalog of available services with full lifecycle management
+- **REQ-1.2**: Implement hybrid on-chain/off-chain architecture for optimal gas efficiency:
+  - **On-chain data** (stored in ServiceRegistry contract):
+    - Service ID (auto-increment from blockchain)
+    - Owner address (service creator/maintainer)
+    - Agent address (assigned executor, optional)
+    - Service URI (IPFS hash for metadata storage)
+    - Status (draft, published, archived, deleted)
+    - Version number (for cache invalidation)
+  - **Off-chain metadata** (stored in IPFS):
+    - Service name and detailed information
+    - Service description and technical specifications
+    - Creation and update timestamps (for gas efficiency)
+    - Category and tags for discovery
+    - Technical specifications (endpoint URLs, HTTP methods, parameter/result schemas)
+    - Business configurations (pricing models, rate limits)
+    - Operational status from monitoring systems
+- **REQ-1.3**: Enable service-agent assignment model:
+  - Services can be created independently without agent assignment
+  - Services can be assigned/unassigned to agents dynamically
+  - Unassigned services remain inactive but preserved
+  - Support for service transfer between agents
+  - Published services must have an agent assigned (enforced by schema validation)
+- **REQ-1.4**: Provide advanced service discovery and filtering:
+  - On-chain filtering by owner, agent, name, status
+  - Off-chain filtering by category, pricing, detailed specifications
+  - Hybrid queries combining blockchain and IPFS data
+  - Search unassigned services for marketplace discovery
 
 #### Agent Registry
 - **REQ-1.5**: Allow agents to self-register with metadata and capabilities
@@ -125,6 +149,67 @@ Transform AI agents from passive tools into active economic participants capable
     - Features: Gas-efficient single property updates, type validation, data integrity checks
     - Validation: Property-specific validation using Zod schemas
     - Use case: Targeted updates like status changes, adding attributes, or updating social links
+
+- **REQ-4.1.2**: Provide comprehensive service registry integration APIs
+  - **ServiceRegistryService.registerService(params)**: Register new service with IPFS metadata storage
+    - Parameters: RegisterServiceParams with name, agentAddress (optional), metadata object
+    - Metadata includes: description, category, endpointSchema, method, parametersSchema, resultSchema, tags, pricing
+    - Returns: Promise<ServiceRecord> with complete service data (on-chain + off-chain combined)
+    - Features: Automatic IPFS upload, blockchain registration, Zod validation
+    - Process: Upload metadata to IPFS → Register minimal data on-chain → Return combined ServiceRecord
+  
+  - **ServiceRegistryService.getService(serviceId)**: Get complete service record
+    - Returns: ServiceRecord combining on-chain data with IPFS metadata
+    - Includes: All service fields flattened for ease of use
+    - Handles: IPFS metadata fetching and merging with blockchain data
+  
+  - **ServiceRegistryService.updateService(serviceId, updates)**: Update service with flexible parameters
+    - Parameters: serviceId (string), UpdateServiceParams with optional on-chain and metadata fields
+    - On-chain updates: name, agentAddress, status
+    - Off-chain updates: metadata object with any combination of description, category, technical specs, pricing
+    - Returns: Promise<ServiceRecord> with updated combined data
+    - Features: Selective IPFS updates, version management, ownership validation
+  
+  - **ServiceRegistryService.getAllServices(filters)**: Query services with advanced filtering
+    - Filter parameters: category, status, owner, agent, pricing model
+    - Returns: Array of ServiceRecord objects matching criteria
+    - Supports: Pagination, sorting, hybrid on-chain/off-chain filtering
+  
+  - **ServiceRegistryService.activateService(serviceId)**: Change service status to published
+    - Validation: Ensures agent is assigned before activation
+    - Updates: On-chain status and version increment
+    - Returns: Promise<ServiceRecord> with updated status
+
+- **REQ-4.1.3**: Service schema architecture and validation system
+  - **Three-Schema Architecture**: Clear separation of concerns for optimal performance
+    - ServiceOnChainSchema: Minimal blockchain data (8 fields)
+    - ServiceMetadataSchema: Rich IPFS metadata (9+ fields including operational status)
+    - ServiceRecordSchema: Complete combined view for SDK users
+  
+  - **Service Status Lifecycle**: Simplified 4-state model aligned with business needs
+    - draft: Service being configured, not ready for use
+    - published: Service available for discovery and execution
+    - archived: Service deprecated but preserved for history
+    - deleted: Service removed (soft delete for data integrity)
+  
+  - **Comprehensive Validation**: Zod-based validation with enhanced error reporting
+    - validateServiceRecord(): Complete service validation
+    - validateServiceOnChain(): On-chain data validation
+    - validateServiceMetadata(): IPFS metadata validation
+    - validateRegisterServiceParams(): Registration parameter validation
+    - validateUpdateServiceParams(): Update parameter validation with partial updates
+  
+  - **Type Safety and Developer Experience**: Full TypeScript support
+    - ServiceRecord: Primary type for SDK consumers
+    - ServiceOnChain: Blockchain data type
+    - ServiceMetadata: IPFS metadata type
+    - RegisterServiceParams: Registration input type
+    - UpdateServiceParams: Update input type with flexible partial updates
+  
+  - **Backward Compatibility**: Legacy aliases and migration support
+    - Service type alias → ServiceRecord
+    - Deprecated function aliases with clear migration path
+    - Gradual migration strategy for existing integrations
 
 - **REQ-4.2**: Support task discovery and proposal submission
 - **REQ-4.3**: Enable real-time task notifications

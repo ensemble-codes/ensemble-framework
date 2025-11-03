@@ -1,750 +1,424 @@
 const { expect } = require("chai");
 const { ethers, upgrades } = require("hardhat");
-const AgentRegistryV1Artifact = require('./artifacts/AgentsRegistryV1.json')
 
-describe("AgentsRegistryUpgradeable", function () {
-    let AgentRegistry;
-    let agentRegistryV1
-    let registry;
+describe("AgentsRegistryUpgradeable V2 - Without Proposals", function () {
+    let AgentsRegistry;
+    let ServiceRegistry;
+    let agentsRegistry;
     let serviceRegistry;
-    let serviceRegistryV1;
-    let admin, agentOwner, agentAddress;
-    let agentUri = "https://ipfs.io/ipfs/bafkreigzpb44ndvlsfazfymmf6yvquoregceik56vyskf7e35joel7yati";
+    let mockV1Registry;
+    let owner, addr1, addr2, agentAddr1, agentAddr2;
+
+    // Test data constants
+    const AGENT_NAME_1 = "Test Agent 1";
+    const AGENT_NAME_2 = "Test Agent 2";
+    const AGENT_URI_1 = "ipfs://QmAgent1Hash/metadata.json";
+    const AGENT_URI_2 = "ipfs://QmAgent2Hash/metadata.json";
+    const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
     beforeEach(async function () {
-        [admin, agentOwner, agentAddress, eveAddress] = await ethers.getSigners();
+        [owner, addr1, addr2, agentAddr1, agentAddr2] = await ethers.getSigners();
         
-        // Deploy ServiceRegistryUpgradeable
-        const ServiceRegistry = await ethers.getContractFactory("ServiceRegistryUpgradeable");
+        // Deploy ServiceRegistry first (dependency)
+        ServiceRegistry = await ethers.getContractFactory("ServiceRegistryUpgradeable");
         serviceRegistry = await upgrades.deployProxy(ServiceRegistry, [], {
             initializer: "initialize",
             kind: "uups"
         });
+        await serviceRegistry.waitForDeployment();
 
-        // Deploy legacy ServiceRegistry for V1 compatibility
-        const ServiceRegistryV1 = await ethers.getContractFactory("ServiceRegistryUpgradeable");
-        serviceRegistryV1 = await upgrades.deployProxy(ServiceRegistryV1, [], {
+        // Deploy mock V1 registry for migration compatibility
+        mockV1Registry = await upgrades.deployProxy(ServiceRegistry, [], {
             initializer: "initialize",
             kind: "uups"
         });
+        await mockV1Registry.waitForDeployment();
 
-        const AgentRegistryV1 = await ethers.getContractFactoryFromArtifact(AgentRegistryV1Artifact);
-        agentRegistryV1 = await AgentRegistryV1.deploy(serviceRegistryV1.target);
+        // Deploy AgentsRegistry
+        AgentsRegistry = await ethers.getContractFactory("AgentsRegistryUpgradeable");
+        agentsRegistry = await upgrades.deployProxy(
+            AgentsRegistry, 
+            [await mockV1Registry.getAddress(), await serviceRegistry.getAddress()],
+            {
+                initializer: "initialize",
+                kind: "uups"
+            }
+        );
+        await agentsRegistry.waitForDeployment();
+    });
 
-        // Deploy AgentsRegistryUpgradeable
-        AgentRegistry = await ethers.getContractFactory("AgentsRegistryUpgradeable");
-        registry = await upgrades.deployProxy(AgentRegistry, [agentRegistryV1.target, serviceRegistry.target], {
-            initializer: "initialize",
-            kind: "uups"
+    describe("1. Contract Initialization & Deployment", function () {
+        it("Should initialize with correct initial state", async function () {
+            expect(await agentsRegistry.owner()).to.equal(owner.address);
+            expect(await agentsRegistry.agentRegistryV1()).to.equal(await mockV1Registry.getAddress());
+            expect(await agentsRegistry.serviceRegistry()).to.equal(await serviceRegistry.getAddress());
+        });
+
+        it("Should be deployed as UUPS proxy", async function () {
+            const implementationAddress = await upgrades.erc1967.getImplementationAddress(
+                await agentsRegistry.getAddress()
+            );
+            expect(implementationAddress).to.not.equal(ZERO_ADDRESS);
+        });
+
+        it("Should prevent multiple initialization", async function () {
+            await expect(
+                agentsRegistry.initialize(await mockV1Registry.getAddress(), await serviceRegistry.getAddress())
+            ).to.be.reverted;
         });
     });
 
-    describe('#Setters', () => {
-        it("should set the address of the TaskRegistry contract", async function () {
-            const newTaskRegistryAddress = agentAddress;
-            await registry.connect(admin).setTaskRegistry(newTaskRegistryAddress);
-            expect(await registry.taskRegistry()).to.equal(newTaskRegistryAddress);
-        });
-
-        it("should set the address of the ServiceRegistry contract", async function () {
-            const newServiceRegistryAddress = agentAddress;
-            await registry.connect(admin).setServiceRegistry(newServiceRegistryAddress);
-            expect(await registry.serviceRegistry()).to.equal(newServiceRegistryAddress);
-        });
-    })
-
-    describe('#registerAgent', () => {
-        it("Should register a new agent without proposal", async function () {
-            const request = registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "Simple Agent",
-                agentUri
+    describe("2. Agent Registration", function () {
+        it("Should register a new agent successfully", async function () {
+            const tx = await agentsRegistry.connect(addr1).registerAgent(
+                agentAddr1.address,
+                AGENT_NAME_1,
+                AGENT_URI_1
             );
 
-            await expect(request)
-                .to.emit(registry, "AgentRegistered")
-                .withArgs(agentAddress, agentOwner, "Simple Agent", agentUri);
-            
-            const agentData = await registry.getAgentData(agentAddress);
+            await expect(tx)
+                .to.emit(agentsRegistry, "AgentRegistered")
+                .withArgs(agentAddr1.address, addr1.address, AGENT_NAME_1, AGENT_URI_1);
 
-            expect(agentData.name).to.equal("Simple Agent");
-            expect(agentData.agentUri).to.equal(agentUri);
-            expect(agentData.owner).to.equal(agentOwner.address);
-            expect(agentData.agent).to.equal(agentAddress);
+            const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
+            expect(agentData.name).to.equal(AGENT_NAME_1);
+            expect(agentData.agentUri).to.equal(AGENT_URI_1);
+            expect(agentData.owner).to.equal(addr1.address);
+            expect(agentData.agent).to.equal(agentAddr1.address);
             expect(agentData.reputation).to.equal(0);
             expect(agentData.totalRatings).to.equal(0);
         });
 
-        it("Should not register the same agent twice", async function () {
-            await registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "Simple Agent",
-                agentUri
+        it("Should fail to register an agent twice", async function () {
+            await agentsRegistry.connect(addr1).registerAgent(
+                agentAddr1.address,
+                AGENT_NAME_1,
+                AGENT_URI_1
             );
 
             await expect(
-                registry.connect(agentOwner).registerAgent(
-                    agentAddress,
-                    "Another Agent",
-                    agentUri
+                agentsRegistry.connect(addr2).registerAgent(
+                    agentAddr1.address,
+                    AGENT_NAME_2,
+                    AGENT_URI_2
                 )
             ).to.be.revertedWith("Agent already registered");
         });
 
-        it("Should handle empty name parameter", async function () {
-            const request = registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "",
-                agentUri
+        it("Should allow different owners to register different agents", async function () {
+            await agentsRegistry.connect(addr1).registerAgent(
+                agentAddr1.address,
+                AGENT_NAME_1,
+                AGENT_URI_1
             );
 
-            await expect(request)
-                .to.emit(registry, "AgentRegistered")
-                .withArgs(agentAddress, agentOwner, "", agentUri);
-        });
-
-        it("Should handle empty agentUri parameter", async function () {
-            const request = registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "Simple Agent",
-                ""
+            await agentsRegistry.connect(addr2).registerAgent(
+                agentAddr2.address,
+                AGENT_NAME_2,
+                AGENT_URI_2
             );
 
-            await expect(request)
-                .to.emit(registry, "AgentRegistered")
-                .withArgs(agentAddress, agentOwner, "Simple Agent", "");
-        });
+            const agent1Data = await agentsRegistry.getAgentData(agentAddr1.address);
+            const agent2Data = await agentsRegistry.getAgentData(agentAddr2.address);
 
-        it("Should allow multiple agents registered by the same owner", async function () {
-            const [, , secondAgent] = await ethers.getSigners();
-
-            await registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "First Agent",
-                agentUri
-            );
-
-            await registry.connect(agentOwner).registerAgent(
-                eveAddress,
-                "Second Agent",
-                agentUri
-            );
-
-            const firstAgentData = await registry.getAgentData(agentAddress);
-            const secondAgentData = await registry.getAgentData(eveAddress);
-
-            expect(firstAgentData.owner).to.equal(agentOwner.address);
-            expect(secondAgentData.owner).to.equal(agentOwner.address);
-            expect(firstAgentData.name).to.equal("First Agent");
-            expect(secondAgentData.name).to.equal("Second Agent");
-        });
-
-        it("Should handle agent address same as owner address", async function () {
-            await registry.connect(agentOwner).registerAgent(
-                agentOwner.address,
-                "Self Agent",
-                agentUri
-            );
-
-            const agentData = await registry.getAgentData(agentOwner.address);
-            expect(agentData.owner).to.equal(agentOwner.address);
-            expect(agentData.agent).to.equal(agentOwner.address);
-        });
-
-        it("Should handle very long strings", async function () {
-            const longName = "A".repeat(1000);
-            const longUri = "https://".concat("very-long-uri-".repeat(100));
-
-            await registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                longName,
-                longUri
-            );
-
-            const agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.name).to.equal(longName);
-            expect(agentData.agentUri).to.equal(longUri);
-        });
-
-        it("Should not create any proposals when using registerAgent", async function () {
-            await registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "Simple Agent",
-                agentUri
-            );
-
-            // Since proposals start at ID 1, checking if proposal 1 exists should return default values
-            const proposal = await registry.getProposal(1);
-            expect(proposal.issuer).to.equal(ethers.ZeroAddress);
-            expect(proposal.serviceName).to.equal("");
-            expect(proposal.price).to.equal(0);
-            expect(proposal.proposalId).to.equal(0);
-            expect(proposal.isActive).to.equal(false);
-        });
-    })
-
-    describe('#registerAgentWithService', () => {
-        this.beforeEach(async function () {
-            await serviceRegistry.registerService("Service1", "Category1", "Description1");
-        })
-        it("Should not register an agent if the service is not registered", async function () {
-            await expect(
-                registry.connect(agentOwner).registerAgentWithService(
-                    agentAddress,
-                    "Service Agent",
-                    agentUri,
-                    "NonExistentService",
-                    ethers.parseEther("0.01"),
-                    ethers.ZeroAddress
-                )
-            ).to.be.revertedWith("Service not registered");
-        });
-
-        it("Should register new agent", async function () {
-            const request = registry.connect(agentOwner).registerAgentWithService(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "Service1",
-                ethers.parseEther("0.01"),
-                ethers.ZeroAddress
-            );
-
-            await expect(request)
-                .to.emit(registry, "AgentRegistered")
-                .withArgs(agentAddress, agentOwner, "Service Agent", agentUri)
-                .to.emit(registry, "ProposalAdded")
-                .withArgs(agentAddress, 1, "Service1", ethers.parseEther("0.01"), ethers.ZeroAddress);
-            
-            const agentData = await registry.getAgentData(agentAddress);
-
-            expect(agentData.name).to.equal("Service Agent");
-            expect(agentData.agentUri).to.equal(agentUri);
-            expect(agentData.owner).to.equal(agentOwner.address);
-            expect(agentData.agent).to.equal(agentAddress);
-            expect(agentData.reputation).to.equal(0);
-
-            const proposalId = 1;
-            const proposal = await registry.getProposal(proposalId);
-            expect(proposal.issuer).to.equal(agentAddress);
-            expect(proposal.serviceName).to.equal("Service1");
-            expect(proposal.price).to.equal(ethers.parseEther("0.01"));
-            expect(proposal.proposalId).to.equal(proposalId);
-        });
-
-        it("Should not register the same agent twice", async function () {
-            await registry.connect(agentOwner).registerAgentWithService(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "Service1",
-                ethers.parseEther("0.01"),
-                ethers.ZeroAddress
-            );
-
-            await expect(
-                registry.connect(agentOwner).registerAgentWithService(
-                    agentAddress,
-                    "Service Agent",
-                    agentUri,
-                    "Service1",
-                    ethers.parseEther("0.01"),
-                    ethers.ZeroAddress
-                )
-            ).to.be.revertedWith("Agent already registered");
-        });
-    })
-
-
-    describe('#Proposals', () => {
-
-        beforeEach(async function () {
-            await registry.connect(agentOwner).registerAgentWithService(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "Service1",
-                ethers.parseEther("0.01"),
-                ethers.ZeroAddress
-            );
-        });
-
-
-        it("Should add a proposal", async function () {
-            await registry.connect(agentOwner).addProposal(agentAddress, "Service1", ethers.parseEther("0.02"), ethers.ZeroAddress);
-            const proposalId = 2
-            expect(await registry.getProposal(proposalId)).to.deep.equal([
-                agentAddress.address,
-                "Service1",
-                ethers.parseEther("0.02"),
-                ethers.ZeroAddress,
-                proposalId,
-                true
-            ]);
-        });
-
-        it("Should not add a proposal if service is not registered", async function () {
-            await expect(registry.connect(agentOwner).addProposal(agentAddress, "NonExistentService", ethers.parseEther("0.02"), ethers.ZeroAddress))
-                .to.be.revertedWith("Service not registered");
-        });
-
-        it("Should remove a proposal", async function () {
-
-            await registry.connect(agentOwner).addProposal(agentAddress, "Service1", ethers.parseEther("0.02"), ethers.ZeroAddress);
-
-            await registry.connect(agentOwner).removeProposal(agentAddress, 2);
-
-            expect(await registry.getProposal(2)).to.deep.equal([
-                ethers.ZeroAddress,
-                "",
-                0,
-                ethers.ZeroAddress,
-                0,
-                false
-            ]);
-
-
-            await registry.connect(agentOwner).removeProposal(agentAddress, 1);
-
-            expect(await registry.getProposal(1)).to.deep.equal([
-                ethers.ZeroAddress,
-                "",
-                0,
-                ethers.ZeroAddress,
-                0,
-                false
-            ]);
+            expect(agent1Data.owner).to.equal(addr1.address);
+            expect(agent2Data.owner).to.equal(addr2.address);
         });
     });
 
-
-    describe('#Reputation', () => {
-
-        beforeEach(async () => {
-            await registry.connect(agentOwner).registerAgentWithService(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "Service1",
-                ethers.parseEther("0.01"),
-                ethers.ZeroAddress
+    describe("3. Agent Data Management", function () {
+        beforeEach(async function () {
+            await agentsRegistry.connect(addr1).registerAgent(
+                agentAddr1.address,
+                AGENT_NAME_1,
+                AGENT_URI_1
             );
-        })
-        it("Should only allow taskRegistry to add a rating", async function () {
-            // Attempt to add a rating from a different address
-            await expect(registry.connect(agentOwner).addRating(agentAddress, 50)).to.be.revertedWith("Not the TaskRegistry contract");
-
-            await registry.connect(admin).setTaskRegistry(admin);
-
-            await expect(registry.connect(admin).addRating(agentAddress, 50)).to.not.be.reverted;
         });
 
-        it("Should add a rating", async function () {
-            await registry.connect(admin).setTaskRegistry(admin);
+        it("Should update agent data by owner", async function () {
+            const newName = "Updated Agent Name";
+            const newUri = "ipfs://QmUpdatedHash/metadata.json";
 
-            await expect(registry.connect(admin).addRating(agentAddress, 50))
-                .to.emit(registry, "ReputationUpdated")
-                .withArgs(agentAddress, 50);
-            let agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.reputation).to.equal(50);
+            const tx = await agentsRegistry.connect(addr1).setAgentData(
+                agentAddr1.address,
+                newName,
+                newUri
+            );
+
+            await expect(tx)
+                .to.emit(agentsRegistry, "AgentDataUpdated")
+                .withArgs(agentAddr1.address, newName, newUri);
+
+            const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
+            expect(agentData.name).to.equal(newName);
+            expect(agentData.agentUri).to.equal(newUri);
+        });
+
+        it("Should fail to update agent data by non-owner", async function () {
+            await expect(
+                agentsRegistry.connect(addr2).setAgentData(
+                    agentAddr1.address,
+                    "New Name",
+                    "New URI"
+                )
+            ).to.be.revertedWith("Not the owner of the agent");
+        });
+
+        it("Should fail to update non-existent agent", async function () {
+            await expect(
+                agentsRegistry.connect(addr1).setAgentData(
+                    agentAddr2.address,
+                    "New Name",
+                    "New URI"
+                )
+            ).to.be.revertedWith("Not the owner of the agent");
+        });
+    });
+
+    describe("4. Agent Reputation System", function () {
+        beforeEach(async function () {
+            await agentsRegistry.connect(addr1).registerAgent(
+                agentAddr1.address,
+                AGENT_NAME_1,
+                AGENT_URI_1
+            );
+        });
+
+        it("Should add rating to agent", async function () {
+            const rating = 85;
+            const tx = await agentsRegistry.connect(addr2).addRating(agentAddr1.address, rating);
+
+            await expect(tx)
+                .to.emit(agentsRegistry, "ReputationUpdated")
+                .withArgs(agentAddr1.address, rating);
+
+            const reputation = await agentsRegistry.getReputation(agentAddr1.address);
+            expect(reputation).to.equal(rating);
+
+            const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
             expect(agentData.totalRatings).to.equal(1);
-            expect(await registry.getReputation(agentAddress)).to.equal(50);
-
-            await expect(registry.connect(admin).addRating(agentAddress, 100))
-                .to.emit(registry, "ReputationUpdated")
-                .withArgs(agentAddress, 75);
             
-            agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.reputation).to.equal(75);
-            expect(agentData.totalRatings).to.equal(2);
+            // Check that the user has rated
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr2.address)).to.be.true;
+        });
 
-            await expect(registry.connect(admin).addRating(agentAddress, 30))
-            .to.emit(registry, "ReputationUpdated")
-            .withArgs(agentAddress, 60);
-        
-            agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.reputation).to.equal(60);
+        it("Should prevent duplicate ratings from same user", async function () {
+            // First rating should succeed
+            await agentsRegistry.connect(addr1).addRating(agentAddr1.address, 80);
+            
+            // Second rating from same user should fail
+            await expect(
+                agentsRegistry.connect(addr1).addRating(agentAddr1.address, 90)
+            ).to.be.revertedWith("User has already rated this agent");
+            
+            // Check that only one rating was recorded
+            const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
+            expect(agentData.totalRatings).to.equal(1);
+            expect(agentData.reputation).to.equal(80);
+        });
+
+        it("Should calculate average reputation correctly with different users", async function () {
+            // Different users rating the same agent
+            await agentsRegistry.connect(addr1).addRating(agentAddr1.address, 80);
+            await agentsRegistry.connect(addr2).addRating(agentAddr1.address, 90);
+            await agentsRegistry.connect(owner).addRating(agentAddr1.address, 100);
+
+            const reputation = await agentsRegistry.getReputation(agentAddr1.address);
+            expect(reputation).to.equal(90); // (80 + 90 + 100) / 3 = 90
+
+            const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
             expect(agentData.totalRatings).to.equal(3);
-        })
-    })
+        });
 
-    describe('#MigrateAgent', () => {
-        this.beforeEach(async function () {
-            await serviceRegistryV1.registerService("Service1", "Category1", "Description1");
-        })
-
-        // FIXME: figure out why getAgentData is not returning the correct data
-        it("Should migrate an agent to a new registry", async function () {
-            await agentRegistryV1.connect(agentOwner).registerAgent(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "Service1",
-                ethers.parseEther("0.01")
-            );
-
+        it("Should reject rating for non-existent agent", async function () {
             await expect(
-                registry.connect(eveAddress).migrateAgent(agentAddress)
-            ).to.be.revertedWith("Not owner or agent owner");
-
-            await registry.migrateAgent(agentAddress)
-
-            const agentData = await registry.getAgentData(agentAddress);
-
-            expect(agentData.name).to.equal("Service Agent");
-            expect(agentData.agentUri).to.equal(agentUri);
-            expect(agentData.owner).to.equal(agentOwner.address);
-            expect(agentData.agent).to.equal(agentAddress);
-            expect(agentData.reputation).to.equal(0);
-            expect(agentData.totalRatings).to.equal(0);
-        });
-    })
-
-    describe('#SetAgentData', () => {
-        const newAgentName = "Updated Agent Name";
-        const newAgentUri = "https://ipfs.io/ipfs/updated-hash";
-
-        beforeEach(async function () {
-            await registry.connect(agentOwner).registerAgentWithService(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "Service1",
-                ethers.parseEther("0.01"),
-                ethers.ZeroAddress
-            );
+                agentsRegistry.connect(addr1).addRating(agentAddr2.address, 80)
+            ).to.be.revertedWith("Agent not registered");
         });
 
-        it("Should successfully update agent data", async function () {
-            const updateTx = registry.connect(agentOwner).setAgentData(
-                agentAddress,
-                newAgentName,
-                newAgentUri
-            );
-
-            await expect(updateTx)
-                .to.emit(registry, "AgentDataUpdated")
-                .withArgs(agentAddress, newAgentName, newAgentUri);
-
-            const agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.name).to.equal(newAgentName);
-            expect(agentData.agentUri).to.equal(newAgentUri);
-            
-            // Verify other fields remain unchanged
-            expect(agentData.owner).to.equal(agentOwner.address);
-            expect(agentData.agent).to.equal(agentAddress);
-            expect(agentData.reputation).to.equal(0);
-            expect(agentData.totalRatings).to.equal(0);
-        });
-
-        it("Should not allow non-owner to update agent data", async function () {
-            const [, , , unauthorizedUser] = await ethers.getSigners();
-            
+        it("Should reject invalid ratings", async function () {
             await expect(
-                registry.connect(unauthorizedUser).setAgentData(
-                    agentAddress,
-                    newAgentName,
-                    newAgentUri
-                )
-            ).to.be.revertedWith("Not the owner of the agent");
+                agentsRegistry.connect(addr2).addRating(agentAddr1.address, 101)
+            ).to.be.revertedWith("Rating must be between 0 and 100");
         });
 
-        it("Should not allow updating unregistered agent", async function () {
-            const [, , , , unregisteredAgent] = await ethers.getSigners();
+        it("Should handle edge case ratings", async function () {
+            await agentsRegistry.connect(addr1).addRating(agentAddr1.address, 0);
+            let reputation = await agentsRegistry.getReputation(agentAddr1.address);
+            expect(reputation).to.equal(0);
+
+            await agentsRegistry.connect(addr2).addRating(agentAddr1.address, 100);
+            reputation = await agentsRegistry.getReputation(agentAddr1.address);
+            expect(reputation).to.equal(50); // (0 + 100) / 2 = 50
+        });
+
+        it("Should track rating status correctly", async function () {
+            // Check initial state
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr1.address)).to.be.false;
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr2.address)).to.be.false;
             
-            await expect(
-                registry.connect(unregisteredAgent).setAgentData(
-                    unregisteredAgent.address,
-                    newAgentName,
-                    newAgentUri
-                )
-            ).to.be.revertedWith("Not the owner of the agent");
-        });
-
-        it("Should allow updating with empty strings", async function () {
-            const emptyName = "";
-            const emptyUri = "";
-
-            const updateTx = registry.connect(agentOwner).setAgentData(
-                agentAddress,
-                emptyName,
-                emptyUri
-            );
-
-            await expect(updateTx)
-                .to.emit(registry, "AgentDataUpdated")
-                .withArgs(agentAddress, emptyName, emptyUri);
-
-            const agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.name).to.equal(emptyName);
-            expect(agentData.agentUri).to.equal(emptyUri);
-        });
-
-        it("Should allow updating only name", async function () {
-            const originalAgentData = await registry.getAgentData(agentAddress);
+            // Add rating from addr1
+            await agentsRegistry.connect(addr1).addRating(agentAddr1.address, 75);
             
-            await registry.connect(agentOwner).setAgentData(
-                agentAddress,
-                newAgentName,
-                originalAgentData.agentUri // Keep original URI
-            );
-
-            const updatedAgentData = await registry.getAgentData(agentAddress);
-            expect(updatedAgentData.name).to.equal(newAgentName);
-            expect(updatedAgentData.agentUri).to.equal(originalAgentData.agentUri);
-        });
-
-        it("Should allow updating only URI", async function () {
-            const originalAgentData = await registry.getAgentData(agentAddress);
+            // Check updated state
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr1.address)).to.be.true;
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr2.address)).to.be.false;
             
-            await registry.connect(agentOwner).setAgentData(
-                agentAddress,
-                originalAgentData.name, // Keep original name
-                newAgentUri
-            );
-
-            const updatedAgentData = await registry.getAgentData(agentAddress);
-            expect(updatedAgentData.name).to.equal(originalAgentData.name);
-            expect(updatedAgentData.agentUri).to.equal(newAgentUri);
-        });
-
-        it("Should preserve reputation and ratings after update", async function () {
-            // Add some reputation first
-            await registry.connect(admin).setTaskRegistry(admin);
-            await registry.connect(admin).addRating(agentAddress, 80);
+            // Add rating from addr2
+            await agentsRegistry.connect(addr2).addRating(agentAddr1.address, 85);
             
-            const originalAgentData = await registry.getAgentData(agentAddress);
-            expect(originalAgentData.reputation).to.equal(80);
-            expect(originalAgentData.totalRatings).to.equal(1);
-
-            // Update agent data
-            await registry.connect(agentOwner).setAgentData(
-                agentAddress,
-                newAgentName,
-                newAgentUri
-            );
-
-            // Verify reputation and ratings are preserved
-            const updatedAgentData = await registry.getAgentData(agentAddress);
-            expect(updatedAgentData.reputation).to.equal(80);
-            expect(updatedAgentData.totalRatings).to.equal(1);
-            expect(updatedAgentData.name).to.equal(newAgentName);
-            expect(updatedAgentData.agentUri).to.equal(newAgentUri);
-        });
-
-        it("Should allow multiple updates", async function () {
-            // First update
-            await registry.connect(agentOwner).setAgentData(
-                agentAddress,
-                "First Update",
-                "https://first-update.com"
-            );
-
-            let agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.name).to.equal("First Update");
-            expect(agentData.agentUri).to.equal("https://first-update.com");
-
-            // Second update
-            await registry.connect(agentOwner).setAgentData(
-                agentAddress,
-                "Second Update",
-                "https://second-update.com"
-            );
-
-            agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.name).to.equal("Second Update");
-            expect(agentData.agentUri).to.equal("https://second-update.com");
+            // Check final state
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr1.address)).to.be.true;
+            expect(await agentsRegistry.hasUserRated(agentAddr1.address, addr2.address)).to.be.true;
         });
     });
 
-    describe('#RemoveAgent', () => {
+    describe("5. Agent Removal", function () {
         beforeEach(async function () {
-            await serviceRegistry.registerService("RemoveService", "Category1", "Description1");
-            await registry.connect(agentOwner).registerAgentWithService(
-                agentAddress,
-                "Service Agent",
-                agentUri,
-                "RemoveService",
-                ethers.parseEther("0.01"),
-                ethers.ZeroAddress
+            await agentsRegistry.connect(addr1).registerAgent(
+                agentAddr1.address,
+                AGENT_NAME_1,
+                AGENT_URI_1
             );
         });
 
-        it("Should successfully remove an agent", async function () {
-            const removeTx = registry.connect(agentOwner).removeAgent(agentAddress);
+        it("Should remove agent by owner", async function () {
+            const tx = await agentsRegistry.connect(addr1).removeAgent(agentAddr1.address);
 
-            await expect(removeTx)
-                .to.emit(registry, "AgentRemoved")
-                .withArgs(agentAddress, agentOwner.address)
-                .to.emit(registry, "ProposalRemoved")
-                .withArgs(agentAddress, 1);
+            await expect(tx)
+                .to.emit(agentsRegistry, "AgentRemoved")
+                .withArgs(agentAddr1.address, addr1.address);
 
-            // Verify agent data is cleared
-            const agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.agent).to.equal(ethers.ZeroAddress);
-            expect(agentData.owner).to.equal(ethers.ZeroAddress);
+            const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
+            expect(agentData.agent).to.equal(ZERO_ADDRESS);
+            expect(agentData.name).to.equal("");
+        });
+
+        it("Should fail to remove agent by non-owner", async function () {
+            await expect(
+                agentsRegistry.connect(addr2).removeAgent(agentAddr1.address)
+            ).to.be.revertedWith("Not the owner of the agent");
+        });
+
+        it("Should fail to remove non-existent agent", async function () {
+            await expect(
+                agentsRegistry.connect(addr1).removeAgent(agentAddr2.address)
+            ).to.be.revertedWith("Not the owner of the agent");
+        });
+
+        it("Should allow re-registration after removal", async function () {
+            await agentsRegistry.connect(addr1).removeAgent(agentAddr1.address);
+
+            // Should be able to register the same agent address again
+            await agentsRegistry.connect(addr2).registerAgent(
+                agentAddr1.address,
+                AGENT_NAME_2,
+                AGENT_URI_2
+            );
+
+            const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
+            expect(agentData.owner).to.equal(addr2.address);
+            expect(agentData.name).to.equal(AGENT_NAME_2);
+        });
+    });
+
+    describe("6. Service Registry Management", function () {
+        it("Should set service registry by owner", async function () {
+            const newServiceRegistry = await upgrades.deployProxy(ServiceRegistry, [], {
+                initializer: "initialize",
+                kind: "uups"
+            });
+            await newServiceRegistry.waitForDeployment();
+
+            await agentsRegistry.connect(owner).setServiceRegistry(
+                await newServiceRegistry.getAddress()
+            );
+
+            expect(await agentsRegistry.serviceRegistry()).to.equal(
+                await newServiceRegistry.getAddress()
+            );
+        });
+
+        it("Should fail to set service registry by non-owner", async function () {
+            await expect(
+                agentsRegistry.connect(addr1).setServiceRegistry(addr2.address)
+            ).to.be.reverted;
+        });
+
+        it("Should fail to set zero address as service registry", async function () {
+            await expect(
+                agentsRegistry.connect(owner).setServiceRegistry(ZERO_ADDRESS)
+            ).to.be.revertedWith("Invalid address");
+        });
+    });
+
+    describe("7. Access Control", function () {
+        beforeEach(async function () {
+            await agentsRegistry.connect(addr1).registerAgent(
+                agentAddr1.address,
+                AGENT_NAME_1,
+                AGENT_URI_1
+            );
+        });
+
+        it("Should enforce onlyAgentOwner modifier", async function () {
+            // Try to update agent data as non-owner
+            await expect(
+                agentsRegistry.connect(addr2).setAgentData(
+                    agentAddr1.address,
+                    "New Name",
+                    "New URI"
+                )
+            ).to.be.revertedWith("Not the owner of the agent");
+
+            // Try to remove agent as non-owner
+            await expect(
+                agentsRegistry.connect(addr2).removeAgent(agentAddr1.address)
+            ).to.be.revertedWith("Not the owner of the agent");
+        });
+
+        it("Should enforce onlyOwner modifier", async function () {
+            await expect(
+                agentsRegistry.connect(addr1).setServiceRegistry(addr2.address)
+            ).to.be.reverted;
+        });
+    });
+
+    describe("8. Data Retrieval", function () {
+        beforeEach(async function () {
+            await agentsRegistry.connect(addr1).registerAgent(
+                agentAddr1.address,
+                AGENT_NAME_1,
+                AGENT_URI_1
+            );
+            await agentsRegistry.connect(addr2).addRating(agentAddr1.address, 75);
+        });
+
+        it("Should retrieve complete agent data", async function () {
+            const agentData = await agentsRegistry.getAgentData(agentAddr1.address);
+            
+            expect(agentData.name).to.equal(AGENT_NAME_1);
+            expect(agentData.agentUri).to.equal(AGENT_URI_1);
+            expect(agentData.owner).to.equal(addr1.address);
+            expect(agentData.agent).to.equal(agentAddr1.address);
+            expect(agentData.reputation).to.equal(75);
+            expect(agentData.totalRatings).to.equal(1);
+        });
+
+        it("Should retrieve reputation separately", async function () {
+            const reputation = await agentsRegistry.getReputation(agentAddr1.address);
+            expect(reputation).to.equal(75);
+        });
+
+        it("Should return zero values for non-existent agent", async function () {
+            const agentData = await agentsRegistry.getAgentData(agentAddr2.address);
+            
             expect(agentData.name).to.equal("");
             expect(agentData.agentUri).to.equal("");
+            expect(agentData.owner).to.equal(ZERO_ADDRESS);
+            expect(agentData.agent).to.equal(ZERO_ADDRESS);
             expect(agentData.reputation).to.equal(0);
             expect(agentData.totalRatings).to.equal(0);
-
-            // Verify proposal is removed
-            const proposal = await registry.getProposal(1);
-            expect(proposal.issuer).to.equal(ethers.ZeroAddress);
-            expect(proposal.serviceName).to.equal("");
-            expect(proposal.isActive).to.equal(false);
-        });
-
-        it("Should not allow non-owner to remove agent", async function () {
-            const [, , , unauthorizedUser] = await ethers.getSigners();
-            
-            await expect(
-                registry.connect(unauthorizedUser).removeAgent(agentAddress)
-            ).to.be.revertedWith("Not the owner of the agent");
-        });
-
-        it("Should not allow removing non-existent agent", async function () {
-            const [, , , , unregisteredAgent] = await ethers.getSigners();
-            
-            await expect(
-                registry.connect(unregisteredAgent).removeAgent(unregisteredAgent.address)
-            ).to.be.revertedWith("Not the owner of the agent");
-        });
-
-        it("Should allow re-registration after removing", async function () {
-            // Remove agent
-            await registry.connect(agentOwner).removeAgent(agentAddress);
-
-            // Re-register the same agent
-            const reregisterTx = registry.connect(agentOwner).registerAgent(
-                agentAddress,
-                "Re-registered Agent",
-                "https://new-uri.com"
-            );
-
-            await expect(reregisterTx)
-                .to.emit(registry, "AgentRegistered")
-                .withArgs(agentAddress, agentOwner.address, "Re-registered Agent", "https://new-uri.com");
-
-            const agentData = await registry.getAgentData(agentAddress);
-            expect(agentData.name).to.equal("Re-registered Agent");
-            expect(agentData.agentUri).to.equal("https://new-uri.com");
-            expect(agentData.owner).to.equal(agentOwner.address);
-            expect(agentData.agent).to.equal(agentAddress);
-            expect(agentData.reputation).to.equal(0);
-            expect(agentData.totalRatings).to.equal(0);
-        });
-
-        it("Should remove multiple proposals when removing", async function () {
-            // Add another proposal
-            await registry.connect(agentOwner).addProposal(
-                agentAddress, 
-                "RemoveService", 
-                ethers.parseEther("0.02"), 
-                ethers.ZeroAddress
-            );
-
-            const removeTx = registry.connect(agentOwner).removeAgent(agentAddress);
-
-            await expect(removeTx)
-                .to.emit(registry, "AgentRemoved")
-                .withArgs(agentAddress, agentOwner.address)
-                .to.emit(registry, "ProposalRemoved")
-                .withArgs(agentAddress, 2);
-
-            // Verify that only the active proposal was removed (proposal 1 was already removed)
-            const proposal1 = await registry.getProposal(1);
-            const proposal2 = await registry.getProposal(2);
-            
-            // Proposal 1 should remain in its already-removed state
-            expect(proposal1.issuer).to.equal(ethers.ZeroAddress);
-            expect(proposal1.isActive).to.equal(false);
-            
-            // Proposal 2 should now be removed by remove
-            expect(proposal2.issuer).to.equal(ethers.ZeroAddress);
-            expect(proposal2.isActive).to.equal(false);
-        });
-
-        it("Should preserve reputation history for other agents", async function () {
-            // Register another agent
-            const [, , , , secondAgent] = await ethers.getSigners();
-            await registry.connect(agentOwner).registerAgent(
-                secondAgent.address,
-                "Second Agent",
-                agentUri
-            );
-
-            // Add reputation to both agents
-            await registry.connect(admin).setTaskRegistry(admin);
-            await registry.connect(admin).addRating(agentAddress, 80);
-            await registry.connect(admin).addRating(secondAgent.address, 90);
-
-            // Remove first agent
-            await registry.connect(agentOwner).removeAgent(agentAddress);
-
-            // Verify second agent's reputation is preserved
-            const secondAgentData = await registry.getAgentData(secondAgent.address);
-            expect(secondAgentData.reputation).to.equal(90);
-            expect(secondAgentData.totalRatings).to.equal(1);
-
-            // Verify first agent's data is cleared
-            const firstAgentData = await registry.getAgentData(agentAddress);
-            expect(firstAgentData.reputation).to.equal(0);
-            expect(firstAgentData.totalRatings).to.equal(0);
-        });
-
-        it("Should handle removing agent with no proposals", async function () {
-            // Register agent without proposals
-            const [, , , , agentWithoutProposals] = await ethers.getSigners();
-            await registry.connect(agentOwner).registerAgent(
-                agentWithoutProposals.address,
-                "Agent Without Proposals",
-                agentUri
-            );
-
-            const removeTx = registry.connect(agentOwner).removeAgent(agentWithoutProposals.address);
-
-            await expect(removeTx)
-                .to.emit(registry, "AgentRemoved")
-                .withArgs(agentWithoutProposals.address, agentOwner.address);
-            
-            // Should not emit ProposalRemoved events since there are no proposals
-            await expect(removeTx).to.not.emit(registry, "ProposalRemoved");
-
-            // Verify agent data is cleared
-            const agentData = await registry.getAgentData(agentWithoutProposals.address);
-            expect(agentData.agent).to.equal(ethers.ZeroAddress);
-        });
-
-        it("Should handle removing agent after some proposals were already removed", async function () {
-            // Add multiple proposals
-            await registry.connect(agentOwner).addProposal(
-                agentAddress, 
-                "RemoveService", 
-                ethers.parseEther("0.02"), 
-                ethers.ZeroAddress
-            );
-
-            // Remove one proposal manually
-            await registry.connect(agentOwner).removeProposal(agentAddress, 1);
-
-            // Remove agent (should only remove remaining active proposal)
-            const removeTx = registry.connect(agentOwner).removeAgent(agentAddress);
-
-            await expect(removeTx)
-                .to.emit(registry, "AgentRemoved")
-                .withArgs(agentAddress, agentOwner.address)
-                .to.emit(registry, "ProposalRemoved")
-                .withArgs(agentAddress, 2);
-
-            // Verify both proposals are now removed (one was manually removed, one removed by remove)
-            const proposal1 = await registry.getProposal(1);
-            const proposal2 = await registry.getProposal(2);
-            
-            expect(proposal1.issuer).to.equal(ethers.ZeroAddress);
-            expect(proposal1.isActive).to.equal(false);
-            expect(proposal2.issuer).to.equal(ethers.ZeroAddress);
-            expect(proposal2.isActive).to.equal(false);
         });
     });
 });

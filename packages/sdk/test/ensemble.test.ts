@@ -36,6 +36,10 @@ describe("Ensemble Unit Tests", () => {
 
     serviceRegistryService = {
       registerService: jest.fn(),
+      getServiceById: jest.fn(),
+      updateService: jest.fn(),
+      deleteService: jest.fn(),
+      listServices: jest.fn(),
       setSigner: jest.fn(),
     } as unknown as jest.Mocked<ServiceRegistryService>;
 
@@ -192,25 +196,63 @@ describe("Ensemble Unit Tests", () => {
   it("should successfully register a service", async () => {
     const service = {
       name: "Test Service",
-      category: "Utility",
-      description: "This is a test service.",
+      metadata: {
+        category: "other" as const,
+        description: "This is a test service.",
+        endpointSchema: "https://api.example.com/test",
+        method: "HTTP_POST" as const,
+        parametersSchema: {},
+        resultSchema: {}
+      }
     };
 
-    serviceRegistryService.registerService.mockResolvedValueOnce(true);
+    const mockServiceRecord = {
+      id: "test-service-id",
+      name: "Test Service",
+      owner: "0x123",
+      agentAddress: "0x456",
+      serviceUri: "ipfs://test",
+      status: "draft" as const,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...service.metadata
+    };
+
+    serviceRegistryService.registerService.mockResolvedValueOnce(mockServiceRecord);
 
     const response = await sdk.registerService(service);
 
-    expect(response).toEqual(true);
+    expect(response).toEqual(mockServiceRecord);
   });
 
   it("should fail to register the same service twice", async () => {
     const service = {
       name: "Test Service Failed",
-      category: "Utility",
-      description: "This is a test service.",
+      metadata: {
+        category: "other" as const,
+        description: "This is a test service.",
+        endpointSchema: "https://api.example.com/test",
+        method: "HTTP_POST" as const,
+        parametersSchema: {},
+        resultSchema: {}
+      }
     };
 
-    serviceRegistryService.registerService.mockResolvedValueOnce(true);
+    const mockServiceRecord = {
+      id: "test-service-id",
+      name: "Test Service Failed",
+      owner: "0x123",
+      agentAddress: "0x456",
+      serviceUri: "ipfs://test",
+      status: "draft" as const,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...service.metadata
+    };
+
+    serviceRegistryService.registerService.mockResolvedValueOnce(mockServiceRecord);
     serviceRegistryService.registerService.mockRejectedValueOnce(
       new ServiceAlreadyRegisteredError(service.name)
     );
@@ -219,6 +261,129 @@ describe("Ensemble Unit Tests", () => {
     await expect(sdk.registerService(service)).rejects.toThrow(
       ServiceAlreadyRegisteredError
     );
+  });
+
+  it("should successfully get a service by ID", async () => {
+    const serviceId = "test-service-id";
+    const mockServiceRecord = {
+      id: serviceId,
+      name: "Test Service",
+      owner: "0x123",
+      agentAddress: "0x456",
+      serviceUri: "ipfs://test",
+      status: "draft" as const,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      category: "other" as const,
+      description: "This is a test service.",
+      endpointSchema: "https://api.example.com/test",
+      method: "HTTP_POST" as const,
+      parametersSchema: {},
+      resultSchema: {}
+    };
+
+    serviceRegistryService.getServiceById.mockResolvedValueOnce(mockServiceRecord);
+    const response = await sdk.getServiceById(serviceId);
+
+    expect(response).toEqual(mockServiceRecord);
+    expect(serviceRegistryService.getServiceById).toHaveBeenCalledWith(serviceId);
+  });
+
+  it("should successfully update a service", async () => {
+    const serviceId = "test-service-id";
+    const updates = {
+      id: serviceId,
+      name: "Updated Service Name",
+      metadata: {
+        description: "Updated description"
+      }
+    };
+    const mockUpdatedService = {
+      id: serviceId,
+      name: "Updated Service Name",
+      owner: "0x123",
+      agentAddress: "0x456",
+      serviceUri: "ipfs://test",
+      status: "draft" as const,
+      version: 2,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      category: "other" as const,
+      description: "Updated description",
+      endpointSchema: "https://api.example.com/test",
+      method: "HTTP_POST" as const,
+      parametersSchema: {},
+      resultSchema: {}
+    };
+
+    serviceRegistryService.updateService.mockResolvedValueOnce(mockUpdatedService);
+    const response = await sdk.updateService(serviceId, updates);
+
+    expect(response).toEqual(mockUpdatedService);
+    expect(serviceRegistryService.updateService).toHaveBeenCalledWith(serviceId, updates);
+  });
+
+  it("should successfully delete a service", async () => {
+    const serviceId = "test-service-id";
+
+    serviceRegistryService.deleteService.mockResolvedValueOnce(true);
+    const response = await sdk.deleteService(serviceId);
+
+    expect(response).toBe(true);
+    expect(serviceRegistryService.deleteService).toHaveBeenCalledWith(serviceId);
+  });
+
+  it("should successfully list services with filters", async () => {
+    const filters = {
+      owner: "0x123",
+      category: "other",
+      status: ["draft" as const, "published" as const],
+      limit: 10,
+      offset: 0
+    };
+    const mockServices = [
+      {
+        id: "service-1",
+        name: "Service 1",
+        owner: "0x123",
+        agentAddress: "0x456",
+        serviceUri: "ipfs://test1",
+        status: "draft" as const,
+        version: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        category: "other" as const,
+        description: "Service 1",
+        endpointSchema: "https://api.example.com/service1",
+        method: "HTTP_POST" as const,
+        parametersSchema: {},
+        resultSchema: {}
+      },
+      {
+        id: "service-2",
+        name: "Service 2",
+        owner: "0x123",
+        agentAddress: "0x789",
+        serviceUri: "ipfs://test2",
+        status: "published" as const,
+        version: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        category: "other" as const,
+        description: "Service 2",
+        endpointSchema: "https://api.example.com/service2",
+        method: "HTTP_GET" as const,
+        parametersSchema: {},
+        resultSchema: {}
+      }
+    ];
+
+    serviceRegistryService.listServices.mockResolvedValueOnce(mockServices);
+    const response = await sdk.listServices(filters);
+
+    expect(response).toEqual(mockServices);
+    expect(serviceRegistryService.listServices).toHaveBeenCalledWith(filters);
   });
 
   it("should not create a task without a proposal", async () => {
@@ -487,11 +652,37 @@ describe("Ensemble Unit Tests", () => {
       it("should throw error when registerService called without signer", async () => {
         const service = {
           name: "Test Service",
-          category: "Utility",
-          description: "Test service description",
+          metadata: {
+            category: "other" as const,
+            description: "Test service description",
+            endpointSchema: "https://api.example.com/test",
+            method: "HTTP_POST" as const,
+            parametersSchema: {},
+            resultSchema: {}
+          }
         };
 
         await expect(ensemble.registerService(service)).rejects.toThrow(
+          "Signer required for write operations. Call setSigner() first."
+        );
+      });
+
+      it("should throw error when updateService called without signer", async () => {
+        const updates = {
+          id: "service-id",
+          name: "Updated Service Name",
+          metadata: {
+            description: "Updated description"
+          }
+        };
+
+        await expect(ensemble.updateService("service-id", updates)).rejects.toThrow(
+          "Signer required for write operations. Call setSigner() first."
+        );
+      });
+
+      it("should throw error when deleteService called without signer", async () => {
+        await expect(ensemble.deleteService("service-id")).rejects.toThrow(
           "Signer required for write operations. Call setSigner() first."
         );
       });
