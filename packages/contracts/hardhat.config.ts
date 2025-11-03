@@ -62,11 +62,12 @@ const config: HardhatUserConfig = {
         },
         somniaTestnet: {
             url: "https://dream-rpc.somnia.network",
-            accounts: [ process.env.PRIVATE_KEY! ],
+            accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
             chainId: 50312,
-            allowUnlimitedContractSize: false,
-            gas: "auto",
-            gasPrice: "auto",
+            gasMultiplier: 1.2
+            // allowUnlimitedContractSize: false,
+            // gas: "auto",
+            // gasPrice: "auto",
         }
     },
     paths: {

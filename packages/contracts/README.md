@@ -237,6 +237,20 @@ Before mainnet deployment:
 
 Contracts are deployed to the following networks.
 
+### v3.2 - Somnia Testnet
+
+```txt
+ENSEMBLE_CREDITS_ADDRESS=0xfEE4F3a034B242f2DdadC2f3090787FFaaa0a7b6
+
+# Proxy Addresses (Use these for interactions)
+AGENTS_REGISTRY_ADDRESS=0xF8509bE0589Ba90BE8c9cd011EC05FcD0127673F
+TASK_REGISTRY_ADDRESS=0xfd35138F35e1F39766E6a4a9F01eB326EFEF6B58
+
+# Implementation Addresses (For verification and upgrades)
+AGENTS_REGISTRY_IMPLEMENTATION_ADDRESS=0x346Fb1e8B84427510b8F916e2863D0f9e9cae7Df
+TASK_REGISTRY_IMPLEMENTATION_ADDRESS=0x57f335f38E9900E15f4Fb3d97F745DC7eDC13ffa
+```
+
 ### v3.2 - Base Sepolia
 
 ```txt
