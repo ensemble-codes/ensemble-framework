@@ -1,12 +1,12 @@
 {
-  "AgentsRegistryUpgradeableModule#AgentsRegistryImpl": "0x54D38F096926915daae83f4F2a774EfA27a5Bc97",
-  "EnsembleCreditsModule#EnsembleCredits": "0x42b3286d260036568E1447Ff7D4F45a21E5120F1",
-  "ServiceRegistryUpgradeableModule#ServiceRegistryImpl": "0xa426a6874aCA4Af6A645F215c650a1643AC3E2fe",
-  "TaskRegistryUpgradeableModule#TaskRegistryImpl": "0x025a5d27FF77d77019e21e64B857D825B2082DBa",
-  "ServiceRegistryUpgradeableModule#ServiceRegistryProxy": "0x3Acbf1Ca047a18bE88E7160738A9B0bB64203244",
-  "ServiceRegistryUpgradeableModule#ServiceRegistryProxied": "0x3Acbf1Ca047a18bE88E7160738A9B0bB64203244",
-  "AgentsRegistryUpgradeableModule#AgentsRegistryProxy": "0xDbF645cC23066cc364C4Db915c78135eE52f11B2",
-  "AgentsRegistryUpgradeableModule#AgentsRegistryProxied": "0xDbF645cC23066cc364C4Db915c78135eE52f11B2",
-  "TaskRegistryUpgradeableModule#TaskRegistryProxy": "0x847fA49b999489fD2780fe2843A7b1608106b49b",
-  "TaskRegistryUpgradeableModule#TaskRegistryProxied": "0x847fA49b999489fD2780fe2843A7b1608106b49b"
+  "AgentsRegistryUpgradeableModule#AgentsRegistryImpl": "0xAb38118AD1768baAa59bDB982029F08750274364",
+  "EnsembleCreditsModule#EnsembleCredits": "0x5C1fef4B208f56C6ebdF4e9dD52364CE5f921DD8",
+  "ServiceRegistryUpgradeableModule#ServiceRegistryImpl": "0x8C19A576158de60Cab40207C1d2E4D1D7fb43F31",
+  "TaskRegistryUpgradeableModule#TaskRegistryImpl": "0x89c33DEdd6e579131FbD3fCD07513653a0E812eD",
+  "ServiceRegistryUpgradeableModule#ServiceRegistryProxy": "0x05506f4eA523C103820b4733663Bbbd0D119806f",
+  "ServiceRegistryUpgradeableModule#ServiceRegistryProxied": "0x05506f4eA523C103820b4733663Bbbd0D119806f",
+  "AgentsRegistryUpgradeableModule#AgentsRegistryProxy": "0xdc9Cdb9A7Bc2CE2bF19dEc0058dd587DE0456EE9",
+  "AgentsRegistryUpgradeableModule#AgentsRegistryProxied": "0xdc9Cdb9A7Bc2CE2bF19dEc0058dd587DE0456EE9",
+  "TaskRegistryUpgradeableModule#TaskRegistryProxy": "0xa16e7A279931712a651822a8A4035B5733c7f811",
+  "TaskRegistryUpgradeableModule#TaskRegistryProxied": "0xa16e7A279931712a651822a8A4035B5733c7f811"
 }

@@ -59,6 +59,14 @@ const config: HardhatUserConfig = {
             allowUnlimitedContractSize: false,
             gas: "auto",
             gasPrice: "auto",
+        },
+        somniaTestnet: {
+            url: "https://dream-rpc.somnia.network",
+            accounts: [ process.env.PRIVATE_KEY! ],
+            chainId: 50312,
+            allowUnlimitedContractSize: false,
+            gas: "auto",
+            gasPrice: "auto",
         }
     },
     paths: {
@@ -90,6 +98,14 @@ const config: HardhatUserConfig = {
             urls: {
               apiURL: "https://api-sepolia.basescan.org/api",
               browserURL: "https://sepolia.basescan.org"
+            }
+          },
+          {
+            network: "somniaTestnet",
+            chainId: 50312,
+            urls: {
+              apiURL: "https://dream-rpc.somnia.network",
+              browserURL: "https://shannon-explorer.somnia.network/"
             }
           }
       ]
